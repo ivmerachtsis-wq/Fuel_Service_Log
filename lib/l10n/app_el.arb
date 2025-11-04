@@ -1,0 +1,16 @@
+{
+	"@@locale": "el",
+	"appTitle": "Fuel & Service Log",
+	"tabFuel": "Καύσιμα",
+	"tabService": "Service",
+	"tabStats": "Στατιστικά",
+	"tabSettings": "Ρυθμίσεις",
+	"emptyFuel": "Δεν υπάρχουν καταχωρήσεις καυσίμων",
+	"emptyService": "Δεν υπάρχουν καταχωρήσεις service",
+	"statsTitle": "Στατιστικά",
+	"settingsTitle": "Ρυθμίσεις",
+	"actionAdd": "Προσθήκη",
+	"actionEdit": "Επεξεργασία",
+	"actionDelete": "Διαγραφή",
+	"actionUndo": "Αναίρεση"
+}

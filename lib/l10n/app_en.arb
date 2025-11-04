@@ -1,0 +1,16 @@
+{
+	"@@locale": "en",
+	"appTitle": "Fuel & Service Log",
+	"tabFuel": "Fuel",
+	"tabService": "Service",
+	"tabStats": "Stats",
+	"tabSettings": "Settings",
+	"emptyFuel": "No fuel entries yet",
+	"emptyService": "No service entries yet",
+	"statsTitle": "Statistics",
+	"settingsTitle": "Settings",
+	"actionAdd": "Add",
+	"actionEdit": "Edit",
+	"actionDelete": "Delete",
+	"actionUndo": "Undo"
+}
