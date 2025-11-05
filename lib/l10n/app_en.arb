@@ -12,5 +12,16 @@
 	"actionAdd": "Add",
 	"actionEdit": "Edit",
 	"actionDelete": "Delete",
-	"actionUndo": "Undo"
+	"actionUndo": "Undo",
+	"addFuel": "Add Fuel Entry",
+	"addService": "Add Service Entry",
+	"exportCsv": "Export CSV",
+	"backupJson": "Backup JSON",
+	"restoreJson": "Restore JSON",
+	"language": "Language",
+	"theme": "Theme",
+	"currency": "Currency",
+	"successExport": "Export completed successfully",
+	"successBackup": "Backup created successfully",
+	"successRestore": "Restore completed successfully"
 }

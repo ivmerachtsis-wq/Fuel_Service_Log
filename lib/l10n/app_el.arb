@@ -1,6 +1,6 @@
 {
 	"@@locale": "el",
-	"appTitle": "Fuel & Service Log",
+	"appTitle": "Καταγραφή Καυσίμων & Service",
 	"tabFuel": "Καύσιμα",
 	"tabService": "Service",
 	"tabStats": "Στατιστικά",
@@ -12,5 +12,16 @@
 	"actionAdd": "Προσθήκη",
 	"actionEdit": "Επεξεργασία",
 	"actionDelete": "Διαγραφή",
-	"actionUndo": "Αναίρεση"
+	"actionUndo": "Αναίρεση",
+	"addFuel": "Νέα Καταχώρηση Καυσίμου",
+	"addService": "Νέα Καταχώρηση Service",
+	"exportCsv": "Εξαγωγή CSV",
+	"backupJson": "Δημιουργία Αντιγράφου",
+	"restoreJson": "Επαναφορά Αντιγράφου",
+	"language": "Γλώσσα",
+	"theme": "Θέμα",
+	"currency": "Νόμισμα",
+	"successExport": "Η εξαγωγή ολοκληρώθηκε επιτυχώς",
+	"successBackup": "Το αντίγραφο δημιουργήθηκε επιτυχώς",
+	"successRestore": "Η επαναφορά ολοκληρώθηκε επιτυχώς"
 }

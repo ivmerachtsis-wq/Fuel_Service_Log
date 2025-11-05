@@ -9,7 +9,7 @@ class AppLocalizationsEl extends AppLocalizations {
   AppLocalizationsEl([String locale = 'el']) : super(locale);
 
   @override
-  String get appTitle => 'Fuel & Service Log';
+  String get appTitle => 'Καταγραφή Καυσίμων & Service';
 
   @override
   String get tabFuel => 'Καύσιμα';
@@ -46,4 +46,37 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get actionUndo => 'Αναίρεση';
+
+  @override
+  String get addFuel => 'Νέα Καταχώρηση Καυσίμου';
+
+  @override
+  String get addService => 'Νέα Καταχώρηση Service';
+
+  @override
+  String get exportCsv => 'Εξαγωγή CSV';
+
+  @override
+  String get backupJson => 'Δημιουργία Αντιγράφου';
+
+  @override
+  String get restoreJson => 'Επαναφορά Αντιγράφου';
+
+  @override
+  String get language => 'Γλώσσα';
+
+  @override
+  String get theme => 'Θέμα';
+
+  @override
+  String get currency => 'Νόμισμα';
+
+  @override
+  String get successExport => 'Η εξαγωγή ολοκληρώθηκε επιτυχώς';
+
+  @override
+  String get successBackup => 'Το αντίγραφο δημιουργήθηκε επιτυχώς';
+
+  @override
+  String get successRestore => 'Η επαναφορά ολοκληρώθηκε επιτυχώς';
 }

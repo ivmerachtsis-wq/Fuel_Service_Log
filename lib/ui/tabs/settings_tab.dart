@@ -2,14 +2,18 @@ import 'package:flutter/material.dart';
 import '../../services/export_csv.dart';
 import '../../services/backup_restore.dart';
 import '../../state/active_vehicle_controller.dart';
+import '../../state/settings_controller.dart';
+import '../../l10n/app_localizations.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
 class SettingsTab extends StatelessWidget {
-  const SettingsTab({super.key});
+  final SettingsController settings;
+  const SettingsTab({required this.settings, super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final exportSvc = ExportCsvService();
     final backupSvc = BackupRestoreService();
     final active = ActiveVehicleController();
@@ -17,55 +21,86 @@ class SettingsTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        const ListTile(
-          leading: Icon(Icons.settings),
-          title: Text('Settings'),
-          subtitle: Text('General preferences'),
+        ListTile(
+          leading: const Icon(Icons.settings),
+          title: Text(l10n.settingsTitle),
+          subtitle: const Text('General preferences'),
+        ),
+        const Divider(),
+        ListTile(
+          leading: const Icon(Icons.language),
+          title: Text(l10n.language),
+          trailing: DropdownButton<String>(
+            value: settings.currentLocale.languageCode,
+            items: const [
+              DropdownMenuItem(value: 'en', child: Text('English')),
+              DropdownMenuItem(value: 'el', child: Text('Ελληνικά')),
+            ],
+            onChanged: (value) {
+              if (value != null) {
+                settings.setLocale(Locale(value));
+              }
+            },
+          ),
         ),
         const Divider(),
         ListTile(
           leading: const Icon(Icons.file_download),
-          title: const Text('Export CSV (active vehicle)'),
+          title: Text(l10n.exportCsv),
           subtitle: const Text('Fuel & Service entries as CSV files'),
           onTap: () async {
             try {
               final vehicleId = await active.getActiveVehicleId();
-              final fuelPath = await exportSvc.exportFuelToCsv(vehicleId);
-              final servicePath = await exportSvc.exportServiceToCsv(vehicleId);
-              _showSnack(context, 'Εξαγωγή ολοκληρώθηκε: \n$fuelPath\n$servicePath');
+              await exportSvc.exportFuelToCsv(vehicleId);
+              await exportSvc.exportServiceToCsv(vehicleId);
+              if (context.mounted) {
+                _showSnack(context, l10n.successExport);
+              }
             } catch (e) {
-              _showSnack(context, 'Σφάλμα εξαγωγής: $e');
+              if (context.mounted) {
+                _showSnack(context, 'Error: $e');
+              }
             }
           },
         ),
         ListTile(
           leading: const Icon(Icons.backup),
-          title: const Text('Backup JSON'),
+          title: Text(l10n.backupJson),
           onTap: () async {
             try {
-              final path = await backupSvc.exportToJson();
-              _showSnack(context, 'Backup δημιουργήθηκε: $path');
+              await backupSvc.exportToJson();
+              if (context.mounted) {
+                _showSnack(context, l10n.successBackup);
+              }
             } catch (e) {
-              _showSnack(context, 'Σφάλμα backup: $e');
+              if (context.mounted) {
+                _showSnack(context, 'Error: $e');
+              }
             }
           },
         ),
         ListTile(
           leading: const Icon(Icons.restore),
-          title: const Text('Restore JSON (last backup)'),
+          title: Text(l10n.restoreJson),
           subtitle: const Text('Εισαγωγή από το τελευταίο αρχείο στο backups'),
           onTap: () async {
             try {
               // Βρίσκουμε το πιο πρόσφατο backup στο φάκελο μας
               final path = await _latestBackupPath();
               if (path == null) {
-                _showSnack(context, 'Δεν βρέθηκε backup');
+                if (context.mounted) {
+                  _showSnack(context, 'Δεν βρέθηκε backup');
+                }
                 return;
               }
               await backupSvc.importFromJson(path);
-              _showSnack(context, 'Restore ολοκληρώθηκε');
+              if (context.mounted) {
+                _showSnack(context, l10n.successRestore);
+              }
             } catch (e) {
-              _showSnack(context, 'Σφάλμα restore: $e');
+              if (context.mounted) {
+                _showSnack(context, 'Error: $e');
+              }
             }
           },
         ),

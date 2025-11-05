@@ -172,6 +172,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Undo'**
   String get actionUndo;
+
+  /// No description provided for @addFuel.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Fuel Entry'**
+  String get addFuel;
+
+  /// No description provided for @addService.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Service Entry'**
+  String get addService;
+
+  /// No description provided for @exportCsv.
+  ///
+  /// In en, this message translates to:
+  /// **'Export CSV'**
+  String get exportCsv;
+
+  /// No description provided for @backupJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup JSON'**
+  String get backupJson;
+
+  /// No description provided for @restoreJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore JSON'**
+  String get restoreJson;
+
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
+
+  /// No description provided for @theme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get theme;
+
+  /// No description provided for @currency.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get currency;
+
+  /// No description provided for @successExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export completed successfully'**
+  String get successExport;
+
+  /// No description provided for @successBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup created successfully'**
+  String get successBackup;
+
+  /// No description provided for @successRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore completed successfully'**
+  String get successRestore;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

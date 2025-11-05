@@ -46,4 +46,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get actionUndo => 'Undo';
+
+  @override
+  String get addFuel => 'Add Fuel Entry';
+
+  @override
+  String get addService => 'Add Service Entry';
+
+  @override
+  String get exportCsv => 'Export CSV';
+
+  @override
+  String get backupJson => 'Backup JSON';
+
+  @override
+  String get restoreJson => 'Restore JSON';
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get theme => 'Theme';
+
+  @override
+  String get currency => 'Currency';
+
+  @override
+  String get successExport => 'Export completed successfully';
+
+  @override
+  String get successBackup => 'Backup created successfully';
+
+  @override
+  String get successRestore => 'Restore completed successfully';
 }

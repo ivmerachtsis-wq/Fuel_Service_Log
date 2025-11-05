@@ -10,11 +10,17 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:fuel_service_log/main.dart';
 import 'package:fuel_service_log/state/navigation_controller.dart';
+import 'package:fuel_service_log/state/settings_controller.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
   // Build our app and trigger a frame.
-  await tester.pumpWidget(MyApp(controller: NavigationController(0)));
+  final settings = SettingsController();
+  await settings.init();
+  await tester.pumpWidget(MyApp(
+    controller: NavigationController(0),
+    settings: settings,
+  ));
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);
