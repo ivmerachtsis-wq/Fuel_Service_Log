@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 /// Χρησιμοποιεί `ValueNotifier<int>` για το ενεργό tab.
 class NavigationController extends ValueNotifier<int> {
   /// Δημιουργεί controller με προεπιλεγμένο αρχικό index.
-  NavigationController([int initial = 0]) : super(initial);
+  NavigationController([super.value = 0]);
 
   int get index => value;
 
