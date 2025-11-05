@@ -23,5 +23,10 @@
 	"currency": "Νόμισμα",
 	"successExport": "Η εξαγωγή ολοκληρώθηκε επιτυχώς",
 	"successBackup": "Το αντίγραφο δημιουργήθηκε επιτυχώς",
-	"successRestore": "Η επαναφορά ολοκληρώθηκε επιτυχώς"
+	"successRestore": "Η επαναφορά ολοκληρώθηκε επιτυχώς",
+	"kpiAvgConsumption": "Μέση κατανάλωση (L/100km)",
+	"kpiMonthlyCost": "Κόστος/μήνα (τελευταίοι 6)",
+	"chartNoData": "Δεν υπάρχουν επαρκή δεδομένα για στατιστικά",
+	"chartAxisDate": "Ημερομηνία",
+	"chartAxisConsumption": "L/100km"
 }

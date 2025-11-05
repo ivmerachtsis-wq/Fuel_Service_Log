@@ -79,4 +79,19 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get successRestore => 'Η επαναφορά ολοκληρώθηκε επιτυχώς';
+
+  @override
+  String get kpiAvgConsumption => 'Μέση κατανάλωση (L/100km)';
+
+  @override
+  String get kpiMonthlyCost => 'Κόστος/μήνα (τελευταίοι 6)';
+
+  @override
+  String get chartNoData => 'Δεν υπάρχουν επαρκή δεδομένα για στατιστικά';
+
+  @override
+  String get chartAxisDate => 'Ημερομηνία';
+
+  @override
+  String get chartAxisConsumption => 'L/100km';
 }

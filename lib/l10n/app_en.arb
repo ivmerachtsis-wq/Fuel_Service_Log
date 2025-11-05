@@ -23,5 +23,10 @@
 	"currency": "Currency",
 	"successExport": "Export completed successfully",
 	"successBackup": "Backup created successfully",
-	"successRestore": "Restore completed successfully"
+	"successRestore": "Restore completed successfully",
+	"kpiAvgConsumption": "Average consumption (L/100km)",
+	"kpiMonthlyCost": "Monthly cost (last 6)",
+	"chartNoData": "Not enough data for statistics",
+	"chartAxisDate": "Date",
+	"chartAxisConsumption": "L/100km"
 }

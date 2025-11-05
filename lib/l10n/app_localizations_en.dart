@@ -79,4 +79,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get successRestore => 'Restore completed successfully';
+
+  @override
+  String get kpiAvgConsumption => 'Average consumption (L/100km)';
+
+  @override
+  String get kpiMonthlyCost => 'Monthly cost (last 6)';
+
+  @override
+  String get chartNoData => 'Not enough data for statistics';
+
+  @override
+  String get chartAxisDate => 'Date';
+
+  @override
+  String get chartAxisConsumption => 'L/100km';
 }

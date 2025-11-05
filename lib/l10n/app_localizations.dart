@@ -238,6 +238,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restore completed successfully'**
   String get successRestore;
+
+  /// No description provided for @kpiAvgConsumption.
+  ///
+  /// In en, this message translates to:
+  /// **'Average consumption (L/100km)'**
+  String get kpiAvgConsumption;
+
+  /// No description provided for @kpiMonthlyCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly cost (last 6)'**
+  String get kpiMonthlyCost;
+
+  /// No description provided for @chartNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough data for statistics'**
+  String get chartNoData;
+
+  /// No description provided for @chartAxisDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get chartAxisDate;
+
+  /// No description provided for @chartAxisConsumption.
+  ///
+  /// In en, this message translates to:
+  /// **'L/100km'**
+  String get chartAxisConsumption;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

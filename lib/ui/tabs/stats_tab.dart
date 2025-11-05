@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../data/repo/fuel_repo.dart';
 import '../../state/active_vehicle_controller.dart';
 import '../../domain/stats_service.dart';
+import '../../l10n/app_localizations.dart';
 import '../widgets/kpi_card.dart';
 
 class StatsTab extends StatelessWidget {
@@ -51,7 +52,7 @@ class StatsTab extends StatelessWidget {
                   children: [
                     Expanded(
                       child: KpiCard(
-                        title: 'Μέση Κατανάλωση (L/100km)',
+                        title: AppLocalizations.of(context)!.kpiAvgConsumption,
                         value: consumptions.isEmpty 
                             ? '—' 
                             : avgConsumption.toStringAsFixed(2),
@@ -61,7 +62,7 @@ class StatsTab extends StatelessWidget {
                     const SizedBox(width: 16),
                     Expanded(
                       child: KpiCard(
-                        title: 'Κόστος/Μήνα (τελ. 6μ)',
+                        title: AppLocalizations.of(context)!.kpiMonthlyCost,
                         value: monthlyCosts.isEmpty
                             ? '—'
                             : '€${avgMonthlyCost.toStringAsFixed(2)}',
@@ -73,20 +74,18 @@ class StatsTab extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // Γράφημα κατανάλωσης
-                Text(
-                  'Ιστορικό Κατανάλωσης (L/100km)',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
+                Text(AppLocalizations.of(context)!.statsTitle,
+                    style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 16),
                 
                 if (consumptions.isEmpty)
-                  const SizedBox(
+                  SizedBox(
                     height: 300,
                     child: Center(
                       child: Text(
-                        'Δεν υπάρχουν επαρκή δεδομένα για στατιστικά.\n\nΧρειάζονται τουλάχιστον 2 πλήρεις ανεφοδιασμοί (Full Tank).',
+                        AppLocalizations.of(context)!.chartNoData,
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.grey),
+                        style: const TextStyle(color: Colors.grey),
                       ),
                     ),
                   )
@@ -114,6 +113,8 @@ class _ConsumptionChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toString();
     final spots = consumptions
         .asMap()
         .entries
@@ -139,6 +140,11 @@ class _ConsumptionChart extends StatelessWidget {
         ),
         titlesData: FlTitlesData(
           leftTitles: AxisTitles(
+            axisNameWidget: Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: Text(l10n.chartAxisConsumption),
+            ),
+            axisNameSize: 22,
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 40,
@@ -151,6 +157,11 @@ class _ConsumptionChart extends StatelessWidget {
             ),
           ),
           bottomTitles: AxisTitles(
+            axisNameWidget: Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Text(l10n.chartAxisDate),
+            ),
+            axisNameSize: 22,
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 30,
@@ -161,7 +172,7 @@ class _ConsumptionChart extends StatelessWidget {
                 }
                 final date = consumptions[idx].date;
                 return Text(
-                  DateFormat('dd/MM').format(date),
+                  DateFormat('dd/MM', locale).format(date),
                   style: const TextStyle(fontSize: 10),
                 );
               },
@@ -199,7 +210,7 @@ class _ConsumptionChart extends StatelessWidget {
                 final idx = spot.x.toInt();
                 final date = consumptions[idx].date;
                 return LineTooltipItem(
-                  '${DateFormat('dd/MM/yy').format(date)}\n${spot.y.toStringAsFixed(2)} L/100km',
+                  '${DateFormat('dd/MM/yy', locale).format(date)}\n${spot.y.toStringAsFixed(2)} ${l10n.chartAxisConsumption}',
                   const TextStyle(color: Colors.white, fontSize: 12),
                 );
               }).toList();
