@@ -1,0 +1,94 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:csv/csv.dart';
+import 'package:path_provider/path_provider.dart';
+
+import '../data/repo/fuel_repo.dart';
+import '../data/repo/service_repo.dart';
+
+class ExportCsvService {
+  final _fuelRepo = FuelRepo();
+  final _serviceRepo = ServiceRepo();
+
+  Future<Directory> _ensureExportsDir() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final exports = Directory('${dir.path}${Platform.pathSeparator}FuelServiceLog${Platform.pathSeparator}exports');
+    if (!exports.existsSync()) {
+      exports.createSync(recursive: true);
+    }
+    return exports;
+  }
+
+  String _timestamp() {
+    final now = DateTime.now();
+    String two(int v) => v.toString().padLeft(2, '0');
+    return '${now.year}${two(now.month)}${two(now.day)}_${two(now.hour)}${two(now.minute)}${two(now.second)}';
+  }
+
+  Future<String> exportFuelToCsv(String vehicleId) async {
+    final dir = await _ensureExportsDir();
+    final entries = _fuelRepo.listByVehicle(vehicleId);
+    final rows = <List<dynamic>>[];
+    rows.add(const [
+      'id',
+      'vehicleId',
+      'date',
+      'odometerKm',
+      'liters',
+      'pricePerLiter',
+      'amount',
+      'fullTank',
+      'notes',
+    ]);
+    for (final e in entries) {
+      rows.add([
+        e.id,
+        e.vehicleId,
+        e.date.toIso8601String(),
+        e.odometerKm,
+        e.liters,
+        e.pricePerLiter,
+        e.amount,
+        e.fullTank,
+        e.notes ?? '',
+      ]);
+    }
+    final csv = const ListToCsvConverter().convert(rows);
+    final file = File('${dir.path}${Platform.pathSeparator}FuelServiceLog${Platform.pathSeparator}exports${Platform.pathSeparator}fuel_${vehicleId}_${_timestamp()}.csv');
+    await file.writeAsString(csv, encoding: utf8);
+    return file.path;
+  }
+
+  Future<String> exportServiceToCsv(String vehicleId) async {
+    final dir = await _ensureExportsDir();
+    final entries = _serviceRepo.listByVehicle(vehicleId);
+    final rows = <List<dynamic>>[];
+    rows.add(const [
+      'id',
+      'vehicleId',
+      'date',
+      'odometerKm',
+      'description',
+      'totalAmount',
+      'invoicePhotoPath',
+      'notes',
+    ]);
+    for (final e in entries) {
+      rows.add([
+        e.id,
+        e.vehicleId,
+        e.date.toIso8601String(),
+        e.odometerKm,
+        e.description,
+        e.totalAmount,
+        e.invoicePhotoPath ?? '',
+        e.notes ?? '',
+      ]);
+    }
+    final csv = const ListToCsvConverter().convert(rows);
+    final file = File('${dir.path}${Platform.pathSeparator}FuelServiceLog${Platform.pathSeparator}exports${Platform.pathSeparator}service_${vehicleId}_${_timestamp()}.csv');
+    await file.writeAsString(csv, encoding: utf8);
+    return file.path;
+  }
+}
