@@ -5,9 +5,11 @@ import 'package:hive_flutter/hive_flutter.dart';
 class SettingsController extends ChangeNotifier {
   static const String _boxName = 'settings';
   static const String _localeKey = 'locale';
+  static const String _currencyKey = 'currency';
 
   late Box _box;
   Locale _currentLocale = const Locale('el'); // Default to Greek
+  String currencyCode = 'EUR'; // Default currency
 
   Locale get currentLocale => _currentLocale;
 
@@ -16,6 +18,7 @@ class SettingsController extends ChangeNotifier {
     _box = await Hive.openBox(_boxName);
     final savedLocale = _box.get(_localeKey, defaultValue: 'el') as String;
     _currentLocale = Locale(savedLocale);
+    currencyCode = (_box.get(_currencyKey, defaultValue: 'EUR') as String);
     notifyListeners();
   }
 
@@ -23,6 +26,14 @@ class SettingsController extends ChangeNotifier {
   Future<void> setLocale(Locale locale) async {
     _currentLocale = locale;
     await _box.put(_localeKey, locale.languageCode);
+    notifyListeners();
+  }
+
+  /// Set currency code and persist
+  Future<void> setCurrency(String code) async {
+    if (currencyCode == code) return;
+    currencyCode = code;
+    await _box.put(_currencyKey, code);
     notifyListeners();
   }
 }

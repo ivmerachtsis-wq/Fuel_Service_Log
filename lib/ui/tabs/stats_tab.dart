@@ -6,9 +6,12 @@ import '../../state/active_vehicle_controller.dart';
 import '../../domain/stats_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../widgets/kpi_card.dart';
+import '../../state/settings_controller.dart';
+import '../../utils/currency_formatter.dart';
 
 class StatsTab extends StatelessWidget {
-  const StatsTab({super.key});
+  final SettingsController settings;
+  const StatsTab({required this.settings, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +68,11 @@ class StatsTab extends StatelessWidget {
                         title: AppLocalizations.of(context)!.kpiMonthlyCost,
                         value: monthlyCosts.isEmpty
                             ? '—'
-                            : '€${avgMonthlyCost.toStringAsFixed(2)}',
+                            : formatCurrency(
+                                avgMonthlyCost,
+                                currencyCode: settings.currencyCode,
+                                context: context,
+                              ),
                         icon: Icons.euro,
                       ),
                     ),

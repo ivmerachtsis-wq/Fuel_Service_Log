@@ -72,6 +72,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get currency => 'Currency';
 
   @override
+  String get currencyEUR => 'Euro (€)';
+
+  @override
+  String get currencyUSD => 'US Dollar (\$)';
+
+  @override
+  String get currencyGBP => 'British Pound (£)';
+
+  @override
   String get successExport => 'Export completed successfully';
 
   @override

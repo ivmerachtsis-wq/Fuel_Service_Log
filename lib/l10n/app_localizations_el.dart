@@ -72,6 +72,15 @@ class AppLocalizationsEl extends AppLocalizations {
   String get currency => 'Νόμισμα';
 
   @override
+  String get currencyEUR => 'Ευρώ (€)';
+
+  @override
+  String get currencyUSD => 'Δολάριο ΗΠΑ (\$)';
+
+  @override
+  String get currencyGBP => 'Λίρα Αγγλίας (£)';
+
+  @override
   String get successExport => 'Η εξαγωγή ολοκληρώθηκε επιτυχώς';
 
   @override

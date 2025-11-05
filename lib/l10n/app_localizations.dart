@@ -221,6 +221,24 @@ abstract class AppLocalizations {
   /// **'Currency'**
   String get currency;
 
+  /// No description provided for @currencyEUR.
+  ///
+  /// In en, this message translates to:
+  /// **'Euro (€)'**
+  String get currencyEUR;
+
+  /// No description provided for @currencyUSD.
+  ///
+  /// In en, this message translates to:
+  /// **'US Dollar (\$)'**
+  String get currencyUSD;
+
+  /// No description provided for @currencyGBP.
+  ///
+  /// In en, this message translates to:
+  /// **'British Pound (£)'**
+  String get currencyGBP;
+
   /// No description provided for @successExport.
   ///
   /// In en, this message translates to:

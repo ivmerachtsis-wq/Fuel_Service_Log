@@ -28,6 +28,24 @@ class SettingsTab extends StatelessWidget {
         ),
         const Divider(),
         ListTile(
+          leading: const Icon(Icons.payments),
+          title: Text(l10n.currency),
+          trailing: DropdownButton<String>(
+            value: settings.currencyCode,
+            items: [
+              DropdownMenuItem(value: 'EUR', child: Text(l10n.currencyEUR)),
+              DropdownMenuItem(value: 'USD', child: Text(l10n.currencyUSD)),
+              DropdownMenuItem(value: 'GBP', child: Text(l10n.currencyGBP)),
+            ],
+            onChanged: (value) {
+              if (value != null) {
+                settings.setCurrency(value);
+              }
+            },
+          ),
+        ),
+        const Divider(),
+        ListTile(
           leading: const Icon(Icons.language),
           title: Text(l10n.language),
           trailing: DropdownButton<String>(

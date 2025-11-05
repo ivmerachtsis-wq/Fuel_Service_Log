@@ -69,11 +69,11 @@ class Shell extends StatelessWidget {
   Widget _buildContent(int index) {
     switch (index) {
       case 0:
-        return const FuelTab();
+        return FuelTab(settings: settings);
       case 1:
         return const ServiceTab();
       case 2:
-        return const StatsTab();
+        return StatsTab(settings: settings);
       case 3:
         return SettingsTab(settings: settings);
       default:

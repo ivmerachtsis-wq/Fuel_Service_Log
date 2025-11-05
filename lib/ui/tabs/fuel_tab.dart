@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../state/settings_controller.dart';
+import '../../../utils/currency_formatter.dart';
 
 import '../fuel/fuel_form.dart';
 import '../widgets/app_dialogs.dart';
@@ -7,7 +9,8 @@ import '../../../data/repo/fuel_repo.dart';
 import '../../../state/active_vehicle_controller.dart';
 
 class FuelTab extends StatelessWidget {
-  const FuelTab({super.key});
+  final SettingsController settings;
+  const FuelTab({required this.settings, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -42,9 +45,14 @@ class FuelTab extends StatelessWidget {
                     final e = items[i];
                     return Card(
                       child: ListTile(
-                        title: Text('${e.liters.toStringAsFixed(2)} L  @  ${e.pricePerLiter.toStringAsFixed(2)} €/L'),
+                        title: Text(
+                          '${e.liters.toStringAsFixed(2)} L  @  '
+                          '${formatCurrency(e.pricePerLiter, currencyCode: settings.currencyCode, context: context)} / L',
+                        ),
                         subtitle: Text('${e.date.toLocal().toString().split('.').first}  •  ${e.odometerKm.toStringAsFixed(0)} km'),
-                        trailing: Text('${e.amount.toStringAsFixed(2)} €'),
+                        trailing: Text(
+                          formatCurrency(e.amount, currencyCode: settings.currencyCode, context: context),
+                        ),
                         onTap: () async {
                           // Placeholder για Edit: άνοιγμα ίδιας φόρμας με αρχικές τιμές
                           await showFormSheet(context, FuelForm.edit(initial: e));
