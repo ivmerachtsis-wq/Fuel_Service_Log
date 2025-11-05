@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../l10n/app_localizations.dart';
+import '../../state/settings_controller.dart';
 
 import '../../data/models/fuel_entry.dart';
 import '../../data/repo/fuel_repo.dart';
@@ -8,9 +11,10 @@ import 'fuel_form_controller.dart';
 class FuelForm extends StatefulWidget {
   final FuelEntry? initial;
   final String? vehicleId;
+  final SettingsController settings;
 
-  const FuelForm.add({super.key, required this.vehicleId}) : initial = null;
-  const FuelForm.edit({super.key, required this.initial}) : vehicleId = null;
+  const FuelForm.add({super.key, required this.vehicleId, required this.settings}) : initial = null;
+  const FuelForm.edit({super.key, required this.initial, required this.settings}) : vehicleId = null;
 
   @override
   State<FuelForm> createState() => _FuelFormState();
@@ -18,15 +22,16 @@ class FuelForm extends StatefulWidget {
 
 class _FuelFormState extends State<FuelForm> {
   late final FuelFormController c;
-  final _litersCtrl = TextEditingController();
-  final _priceCtrl = TextEditingController();
-  final _amountCtrl = TextEditingController();
-  bool _programmatic = false;
+  late String _currencyCode;
+  late DateTime _date;
 
   @override
   void initState() {
     super.initState();
     c = FuelFormController();
+    _currencyCode = widget.initial?.currencyCode ?? widget.settings.currencyCode;
+    _date = widget.initial?.date ?? DateTime.now();
+    
     if (widget.initial != null) {
       final e = widget.initial!;
       c
@@ -36,42 +41,82 @@ class _FuelFormState extends State<FuelForm> {
         ..setFullTank(e.fullTank)
         ..setDate(e.date)
         ..setNotes(e.notes);
-      _syncTextFields();
+      c.litersController.text = e.liters.toStringAsFixed(2);
+      c.priceController.text = e.pricePerLiter.toStringAsFixed(3);
+      c.amountController.text = e.amount.toStringAsFixed(2);
+      c.odoController.text = e.odometerKm.toStringAsFixed(1);
     }
-    c.addListener(_syncTextFields);
+    c.addListener(() { if (mounted) setState(() {}); });
+
+    // Format on blur listeners
+    c.litersFocus.addListener(() { if (!c.litersFocus.hasFocus) _formatOnBlurLiters(); });
+    c.priceFocus.addListener(() { if (!c.priceFocus.hasFocus) _formatOnBlurPrice(); });
+    c.amountFocus.addListener(() { if (!c.amountFocus.hasFocus) _formatOnBlurAmount(); });
+    c.odoFocus.addListener(() { if (!c.odoFocus.hasFocus) _formatOnBlurOdo(); });
   }
 
   @override
   void dispose() {
-    c.removeListener(_syncTextFields);
-    _litersCtrl.dispose();
-    _priceCtrl.dispose();
-    _amountCtrl.dispose();
+    c.dispose();
     super.dispose();
   }
 
-  void _syncTextFields() {
-    if (!mounted) return;
-    _programmatic = true;
-    _litersCtrl.text = _format(c.liters);
-    _priceCtrl.text = _format(c.pricePerLiter);
-    _amountCtrl.text = _format(c.amount);
-    _programmatic = false;
-    setState(() {});
+  void _formatOnBlurLiters() {
+    final v = _parse(c.litersController.text);
+    if (v != null) c.writeKeepingCaret(c.litersController, v.toStringAsFixed(2));
   }
 
-  String _format(double? v) => v == null ? '' : v.toStringAsFixed(2);
+  void _formatOnBlurPrice() {
+    final v = _parse(c.priceController.text);
+    if (v != null) c.writeKeepingCaret(c.priceController, v.toStringAsFixed(3));
+  }
 
-  double? _parse(String s) {
-    final t = s.replaceAll(',', '.');
-    final d = double.tryParse(t);
-    if (d == null) return null;
-    if (d.isNaN || d <= 0) return null;
-    return d;
+  void _formatOnBlurAmount() {
+    final v = _parse(c.amountController.text);
+    if (v != null) c.writeKeepingCaret(c.amountController, v.toStringAsFixed(2));
+  }
+
+  void _formatOnBlurOdo() {
+    final v = _parse(c.odoController.text);
+    if (v != null) c.writeKeepingCaret(c.odoController, v.toStringAsFixed(1));
+  }
+
+  // κρατήθηκε από προηγούμενη έκδοση, αλλά δεν χρησιμοποιείται πλέον
+  // String _format(double? v) => v == null ? '' : v.toStringAsFixed(2);
+
+  double? _parse(String? s) {
+    if (s == null) return null;
+    final t = s.trim();
+    if (t.isEmpty) return null;
+    final normalized = t.replaceAll(',', '.');
+    final v = double.tryParse(normalized);
+    if (v == null || v.isNaN) return null;
+    return v;
+  }
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final initialDate = _date.isAfter(today) ? today : _date;
+    
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(2000, 1, 1),
+      lastDate: today,
+    );
+    
+    if (picked != null) {
+      setState(() {
+        _date = picked;
+        c.setDate(picked);
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.all(16),
       child: SingleChildScrollView(
@@ -79,33 +124,64 @@ class _FuelFormState extends State<FuelForm> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.initial == null ? 'Add Fuel' : 'Edit Fuel', style: Theme.of(context).textTheme.titleLarge),
+            Text(widget.initial == null ? l10n.addFuelTitle : l10n.editFuelTitle, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
             Row(children: [
               Expanded(
                 child: TextField(
-                  controller: _litersCtrl,
+                  controller: c.litersController,
+                  focusNode: c.litersFocus,
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Liters'),
-                  onChanged: (s) { if (_programmatic) return; c.setLiters(_parse(s)); },
+                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d{0,5}([.,]\d{0,2})?$'))],
+                  decoration: InputDecoration(labelText: l10n.liters),
+                  onChanged: (s) { c.setEditing(EditingField.liters); c.setLiters(_parse(s)); },
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: TextField(
-                  controller: _priceCtrl,
+                  controller: c.priceController,
+                  focusNode: c.priceFocus,
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(labelText: 'Price / L (\u20AC)'),
-                  onChanged: (s) { if (_programmatic) return; c.setPricePerLiter(_parse(s)); },
+                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d{0,3}([.,]\d{0,3})?$'))],
+                  decoration: InputDecoration(
+                    labelText: l10n.pricePerLiter,
+                    suffixText: '$_currencyCode / L',
+                  ),
+                  onChanged: (s) { c.setEditing(EditingField.pricePerLiter); c.setPricePerLiter(_parse(s)); },
                 ),
               ),
             ]),
             const SizedBox(height: 12),
             TextField(
-              controller: _amountCtrl,
+              controller: c.amountController,
+              focusNode: c.amountFocus,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(labelText: 'Amount (\u20AC)'),
-              onChanged: (s) { if (_programmatic) return; c.setAmount(_parse(s)); },
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d{0,6}([.,]\d{0,2})?$'))],
+              decoration: InputDecoration(
+                labelText: l10n.amount,
+                suffixText: _currencyCode,
+              ),
+              onChanged: (s) { c.setEditing(EditingField.amount); c.setAmount(_parse(s)); },
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: c.odoController,
+              focusNode: c.odoFocus,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d{0,7}([.,]\d{0,1})?$'))],
+              decoration: InputDecoration(labelText: AppLocalizations.of(context)!.odometerKm),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              initialValue: _currencyCode,
+              decoration: InputDecoration(labelText: l10n.currency),
+              items: const [
+                DropdownMenuItem(value: 'EUR', child: Text('€ EUR')),
+                DropdownMenuItem(value: 'USD', child: Text('\$ USD')),
+                DropdownMenuItem(value: 'GBP', child: Text('£ GBP')),
+              ],
+              onChanged: (v) { if (v != null) setState(() => _currencyCode = v); },
             ),
             const SizedBox(height: 12),
             Row(
@@ -113,24 +189,15 @@ class _FuelFormState extends State<FuelForm> {
                 Expanded(
                   child: OutlinedButton.icon(
                     icon: const Icon(Icons.date_range),
-                    label: Text('${c.date.toLocal().toString().split(' ').first}'),
-                    onPressed: () async {
-                      final now = c.date;
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: now,
-                        firstDate: DateTime(now.year - 5),
-                        lastDate: DateTime(now.year + 5),
-                      );
-                      if (picked != null) c.setDate(DateTime(picked.year, picked.month, picked.day, now.hour, now.minute));
-                    },
+                    label: Text(_date.toLocal().toString().split(' ').first),
+                    onPressed: _pickDate,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Row(
                     children: [
-                      const Text('Full tank'),
+                      Text(l10n.fullTank),
                       const SizedBox(width: 8),
                       Switch(value: c.fullTank, onChanged: (v) => setState(() => c.setFullTank(v))),
                     ],
@@ -141,7 +208,7 @@ class _FuelFormState extends State<FuelForm> {
             const SizedBox(height: 12),
             TextField(
               maxLines: 2,
-              decoration: const InputDecoration(labelText: 'Notes'),
+              decoration: InputDecoration(labelText: l10n.notes),
               onChanged: (s) => c.setNotes(s.isEmpty ? null : s),
             ),
             const SizedBox(height: 20),
@@ -150,12 +217,12 @@ class _FuelFormState extends State<FuelForm> {
               children: [
                 TextButton(
                   onPressed: () => Navigator.of(context).maybePop(),
-                  child: const Text('Cancel'),
+                  child: Text(l10n.cancel),
                 ),
                 const SizedBox(width: 12),
                 FilledButton.icon(
                   icon: const Icon(Icons.check),
-                  label: const Text('Save'),
+                  label: Text(l10n.save),
                   onPressed: _onSubmit,
                 ),
               ],
@@ -168,9 +235,31 @@ class _FuelFormState extends State<FuelForm> {
   }
 
   Future<void> _onSubmit() async {
-    // Απλή validation: χρειαζόμαστε και τα 3 υπολογισμένα τελικά
+    // Προαιρετικό: κάνε format on-blur πριν το save ώστε το UI να δείχνει καθαρά
+    _formatOnBlurLiters();
+    _formatOnBlurPrice();
+    _formatOnBlurAmount();
+    _formatOnBlurOdo();
+
+    // Validation 1: χρειαζόμαστε και τα 3 υπολογισμένα τελικά
     if (c.liters == null || c.pricePerLiter == null || c.amount == null) {
       _showSnack('Συμπλήρωσε 2 από τα 3 πεδία για να υπολογιστεί το τρίτο.');
+      return;
+    }
+
+    // Validation 2: δεν επιτρέπονται μελλοντικές ημερομηνίες
+    final today = DateTime.now();
+    final todayDate = DateTime(today.year, today.month, today.day);
+    final chosen = DateTime(_date.year, _date.month, _date.day);
+    if (chosen.isAfter(todayDate)) {
+      _showSnack('Δεν επιτρέπεται μελλοντική ημερομηνία.');
+      return;
+    }
+
+    // Validation 3: odometerKm >= 0
+  final odo = _parse(c.odoController.text) ?? 0;
+    if (odo < 0) {
+      _showSnack('Μη έγκυρη τιμή χιλιομέτρων');
       return;
     }
 
@@ -182,13 +271,14 @@ class _FuelFormState extends State<FuelForm> {
     final entry = FuelEntry(
       id: id,
       vehicleId: vehicleId,
-      date: c.date,
-      odometerKm: 0, // TODO: πεδίο στην φόρμα σε επόμενο βήμα
+      date: _date,
+      odometerKm: odo,
       liters: c.liters!,
       pricePerLiter: c.pricePerLiter!,
       amount: c.amount!,
       fullTank: c.fullTank,
       notes: c.notes,
+      currencyCode: _currencyCode,
     );
 
     if (widget.initial == null) {
