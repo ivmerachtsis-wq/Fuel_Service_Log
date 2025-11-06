@@ -209,6 +209,18 @@ abstract class AppLocalizations {
   /// **'Language'**
   String get language;
 
+  /// No description provided for @languageEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
+  /// No description provided for @languageGreek.
+  ///
+  /// In en, this message translates to:
+  /// **'Greek'**
+  String get languageGreek;
+
   /// No description provided for @theme.
   ///
   /// In en, this message translates to:
@@ -472,6 +484,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fuel: {fuel}, Service: {service}'**
   String integrityReportSummary(Object fuel, Object service);
+
+  /// No description provided for @settingsExportCsvSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel & Service entries as CSV files'**
+  String get settingsExportCsvSubtitle;
+
+  /// No description provided for @settingsRestoreSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from the latest backup file'**
+  String get settingsRestoreSubtitle;
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// No description provided for @settingsVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get settingsVersion;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

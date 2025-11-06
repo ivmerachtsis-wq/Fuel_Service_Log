@@ -66,6 +66,12 @@ class AppLocalizationsEl extends AppLocalizations {
   String get language => 'Γλώσσα';
 
   @override
+  String get languageEnglish => 'Αγγλικά';
+
+  @override
+  String get languageGreek => 'Ελληνικά';
+
+  @override
   String get theme => 'Θέμα';
 
   @override
@@ -196,6 +202,18 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String integrityReportSummary(Object fuel, Object service) {
-    return 'Καύσιμα: $fuel, Service: $service';
+    return 'Καύσιμα: $fuel, Συντήρηση: $service';
   }
+
+  @override
+  String get settingsExportCsvSubtitle => 'Εγγραφές καυσίμων και συντήρησης σε CSV';
+
+  @override
+  String get settingsRestoreSubtitle => 'Εισαγωγή από το τελευταίο αρχείο αντιγράφων ασφαλείας';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get settingsVersion => 'Έκδοση';
 }

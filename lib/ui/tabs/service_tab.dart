@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/settings_controller.dart';
@@ -50,11 +51,14 @@ class _ServiceTabState extends State<ServiceTab> {
 
     return Stack(
       children: [
-        StreamBuilder<List<ServiceEntry>>(
-          stream: _repo.watchByVehicle(_vehicleId!),
-          initialData: _repo.listByVehicle(_vehicleId!),
-          builder: (context, snapshot) {
-            final items = snapshot.data ?? const <ServiceEntry>[];
+        ValueListenableBuilder(
+          valueListenable: Hive.box<ServiceEntry>('service_entries').listenable(),
+          builder: (context, Box<ServiceEntry> box, _) {
+            // Φιλτράρισμα και ταξινόμηση
+            final items = box.values
+                .where((e) => e.vehicleId == _vehicleId)
+                .toList()
+              ..sort((a, b) => b.date.compareTo(a.date));
             
             if (items.isEmpty) {
               return Center(child: Text(AppLocalizations.of(context)!.serviceNoEntries));
@@ -69,7 +73,13 @@ class _ServiceTabState extends State<ServiceTab> {
                 final currency = e.currencyCode ?? widget.settings.currencyCode;
                 return Dismissible(
                   key: ValueKey(e.id),
-                  background: Container(color: Colors.redAccent.withValues(alpha: 0.2)),
+                  background: Container(
+                    color: Colors.redAccent.withValues(alpha: 0.2),
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 16),
+                    child: Icon(Icons.delete, color: Colors.red[900]),
+                  ),
+                  direction: DismissDirection.endToStart,
                   onDismissed: (_) async {
                     final deleted = e;
                     await _repo.delete(e.id);

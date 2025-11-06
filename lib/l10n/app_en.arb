@@ -19,6 +19,8 @@
 	"backupJson": "Backup JSON",
 	"restoreJson": "Restore JSON",
 	"language": "Language",
+	"languageEnglish": "English",
+	"languageGreek": "Greek",
 	"theme": "Theme",
 	"currency": "Currency",
 	"currencyEUR": "Euro (€)",
@@ -32,8 +34,7 @@
 	"chartNoData": "Not enough data for statistics",
 	"chartAxisDate": "Date",
 	"chartAxisConsumption": "L/100km",
-	"statsHintFullToFull": "Add at least 2 full-tank refuels to see consumption statistics"
-,
+	"statsHintFullToFull": "Add at least 2 full-tank refuels to see consumption statistics",
 	"noFuelEntries": "No fuel entries yet",
 	"addFuelTitle": "Add Fuel",
 	"editFuelTitle": "Edit Fuel",
@@ -44,13 +45,9 @@
 	"notes": "Notes",
 	"save": "Save",
 	"cancel": "Cancel",
-	"settingsGeneral": "General preferences"
-,
-	"noActiveVehicle": "No active vehicle"
-,
-	"odometerKm": "Odometer (km)"
-,
-	"addService": "Add Service Entry",
+	"settingsGeneral": "General preferences",
+	"noActiveVehicle": "No active vehicle",
+	"odometerKm": "Odometer (km)",
 	"editService": "Edit Service Entry",
 	"serviceNoEntries": "No service entries yet",
 	"serviceDate": "Date",
@@ -67,5 +64,9 @@
 	"autoBackupOk": "Automatic backup completed",
 	"autoBackupFailed": "Automatic backup failed",
 	"integrityReportTitle": "Data Integrity Report",
-	"integrityReportSummary": "Fuel: {fuel}, Service: {service}"
+	"integrityReportSummary": "Fuel: {fuel}, Service: {service}",
+	"settingsExportCsvSubtitle": "Fuel & Service entries as CSV files",
+	"settingsRestoreSubtitle": "Import from the latest backup file",
+	"ok": "OK",
+	"settingsVersion": "Version"
 }

@@ -1,4 +1,4 @@
-{
+﻿{
 	"@@locale": "el",
 	"appTitle": "Καταγραφή Καυσίμων & Service",
 	"tabFuel": "Καύσιμα",
@@ -19,6 +19,8 @@
 	"backupJson": "Δημιουργία Αντιγράφου",
 	"restoreJson": "Επαναφορά Αντιγράφου",
 	"language": "Γλώσσα",
+	"languageEnglish": "Αγγλικά",
+	"languageGreek": "Ελληνικά",
 	"theme": "Θέμα",
 	"currency": "Νόμισμα",
 	"currencyEUR": "Ευρώ (€)",
@@ -32,8 +34,7 @@
 	"chartNoData": "Δεν υπάρχουν επαρκή δεδομένα για στατιστικά",
 	"chartAxisDate": "Ημερομηνία",
 	"chartAxisConsumption": "L/100km",
-	"statsHintFullToFull": "Προσθέστε τουλάχιστον 2 γεμίσματα με γεμάτο ρεζερβουάρ για να δείτε στατιστικά κατανάλωσης"
-,
+	"statsHintFullToFull": "Προσθέστε τουλάχιστον 2 γεμίσματα με γεμάτο ρεζερβουάρ για να δείτε στατιστικά κατανάλωσης",
 	"noFuelEntries": "Δεν υπάρχουν καταχωρήσεις καυσίμων",
 	"addFuelTitle": "Νέα Καταχώρηση Καυσίμου",
 	"editFuelTitle": "Επεξεργασία Καυσίμου",
@@ -44,13 +45,9 @@
 	"notes": "Σημειώσεις",
 	"save": "Αποθήκευση",
 	"cancel": "Άκυρο",
-	"settingsGeneral": "Γενικές προτιμήσεις"
-,
-	"noActiveVehicle": "Δεν έχει οριστεί ενεργό όχημα"
-,
-	"odometerKm": "Χιλιόμετρα (km)"
-,
-	"addService": "Νέα Καταχώρηση Service",
+	"settingsGeneral": "Γενικές προτιμήσεις",
+	"noActiveVehicle": "Δεν έχει οριστεί ενεργό όχημα",
+	"odometerKm": "Χιλιόμετρα (km)",
 	"editService": "Επεξεργασία Service",
 	"serviceNoEntries": "Δεν υπάρχουν καταχωρήσεις service",
 	"serviceDate": "Ημερομηνία",
@@ -67,5 +64,9 @@
 	"autoBackupOk": "Ο αυτόματος backup ολοκληρώθηκε",
 	"autoBackupFailed": "Αποτυχία αυτόματου backup",
 	"integrityReportTitle": "Αναφορά Ακεραιότητας Δεδομένων",
-	"integrityReportSummary": "Καύσιμα: {fuel}, Service: {service}"
+	"integrityReportSummary": "Καύσιμα: {fuel}, Συντήρηση: {service}",
+	"settingsExportCsvSubtitle": "Εγγραφές καυσίμων και συντήρησης σε CSV",
+	"settingsRestoreSubtitle": "Εισαγωγή από το τελευταίο αρχείο αντιγράφων ασφαλείας",
+	"ok": "OK",
+	"settingsVersion": "Έκδοση"
 }

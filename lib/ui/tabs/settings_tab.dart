@@ -7,6 +7,7 @@ import '../../data/repo/service_repo.dart';
 import '../../state/active_vehicle_controller.dart';
 import '../../state/settings_controller.dart';
 import '../../l10n/app_localizations.dart';
+import '../../constants/app_version.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
@@ -30,6 +31,14 @@ class SettingsTab extends StatelessWidget {
           subtitle: Text(l10n.settingsGeneral),
         ),
         const Divider(),
+        // Version Info
+        ListTile(
+          leading: const Icon(Icons.info_outline),
+          title: Text(l10n.settingsVersion),
+          trailing: Text(appVersion, style: Theme.of(context).textTheme.bodyMedium),
+        ),
+        const Divider(),
+        
         ListTile(
           leading: const Icon(Icons.payments),
           title: Text(l10n.currency),
@@ -53,9 +62,9 @@ class SettingsTab extends StatelessWidget {
           title: Text(l10n.language),
           trailing: DropdownButton<String>(
             value: settings.currentLocale.languageCode,
-            items: const [
-              DropdownMenuItem(value: 'en', child: Text('English')),
-              DropdownMenuItem(value: 'el', child: Text('Ελληνικά')),
+            items: [
+              DropdownMenuItem(value: 'en', child: Text(l10n.languageEnglish)),
+              DropdownMenuItem(value: 'el', child: Text(l10n.languageGreek)),
             ],
             onChanged: (value) {
               if (value != null) {
@@ -85,7 +94,7 @@ class SettingsTab extends StatelessWidget {
         ListTile(
           leading: const Icon(Icons.file_download),
           title: Text(l10n.exportCsv),
-          subtitle: const Text('Fuel & Service entries as CSV files'),
+          subtitle: Text(AppLocalizations.of(context)!.settingsExportCsvSubtitle),
           onTap: () async {
             try {
               final vehicleId = await active.getActiveVehicleId();
@@ -120,7 +129,7 @@ class SettingsTab extends StatelessWidget {
         ListTile(
           leading: const Icon(Icons.restore),
           title: Text(l10n.restoreJson),
-          subtitle: const Text('Εισαγωγή από το τελευταίο αρχείο στο backups'),
+          subtitle: Text(AppLocalizations.of(context)!.settingsRestoreSubtitle),
           onTap: () async {
             try {
               // Βρίσκουμε το πιο πρόσφατο backup στο φάκελο μας
@@ -212,7 +221,7 @@ class SettingsTab extends StatelessWidget {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
+                  child: Text(AppLocalizations.of(context)!.ok),
               ),
             ],
           ),

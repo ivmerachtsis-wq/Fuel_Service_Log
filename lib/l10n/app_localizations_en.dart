@@ -66,6 +66,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get language => 'Language';
 
   @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get languageGreek => 'Greek';
+
+  @override
   String get theme => 'Theme';
 
   @override
@@ -198,4 +204,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String integrityReportSummary(Object fuel, Object service) {
     return 'Fuel: $fuel, Service: $service';
   }
+
+  @override
+  String get settingsExportCsvSubtitle => 'Fuel & Service entries as CSV files';
+
+  @override
+  String get settingsRestoreSubtitle => 'Import from the latest backup file';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get settingsVersion => 'Version';
 }
