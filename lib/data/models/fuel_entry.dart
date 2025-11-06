@@ -34,6 +34,9 @@ class FuelEntry extends HiveObject {
   @HiveField(9)
   String? currencyCode;
 
+  @HiveField(10)
+  String? driverId;
+
   FuelEntry({
     required this.id,
     required this.vehicleId,
@@ -45,5 +48,6 @@ class FuelEntry extends HiveObject {
     this.fullTank = true,
     this.notes,
     this.currencyCode,
+    this.driverId,
   });
 }

@@ -604,6 +604,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total amount'**
   String get pdfTotalAmount;
+
+  /// No description provided for @statsFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get statsFilters;
+
+  /// No description provided for @filterVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle'**
+  String get filterVehicle;
+
+  /// No description provided for @filterDriver.
+  ///
+  /// In en, this message translates to:
+  /// **'Driver'**
+  String get filterDriver;
+
+  /// No description provided for @filterDateRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Date range'**
+  String get filterDateRange;
+
+  /// No description provided for @range3m.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 3 months'**
+  String get range3m;
+
+  /// No description provided for @range6m.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 6 months'**
+  String get range6m;
+
+  /// No description provided for @range12m.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 12 months'**
+  String get range12m;
+
+  /// No description provided for @allDrivers.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get allDrivers;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

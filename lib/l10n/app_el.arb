@@ -84,5 +84,13 @@
 	"pdfSummary": "Σύνοψη",
 	"pdfCount": "Πλήθος",
 	"pdfTotalLiters": "Σύνολο λίτρων",
-	"pdfTotalAmount": "Σύνολο ποσού"
+	"pdfTotalAmount": "Σύνολο ποσού",
+	"statsFilters": "Φίλτρα",
+	"filterVehicle": "Όχημα",
+	"filterDriver": "Οδηγός",
+	"filterDateRange": "Χρονικό εύρος",
+	"range3m": "Τελευταίοι 3 μήνες",
+	"range6m": "Τελευταίοι 6 μήνες",
+	"range12m": "Τελευταίοι 12 μήνες",
+	"allDrivers": "Όλοι"
 }

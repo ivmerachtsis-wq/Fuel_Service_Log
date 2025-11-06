@@ -4,126 +4,233 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../data/models/fuel_entry.dart';
 import '../../data/models/vehicle.dart';
+import '../../data/models/driver.dart';
 import '../../domain/stats_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../widgets/kpi_card.dart';
 import '../../state/settings_controller.dart';
 import '../../utils/currency_formatter.dart';
 
-class StatsTab extends StatelessWidget {
+class StatsTab extends StatefulWidget {
   final SettingsController settings;
   const StatsTab({required this.settings, super.key});
 
   @override
+  State<StatsTab> createState() => _StatsTabState();
+}
+
+class _StatsTabState extends State<StatsTab> {
+  String? _selectedVehicleId;
+  String? _selectedDriverId; // null ή '' => All
+  int _rangeMonths = 6; // 3 / 6 / 12
+
+  @override
   Widget build(BuildContext context) {
-    final statsService = StatsService();
     final l10n = AppLocalizations.of(context)!;
-    
-    // Συγχρονιστική λήψη του ενεργού οχήματος
+    final statsService = StatsService();
+
     final vehiclesBox = Hive.box<Vehicle>('vehicles');
     if (vehiclesBox.isEmpty) {
       return Center(child: Text(l10n.noActiveVehicle));
     }
-    final vehicleId = vehiclesBox.values.first.id;
+    // Ορισμός default vehicle αν δεν έχει επιλεγεί
+    _selectedVehicleId ??= vehiclesBox.values.first.id;
 
-    final box = Hive.box<FuelEntry>('fuel_entries');
-    
+    final fuelBox = Hive.box<FuelEntry>('fuel_entries');
+    final driversBox = Hive.box<Driver>('drivers');
+
     return ValueListenableBuilder(
-      valueListenable: box.listenable(),
-      builder: (context, Box<FuelEntry> fuelBox, _) {
-        // Φιλτράρισμα entries του ενεργού οχήματος (συγχρονιστικά)
-        final vehicleEntries = fuelBox.values
-            .where((e) => e.vehicleId == vehicleId)
-            .toList()
-          ..sort((a, b) => a.date.compareTo(b.date));
+      valueListenable: fuelBox.listenable(),
+      builder: (context, Box<FuelEntry> fb, _) {
+        // Συλλογή όλων των entries για το επιλεγμένο όχημα
+        final allVehicleEntries = fb.values
+            .where((e) => e.vehicleId == _selectedVehicleId)
+            .toList();
 
-        // Υπολογισμός στατιστικών (συγχρονιστικά, χωρίς await)
-        final consumptions = statsService.getFullToFullConsumptions(vehicleEntries);
-        final monthlyCosts = statsService.getMonthlyCost(vehicleEntries, months: 6);
-        
-        // Safe calculations με guards για NaN/null
-        final avgConsumption = consumptions.isNotEmpty 
+        // Υπολογισμός χρονικού εύρους (from, to)
+        final now = DateTime.now();
+        final from = DateTime(now.year, now.month - (_rangeMonths - 1), 1);
+        final to = DateTime(now.year, now.month, 31); // υπερ-κάλυψη τέλους μήνα
+
+        final consumptions = statsService.getFullToFullConsumptions(
+          allVehicleEntries,
+          from: from,
+          to: to,
+          driverId: _selectedDriverId?.isEmpty == true ? null : _selectedDriverId,
+        );
+
+        final monthlyCosts = statsService.getMonthlyCost(
+          allVehicleEntries,
+          months: _rangeMonths,
+          driverId: _selectedDriverId?.isEmpty == true ? null : _selectedDriverId,
+          from: from,
+          to: to,
+        );
+
+        final avgConsumption = consumptions.isNotEmpty
             ? statsService.getAverageConsumption(consumptions)
             : double.nan;
         final avgMonthlyCost = monthlyCosts.isNotEmpty
             ? statsService.getAverageMonthlyCost(monthlyCosts)
             : double.nan;
 
-            return ListView(
-              padding: const EdgeInsets.all(16),
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            _buildFilters(
+              l10n: l10n,
+              vehiclesBox: vehiclesBox,
+              driversBox: driversBox,
+            ),
+            const SizedBox(height: 16),
+            Row(
               children: [
-                // KPIs
-                Row(
-                  children: [
-                    Expanded(
-                      child: KpiCard(
-                        title: l10n.kpiAvgConsumption,
-                        value: avgConsumption.isNaN || avgConsumption <= 0
-                            ? '—' 
-                            : avgConsumption.toStringAsFixed(2),
-                        icon: Icons.speed,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: KpiCard(
-                        title: l10n.kpiMonthlyCost,
-                        value: avgMonthlyCost.isNaN || avgMonthlyCost <= 0
-                            ? '—'
-                            : formatCurrency(
-                                avgMonthlyCost,
-                                currencyCode: settings.currencyCode,
-                                context: context,
-                              ),
-                        icon: Icons.euro,
-                      ),
-                    ),
-                  ],
+                Expanded(
+                  child: KpiCard(
+                    title: l10n.kpiAvgConsumption,
+                    value: avgConsumption.isNaN || avgConsumption <= 0
+                        ? '—'
+                        : avgConsumption.toStringAsFixed(2),
+                    icon: Icons.speed,
+                  ),
                 ),
-                const SizedBox(height: 24),
-
-                // Γράφημα κατανάλωσης
-                Text(l10n.statsTitle,
-                    style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 16),
-                
-                if (consumptions.length < 2)
-                  SizedBox(
-                    height: 300,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            l10n.chartNoData,
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                const SizedBox(width: 16),
+                Expanded(
+                  child: KpiCard(
+                    title: l10n.kpiMonthlyCost,
+                    value: avgMonthlyCost.isNaN || avgMonthlyCost <= 0
+                        ? '—'
+                        : formatCurrency(
+                            avgMonthlyCost,
+                            currencyCode: widget.settings.currencyCode,
+                            context: context,
+                          ),
+                    icon: Icons.euro,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Text(l10n.statsTitle, style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 16),
+            if (consumptions.length < 2)
+              SizedBox(
+                height: 300,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        l10n.chartNoData,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               color: Colors.grey[600],
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            l10n.statsHintFullToFull,
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        l10n.statsHintFullToFull,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: Colors.grey[500],
                             ),
-                          ),
-                        ],
                       ),
-                    ),
-                  )
-                else
-                  SizedBox(
-                    height: 300,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 16, top: 16),
-                      child: _ConsumptionChart(consumptions: consumptions),
-                    ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              SizedBox(
+                height: 300,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 16, top: 16),
+                  child: _ConsumptionChart(consumptions: consumptions),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildFilters({
+    required AppLocalizations l10n,
+    required Box<Vehicle> vehiclesBox,
+    required Box<Driver> driversBox,
+  }) {
+    final vehicles = vehiclesBox.values.toList();
+    final drivers = driversBox.values.toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.statsFilters, style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 16,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            // Vehicle Dropdown
+            DropdownButton<String>(
+              value: _selectedVehicleId,
+              items: [
+                for (final v in vehicles)
+                  DropdownMenuItem(
+                    value: v.id,
+                    child: Text(v.title),
                   ),
               ],
-            );
+              onChanged: (val) {
+                if (val != null) {
+                  setState(() => _selectedVehicleId = val);
+                }
+              },
+              hint: Text(l10n.filterVehicle),
+            ),
+            // Driver Dropdown (All + drivers)
+            DropdownButton<String>(
+              value: _selectedDriverId ?? '',
+              items: [
+                DropdownMenuItem(value: '', child: Text(l10n.allDrivers)),
+                for (final d in drivers)
+                  DropdownMenuItem(
+                    value: d.id,
+                    child: Text(d.name),
+                  ),
+              ],
+              onChanged: (val) {
+                setState(() => _selectedDriverId = val);
+              },
+              hint: Text(l10n.filterDriver),
+            ),
+            // Range buttons 3 / 6 / 12 months
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _rangeButton(label: l10n.range3m, months: 3),
+                const SizedBox(width: 4),
+                _rangeButton(label: l10n.range6m, months: 6),
+                const SizedBox(width: 4),
+                _rangeButton(label: l10n.range12m, months: 12),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _rangeButton({required String label, required int months}) {
+    final active = _rangeMonths == months;
+    return OutlinedButton(
+      onPressed: () {
+        if (!active) setState(() => _rangeMonths = months);
       },
+      style: OutlinedButton.styleFrom(
+        backgroundColor: active ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1) : null,
+      ),
+      child: Text(label, style: TextStyle(fontWeight: active ? FontWeight.bold : FontWeight.normal)),
     );
   }
 }

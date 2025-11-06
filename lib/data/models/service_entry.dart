@@ -31,6 +31,9 @@ class ServiceEntry extends HiveObject {
   @HiveField(8)
   String? currencyCode;
 
+  @HiveField(9)
+  String? driverId;
+
   ServiceEntry({
     required this.id,
     required this.vehicleId,
@@ -41,5 +44,6 @@ class ServiceEntry extends HiveObject {
     this.invoicePhotoPath,
     this.notes,
     this.currencyCode,
+    this.driverId,
   });
 }
