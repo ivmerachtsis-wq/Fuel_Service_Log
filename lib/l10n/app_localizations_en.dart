@@ -231,4 +231,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get openFolder => 'Open folder';
+
+  @override
+  String get exportFuelPdf => 'Export Fuel PDF';
+
+  @override
+  String get exportServicePdf => 'Export Service PDF';
+
+  @override
+  String get pdfTitleFuel => 'Fuel Export';
+
+  @override
+  String get pdfTitleService => 'Service Export';
+
+  @override
+  String get pdfMetaVehicle => 'Vehicle';
+
+  @override
+  String get pdfMetaDriver => 'Driver';
+
+  @override
+  String get pdfMetaCreatedAt => 'Created at';
+
+  @override
+  String get pdfSummary => 'Summary';
+
+  @override
+  String get pdfCount => 'Count';
+
+  @override
+  String get pdfTotalLiters => 'Total liters';
+
+  @override
+  String get pdfTotalAmount => 'Total amount';
 }

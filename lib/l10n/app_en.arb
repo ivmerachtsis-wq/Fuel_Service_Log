@@ -73,5 +73,16 @@
 	"validationRequired": "Required field",
 	"errorFutureDateNotAllowed": "Future date not allowed",
 	"exportSuccess": "Export completed",
-	"openFolder": "Open folder"
+	"openFolder": "Open folder",
+	"exportFuelPdf": "Export Fuel PDF",
+	"exportServicePdf": "Export Service PDF",
+	"pdfTitleFuel": "Fuel Export",
+	"pdfTitleService": "Service Export",
+	"pdfMetaVehicle": "Vehicle",
+	"pdfMetaDriver": "Driver",
+	"pdfMetaCreatedAt": "Created at",
+	"pdfSummary": "Summary",
+	"pdfCount": "Count",
+	"pdfTotalLiters": "Total liters",
+	"pdfTotalAmount": "Total amount"
 }

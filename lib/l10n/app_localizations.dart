@@ -538,6 +538,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open folder'**
   String get openFolder;
+
+  /// No description provided for @exportFuelPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Fuel PDF'**
+  String get exportFuelPdf;
+
+  /// No description provided for @exportServicePdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Service PDF'**
+  String get exportServicePdf;
+
+  /// No description provided for @pdfTitleFuel.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel Export'**
+  String get pdfTitleFuel;
+
+  /// No description provided for @pdfTitleService.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Export'**
+  String get pdfTitleService;
+
+  /// No description provided for @pdfMetaVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle'**
+  String get pdfMetaVehicle;
+
+  /// No description provided for @pdfMetaDriver.
+  ///
+  /// In en, this message translates to:
+  /// **'Driver'**
+  String get pdfMetaDriver;
+
+  /// No description provided for @pdfMetaCreatedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Created at'**
+  String get pdfMetaCreatedAt;
+
+  /// No description provided for @pdfSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get pdfSummary;
+
+  /// No description provided for @pdfCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Count'**
+  String get pdfCount;
+
+  /// No description provided for @pdfTotalLiters.
+  ///
+  /// In en, this message translates to:
+  /// **'Total liters'**
+  String get pdfTotalLiters;
+
+  /// No description provided for @pdfTotalAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Total amount'**
+  String get pdfTotalAmount;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

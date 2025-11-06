@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:path/path.dart' as p;
+import 'package:hive/hive.dart';
+import '../../data/models/vehicle.dart';
+import '../../data/models/driver.dart';
 import '../../services/export_csv.dart';
 import '../../services/backup_restore.dart';
+import '../../services/export_pdf.dart';
 import '../../services/data_integrity_service.dart';
 import '../../data/repo/fuel_repo.dart';
 import '../../data/repo/service_repo.dart';
@@ -118,6 +122,71 @@ class SettingsTab extends StatelessWidget {
                       },
                     ),
                   ),
+                );
+              }
+            } catch (e) {
+              if (context.mounted) {
+                _showSnack(context, 'Error: $e');
+              }
+            }
+          },
+        ),
+        // PDF Fuel Export
+        ListTile(
+          leading: const Icon(Icons.picture_as_pdf),
+          title: Text(l10n.exportFuelPdf),
+          onTap: () async {
+            try {
+              final vehicleId = await active.getActiveVehicleId();
+              final fuelRepo = FuelRepo();
+              final vehicleBox = Hive.box<Vehicle>('vehicles');
+              final driverBox = Hive.box<Driver>('drivers');
+              final vehicle = vehicleBox.get(vehicleId);
+              // Επιλογή πρώτου οδηγού (placeholder) – μελλοντική σύνδεση active driver.
+              final driver = driverBox.values.isNotEmpty ? driverBox.values.first : null;
+              final entries = fuelRepo.listByVehicle(vehicleId).toList()..sort((a,b)=>a.date.compareTo(b.date));
+              final file = await ExportPdfService.exportFuelToPdf(
+                vehicleId: vehicleId,
+                entries: entries,
+                vehicle: vehicle,
+                driver: driver,
+              );
+              if (context.mounted) {
+                final name = p.basename(file.path);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('${l10n.exportSuccess}: $name')),
+                );
+              }
+            } catch (e) {
+              if (context.mounted) {
+                _showSnack(context, 'Error: $e');
+              }
+            }
+          },
+        ),
+        // PDF Service Export
+        ListTile(
+          leading: const Icon(Icons.picture_as_pdf),
+          title: Text(l10n.exportServicePdf),
+          onTap: () async {
+            try {
+              final vehicleId = await active.getActiveVehicleId();
+              final serviceRepo = ServiceRepo();
+              final vehicleBox = Hive.box<Vehicle>('vehicles');
+              final driverBox = Hive.box<Driver>('drivers');
+              final vehicle = vehicleBox.get(vehicleId);
+              final driver = driverBox.values.isNotEmpty ? driverBox.values.first : null;
+              final entries = serviceRepo.listByVehicle(vehicleId).toList()..sort((a,b)=>a.date.compareTo(b.date));
+              final file = await ExportPdfService.exportServiceToPdf(
+                vehicleId: vehicleId,
+                entries: entries,
+                vehicle: vehicle,
+                driver: driver,
+              );
+              if (context.mounted) {
+                final name = p.basename(file.path);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('${l10n.exportSuccess}: $name')),
                 );
               }
             } catch (e) {
