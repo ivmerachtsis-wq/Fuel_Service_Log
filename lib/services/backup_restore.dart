@@ -62,6 +62,7 @@ class BackupRestoreService {
           'totalAmount': e.totalAmount,
           'invoicePhotoPath': e.invoicePhotoPath,
           'notes': e.notes,
+          'currencyCode': e.currencyCode,
         }).toList();
 
     final payload = jsonEncode({
@@ -144,6 +145,7 @@ class BackupRestoreService {
         totalAmount: (m['totalAmount'] as num?)?.toDouble() ?? 0,
         invoicePhotoPath: m['invoicePhotoPath'] as String?,
         notes: m['notes'] as String?,
+        currencyCode: m['currencyCode'] as String?,
       ));
     }
 

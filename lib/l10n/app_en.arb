@@ -59,5 +59,13 @@
 	"serviceAmount": "Total amount",
 	"serviceNotes": "Notes",
 	"serviceInvoice": "Invoice",
-	"deleted": "Deleted"
+	"deleted": "Deleted",
+	"settingsMaintenance": "Maintenance & Data Integrity",
+	"runIntegrityCheck": "Run data integrity check",
+	"integrityOk": "No issues found",
+	"integrityIssuesFound": "Issues found",
+	"autoBackupOk": "Automatic backup completed",
+	"autoBackupFailed": "Automatic backup failed",
+	"integrityReportTitle": "Data Integrity Report",
+	"integrityReportSummary": "Fuel: {fuel}, Service: {service}"
 }

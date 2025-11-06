@@ -424,6 +424,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deleted'**
   String get deleted;
+
+  /// No description provided for @settingsMaintenance.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance & Data Integrity'**
+  String get settingsMaintenance;
+
+  /// No description provided for @runIntegrityCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Run data integrity check'**
+  String get runIntegrityCheck;
+
+  /// No description provided for @integrityOk.
+  ///
+  /// In en, this message translates to:
+  /// **'No issues found'**
+  String get integrityOk;
+
+  /// No description provided for @integrityIssuesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Issues found'**
+  String get integrityIssuesFound;
+
+  /// No description provided for @autoBackupOk.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic backup completed'**
+  String get autoBackupOk;
+
+  /// No description provided for @autoBackupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic backup failed'**
+  String get autoBackupFailed;
+
+  /// No description provided for @integrityReportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Integrity Report'**
+  String get integrityReportTitle;
+
+  /// No description provided for @integrityReportSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel: {fuel}, Service: {service}'**
+  String integrityReportSummary(Object fuel, Object service);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

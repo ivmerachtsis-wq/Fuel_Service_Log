@@ -59,5 +59,13 @@
 	"serviceAmount": "Συνολικό ποσό",
 	"serviceNotes": "Σημειώσεις",
 	"serviceInvoice": "Τιμολόγιο",
-	"deleted": "Διαγράφηκε"
+	"deleted": "Διαγράφηκε",
+	"settingsMaintenance": "Συντήρηση & Ακεραιότητα Δεδομένων",
+	"runIntegrityCheck": "Έλεγχος δεδομένων",
+	"integrityOk": "Δεν βρέθηκαν προβλήματα",
+	"integrityIssuesFound": "Βρέθηκαν προβλήματα",
+	"autoBackupOk": "Ο αυτόματος backup ολοκληρώθηκε",
+	"autoBackupFailed": "Αποτυχία αυτόματου backup",
+	"integrityReportTitle": "Αναφορά Ακεραιότητας Δεδομένων",
+	"integrityReportSummary": "Καύσιμα: {fuel}, Service: {service}"
 }

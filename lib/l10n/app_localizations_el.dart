@@ -172,4 +172,30 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get deleted => 'Διαγράφηκε';
+
+  @override
+  String get settingsMaintenance => 'Συντήρηση & Ακεραιότητα Δεδομένων';
+
+  @override
+  String get runIntegrityCheck => 'Έλεγχος δεδομένων';
+
+  @override
+  String get integrityOk => 'Δεν βρέθηκαν προβλήματα';
+
+  @override
+  String get integrityIssuesFound => 'Βρέθηκαν προβλήματα';
+
+  @override
+  String get autoBackupOk => 'Ο αυτόματος backup ολοκληρώθηκε';
+
+  @override
+  String get autoBackupFailed => 'Αποτυχία αυτόματου backup';
+
+  @override
+  String get integrityReportTitle => 'Αναφορά Ακεραιότητας Δεδομένων';
+
+  @override
+  String integrityReportSummary(Object fuel, Object service) {
+    return 'Καύσιμα: $fuel, Service: $service';
+  }
 }

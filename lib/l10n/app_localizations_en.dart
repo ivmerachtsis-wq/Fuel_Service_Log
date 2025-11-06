@@ -172,4 +172,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleted => 'Deleted';
+
+  @override
+  String get settingsMaintenance => 'Maintenance & Data Integrity';
+
+  @override
+  String get runIntegrityCheck => 'Run data integrity check';
+
+  @override
+  String get integrityOk => 'No issues found';
+
+  @override
+  String get integrityIssuesFound => 'Issues found';
+
+  @override
+  String get autoBackupOk => 'Automatic backup completed';
+
+  @override
+  String get autoBackupFailed => 'Automatic backup failed';
+
+  @override
+  String get integrityReportTitle => 'Data Integrity Report';
+
+  @override
+  String integrityReportSummary(Object fuel, Object service) {
+    return 'Fuel: $fuel, Service: $service';
+  }
 }

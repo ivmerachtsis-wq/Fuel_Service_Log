@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../services/export_csv.dart';
 import '../../services/backup_restore.dart';
+import '../../services/data_integrity_service.dart';
+import '../../data/repo/fuel_repo.dart';
+import '../../data/repo/service_repo.dart';
 import '../../state/active_vehicle_controller.dart';
 import '../../state/settings_controller.dart';
 import '../../l10n/app_localizations.dart';
@@ -62,6 +65,23 @@ class SettingsTab extends StatelessWidget {
           ),
         ),
         const Divider(),
+        
+        // Data Integrity & Maintenance Section
+        ListTile(
+          leading: const Icon(Icons.verified_user),
+          title: Text(l10n.settingsMaintenance),
+          subtitle: Text(l10n.runIntegrityCheck),
+        ),
+        ListTile(
+          leading: const Icon(Icons.check_circle_outline),
+          title: Text(l10n.runIntegrityCheck),
+          trailing: const Icon(Icons.arrow_forward),
+          onTap: () async {
+            _runIntegrityCheck(context);
+          },
+        ),
+        const Divider(),
+        
         ListTile(
           leading: const Icon(Icons.file_download),
           title: Text(l10n.exportCsv),
@@ -124,6 +144,85 @@ class SettingsTab extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  static Future<void> _runIntegrityCheck(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+    
+    try {
+      final settings = SettingsController();
+      final fuelRepo = FuelRepo();
+      final serviceRepo = ServiceRepo();
+      
+      final report = await DataIntegrityService.runFullCheck(
+        settings: settings,
+        fuelRepo: fuelRepo,
+        serviceRepo: serviceRepo,
+      );
+      
+      if (!context.mounted) return;
+      
+      // Close loading dialog
+      Navigator.of(context).pop();
+      
+      if (report.ok) {
+        // Καμία issue
+        _showSnack(context, l10n.integrityOk);
+      } else {
+        // Εμφάνιση dialog με issues
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(l10n.integrityReportTitle),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Fuel: ${report.fuelCount}, Service: ${report.serviceCount}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    '${l10n.integrityIssuesFound}: ${report.issues.length}',
+                    style: TextStyle(
+                      color: Colors.red[700],
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...report.issues.map((issue) => Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Text(
+                          '• $issue',
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      )),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+      Navigator.of(context).pop(); // Close loading
+      _showSnack(context, 'Error: $e');
+    }
   }
 
   static void _showSnack(BuildContext context, String msg) {

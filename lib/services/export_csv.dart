@@ -30,6 +30,8 @@ class ExportCsvService {
     final dir = await _ensureExportsDir();
     final entries = _fuelRepo.listByVehicle(vehicleId);
     final rows = <List<dynamic>>[];
+    
+    // Headers με currencyCode
     rows.add(const [
       'id',
       'vehicleId',
@@ -39,23 +41,30 @@ class ExportCsvService {
       'pricePerLiter',
       'amount',
       'fullTank',
+      'currencyCode',
       'notes',
     ]);
+    
     for (final e in entries) {
+      // Date σε ISO format: yyyy-MM-dd
+      final dateStr = '${e.date.year.toString().padLeft(4, '0')}-${e.date.month.toString().padLeft(2, '0')}-${e.date.day.toString().padLeft(2, '0')}';
+      
       rows.add([
         e.id,
         e.vehicleId,
-        e.date.toIso8601String(),
+        dateStr,
         e.odometerKm,
         e.liters,
         e.pricePerLiter,
         e.amount,
         e.fullTank,
+        e.currencyCode ?? '',
         e.notes ?? '',
       ]);
     }
+    
     final csv = const ListToCsvConverter().convert(rows);
-    final file = File('${dir.path}${Platform.pathSeparator}FuelServiceLog${Platform.pathSeparator}exports${Platform.pathSeparator}fuel_${vehicleId}_${_timestamp()}.csv');
+    final file = File('${dir.path}${Platform.pathSeparator}fuel_${vehicleId}_${_timestamp()}.csv');
     await file.writeAsString(csv, encoding: utf8);
     return file.path;
   }
@@ -64,6 +73,8 @@ class ExportCsvService {
     final dir = await _ensureExportsDir();
     final entries = _serviceRepo.listByVehicle(vehicleId);
     final rows = <List<dynamic>>[];
+    
+    // Headers με currencyCode
     rows.add(const [
       'id',
       'vehicleId',
@@ -71,23 +82,28 @@ class ExportCsvService {
       'odometerKm',
       'description',
       'totalAmount',
-      'invoicePhotoPath',
+      'currencyCode',
       'notes',
     ]);
+    
     for (final e in entries) {
+      // Date σε ISO format: yyyy-MM-dd
+      final dateStr = '${e.date.year.toString().padLeft(4, '0')}-${e.date.month.toString().padLeft(2, '0')}-${e.date.day.toString().padLeft(2, '0')}';
+      
       rows.add([
         e.id,
         e.vehicleId,
-        e.date.toIso8601String(),
+        dateStr,
         e.odometerKm,
         e.description,
         e.totalAmount,
-        e.invoicePhotoPath ?? '',
+        e.currencyCode ?? '',
         e.notes ?? '',
       ]);
     }
+    
     final csv = const ListToCsvConverter().convert(rows);
-    final file = File('${dir.path}${Platform.pathSeparator}FuelServiceLog${Platform.pathSeparator}exports${Platform.pathSeparator}service_${vehicleId}_${_timestamp()}.csv');
+    final file = File('${dir.path}${Platform.pathSeparator}service_${vehicleId}_${_timestamp()}.csv');
     await file.writeAsString(csv, encoding: utf8);
     return file.path;
   }
