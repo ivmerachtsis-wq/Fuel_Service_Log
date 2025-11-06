@@ -37,6 +37,30 @@ class SettingsTab extends StatelessWidget {
           subtitle: Text(l10n.settingsGeneral),
         ),
         const Divider(),
+        // Appearance Section
+        ListTile(
+          leading: const Icon(Icons.palette_outlined),
+          title: Text(l10n.appearance),
+          subtitle: Text(l10n.theme),
+        ),
+        ListTile(
+          leading: const Icon(Icons.brightness_6_outlined),
+          title: Text(l10n.theme),
+          trailing: DropdownButton<ThemeMode>(
+            value: settings.themeMode,
+            items: [
+              DropdownMenuItem(value: ThemeMode.system, child: Text(l10n.themeSystem)),
+              DropdownMenuItem(value: ThemeMode.light, child: Text(l10n.themeLight)),
+              DropdownMenuItem(value: ThemeMode.dark, child: Text(l10n.themeDark)),
+            ],
+            onChanged: (value) {
+              if (value != null) {
+                settings.setThemeMode(value);
+              }
+            },
+          ),
+        ),
+        const Divider(),
         // Version Info
         ListTile(
           leading: const Icon(Icons.info_outline),

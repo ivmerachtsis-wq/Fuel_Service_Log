@@ -34,6 +34,15 @@ class MyApp extends StatelessWidget {
           title: 'Fuel & Service Log',
           debugShowCheckedModeBanner: false,
           locale: settings.currentLocale,
+          themeMode: settings.themeMode,
+          theme: ThemeData(
+            useMaterial3: true,
+            brightness: Brightness.light,
+          ),
+          darkTheme: ThemeData(
+            useMaterial3: true,
+            brightness: Brightness.dark,
+          ),
           localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,

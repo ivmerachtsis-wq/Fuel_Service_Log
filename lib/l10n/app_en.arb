@@ -93,4 +93,8 @@
 	"range6m": "Last 6 months",
 	"range12m": "Last 12 months",
 	"allDrivers": "All"
+	,"appearance": "Appearance"
+	,"themeSystem": "System"
+	,"themeLight": "Light"
+	,"themeDark": "Dark"
 }

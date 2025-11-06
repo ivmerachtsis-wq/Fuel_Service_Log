@@ -288,4 +288,16 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get allDrivers => 'Όλοι';
+
+  @override
+  String get appearance => 'Εμφάνιση';
+
+  @override
+  String get themeSystem => 'Σύστημα';
+
+  @override
+  String get themeLight => 'Φωτεινό';
+
+  @override
+  String get themeDark => 'Σκούρο';
 }
