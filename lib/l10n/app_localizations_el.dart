@@ -219,4 +219,16 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get version => 'Έκδοση';
+
+  @override
+  String get validationRequired => 'Απαιτούμενο πεδίο';
+
+  @override
+  String get errorFutureDateNotAllowed => 'Δεν επιτρέπεται μελλοντική ημερομηνία';
+
+  @override
+  String get exportSuccess => 'Η εξαγωγή ολοκληρώθηκε';
+
+  @override
+  String get openFolder => 'Άνοιγμα φακέλου';
 }

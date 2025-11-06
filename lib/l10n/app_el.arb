@@ -69,5 +69,9 @@
 	"settingsRestoreSubtitle": "Εισαγωγή από το τελευταίο αρχείο αντιγράφων ασφαλείας",
 	"ok": "OK",
 		"settingsVersion": "Έκδοση",
-		"version": "Έκδοση"
+		"version": "Έκδοση",
+	"validationRequired": "Απαιτούμενο πεδίο",
+	"errorFutureDateNotAllowed": "Δεν επιτρέπεται μελλοντική ημερομηνία",
+	"exportSuccess": "Η εξαγωγή ολοκληρώθηκε",
+	"openFolder": "Άνοιγμα φακέλου"
 }

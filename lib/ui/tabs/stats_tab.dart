@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
-import '../../data/repo/fuel_repo.dart';
-import '../../state/active_vehicle_controller.dart';
+import '../../data/models/fuel_entry.dart';
+import '../../data/models/vehicle.dart';
 import '../../domain/stats_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../widgets/kpi_card.dart';
@@ -15,45 +16,38 @@ class StatsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fuelRepo = FuelRepo();
-    final activeController = ActiveVehicleController();
     final statsService = StatsService();
+    final l10n = AppLocalizations.of(context)!;
+    
+    // Συγχρονιστική λήψη του ενεργού οχήματος
+    final vehiclesBox = Hive.box<Vehicle>('vehicles');
+    if (vehiclesBox.isEmpty) {
+      return Center(child: Text(l10n.noActiveVehicle));
+    }
+    final vehicleId = vehiclesBox.values.first.id;
 
-    return FutureBuilder<String>(
-      future: activeController.getActiveVehicleId(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    final box = Hive.box<FuelEntry>('fuel_entries');
+    
+    return ValueListenableBuilder(
+      valueListenable: box.listenable(),
+      builder: (context, Box<FuelEntry> fuelBox, _) {
+        // Φιλτράρισμα entries του ενεργού οχήματος (συγχρονιστικά)
+        final vehicleEntries = fuelBox.values
+            .where((e) => e.vehicleId == vehicleId)
+            .toList()
+          ..sort((a, b) => a.date.compareTo(b.date));
 
-        final vehicleId = snapshot.data!;
-
-        return StreamBuilder(
-          stream: fuelRepo.watchAll(),
-          builder: (context, streamSnapshot) {
-            if (!streamSnapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            // Φιλτράρισμα entries του ενεργού οχήματος
-            final allEntries = streamSnapshot.data!;
-            final vehicleEntries = allEntries
-                .where((e) => e.vehicleId == vehicleId)
-                .toList();
-
-            // Υπολογισμός στατιστικών
-            final consumptions = statsService.getFullToFullConsumptions(vehicleEntries);
-            final monthlyCosts = statsService.getMonthlyCost(vehicleEntries, months: 6);
-            
-            // Safe calculations με guards για NaN/null
-            final avgConsumption = consumptions.isNotEmpty 
-                ? statsService.getAverageConsumption(consumptions)
-                : double.nan;
-            final avgMonthlyCost = monthlyCosts.isNotEmpty
-                ? statsService.getAverageMonthlyCost(monthlyCosts)
-                : double.nan;
-
-            final l10n = AppLocalizations.of(context)!;
+        // Υπολογισμός στατιστικών (συγχρονιστικά, χωρίς await)
+        final consumptions = statsService.getFullToFullConsumptions(vehicleEntries);
+        final monthlyCosts = statsService.getMonthlyCost(vehicleEntries, months: 6);
+        
+        // Safe calculations με guards για NaN/null
+        final avgConsumption = consumptions.isNotEmpty 
+            ? statsService.getAverageConsumption(consumptions)
+            : double.nan;
+        final avgMonthlyCost = monthlyCosts.isNotEmpty
+            ? statsService.getAverageMonthlyCost(monthlyCosts)
+            : double.nan;
 
             return ListView(
               padding: const EdgeInsets.all(16),
@@ -129,8 +123,6 @@ class StatsTab extends StatelessWidget {
                   ),
               ],
             );
-          },
-        );
       },
     );
   }

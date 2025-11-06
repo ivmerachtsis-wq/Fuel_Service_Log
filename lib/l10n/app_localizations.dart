@@ -514,6 +514,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Version'**
   String get version;
+
+  /// No description provided for @validationRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required field'**
+  String get validationRequired;
+
+  /// No description provided for @errorFutureDateNotAllowed.
+  ///
+  /// In en, this message translates to:
+  /// **'Future date not allowed'**
+  String get errorFutureDateNotAllowed;
+
+  /// No description provided for @exportSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Export completed'**
+  String get exportSuccess;
+
+  /// No description provided for @openFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Open folder'**
+  String get openFolder;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

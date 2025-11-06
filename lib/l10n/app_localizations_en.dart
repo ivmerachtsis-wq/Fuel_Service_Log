@@ -219,4 +219,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get version => 'Version';
+
+  @override
+  String get validationRequired => 'Required field';
+
+  @override
+  String get errorFutureDateNotAllowed => 'Future date not allowed';
+
+  @override
+  String get exportSuccess => 'Export completed';
+
+  @override
+  String get openFolder => 'Open folder';
 }

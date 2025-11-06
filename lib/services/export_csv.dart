@@ -26,7 +26,7 @@ class ExportCsvService {
     return '${now.year}${two(now.month)}${two(now.day)}_${two(now.hour)}${two(now.minute)}${two(now.second)}';
   }
 
-  Future<String> exportFuelToCsv(String vehicleId) async {
+  Future<File> exportFuelToCsv(String vehicleId) async {
     final dir = await _ensureExportsDir();
     final entries = _fuelRepo.listByVehicle(vehicleId);
     final rows = <List<dynamic>>[];
@@ -66,10 +66,10 @@ class ExportCsvService {
     final csv = const ListToCsvConverter().convert(rows);
     final file = File('${dir.path}${Platform.pathSeparator}fuel_${vehicleId}_${_timestamp()}.csv');
     await file.writeAsString(csv, encoding: utf8);
-    return file.path;
+    return file;
   }
 
-  Future<String> exportServiceToCsv(String vehicleId) async {
+  Future<File> exportServiceToCsv(String vehicleId) async {
     final dir = await _ensureExportsDir();
     final entries = _serviceRepo.listByVehicle(vehicleId);
     final rows = <List<dynamic>>[];
@@ -105,6 +105,6 @@ class ExportCsvService {
     final csv = const ListToCsvConverter().convert(rows);
     final file = File('${dir.path}${Platform.pathSeparator}service_${vehicleId}_${_timestamp()}.csv');
     await file.writeAsString(csv, encoding: utf8);
-    return file.path;
+    return file;
   }
 }

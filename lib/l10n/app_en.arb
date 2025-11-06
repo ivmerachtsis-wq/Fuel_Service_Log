@@ -69,5 +69,9 @@
 	"settingsRestoreSubtitle": "Import from the latest backup file",
 	"ok": "OK",
 		"settingsVersion": "Version",
-		"version": "Version"
+		"version": "Version",
+	"validationRequired": "Required field",
+	"errorFutureDateNotAllowed": "Future date not allowed",
+	"exportSuccess": "Export completed",
+	"openFolder": "Open folder"
 }

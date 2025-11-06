@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:path/path.dart' as p;
 import '../../services/export_csv.dart';
 import '../../services/backup_restore.dart';
 import '../../services/data_integrity_service.dart';
@@ -98,10 +100,25 @@ class SettingsTab extends StatelessWidget {
           onTap: () async {
             try {
               final vehicleId = await active.getActiveVehicleId();
-              await exportSvc.exportFuelToCsv(vehicleId);
+              final fuelFile = await exportSvc.exportFuelToCsv(vehicleId);
               await exportSvc.exportServiceToCsv(vehicleId);
+              
               if (context.mounted) {
-                _showSnack(context, l10n.successExport);
+                final fuelName = p.basename(fuelFile.path);
+                final folder = p.dirname(fuelFile.path);
+                
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('${l10n.exportSuccess}: $fuelName + service CSV'),
+                    action: SnackBarAction(
+                      label: l10n.openFolder,
+                      onPressed: () async {
+                        final uri = Uri.file(folder);
+                        await launchUrl(uri);
+                      },
+                    ),
+                  ),
+                );
               }
             } catch (e) {
               if (context.mounted) {
@@ -115,9 +132,27 @@ class SettingsTab extends StatelessWidget {
           title: Text(l10n.backupJson),
           onTap: () async {
             try {
-              final ok = await backupSvc.exportToJson();
+              final file = await backupSvc.exportToJson();
               if (context.mounted) {
-                _showSnack(context, ok ? l10n.successBackup : 'Error');
+                if (file != null) {
+                  final fileName = p.basename(file.path);
+                  final folder = p.dirname(file.path);
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${l10n.successBackup}: $fileName'),
+                      action: SnackBarAction(
+                        label: l10n.openFolder,
+                        onPressed: () async {
+                          final uri = Uri.file(folder);
+                          await launchUrl(uri);
+                        },
+                      ),
+                    ),
+                  );
+                } else {
+                  _showSnack(context, 'Error: Backup failed');
+                }
               }
             } catch (e) {
               if (context.mounted) {

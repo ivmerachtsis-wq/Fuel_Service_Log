@@ -24,7 +24,7 @@ class BackupRestoreService {
     return '${now.year}${two(now.month)}${two(now.day)}_${two(now.hour)}${two(now.minute)}${two(now.second)}';
   }
 
-  Future<bool> exportToJson() async {
+  Future<File?> exportToJson() async {
     try {
       final dir = await _ensureBackupsDir();
 
@@ -75,9 +75,9 @@ class BackupRestoreService {
     final file = File('${dir.path}${Platform.pathSeparator}backup_${_timestamp()}.json');
     await file.create(recursive: true);
     await file.writeAsString(payload, encoding: utf8);
-    return true;
+    return file;
     } catch (_) {
-      return false;
+      return null;
     }
   }
 

@@ -103,12 +103,13 @@ class _ServiceFormState extends State<ServiceForm> {
     }
   }
 
-  String? _validateDate(BuildContext context) {
+  String? _validateDate(DateTime d) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    if (_date.isAfter(today)) {
+    final picked = DateTime(d.year, d.month, d.day);
+    if (picked.isAfter(today)) {
       final l10n = AppLocalizations.of(context)!;
-      return '${l10n.serviceDate}: future date not allowed';
+      return l10n.errorFutureDateNotAllowed;
     }
     return null;
   }
@@ -125,7 +126,7 @@ class _ServiceFormState extends State<ServiceForm> {
   String? _validateDescription(String? s, BuildContext context) {
     if (s == null || s.trim().isEmpty) {
       final l10n = AppLocalizations.of(context)!;
-      return '${l10n.serviceDescription}: required';
+      return l10n.validationRequired;
     }
     return null;
   }
@@ -140,14 +141,16 @@ class _ServiceFormState extends State<ServiceForm> {
   }
 
   Future<void> _save() async {
-    // Validate date first
-    final dateError = _validateDate(context);
+    // Validate date first (inline will show via InputDecorator if we had errorText)
+    final dateError = _validateDate(_date);
     if (dateError != null) {
+      // Για την ημερομηνία δείχνουμε SnackBar επειδή δεν έχουμε TextFormField validator εκεί
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(dateError)));
       return;
     }
 
     if (!_formKey.currentState!.validate()) {
+      // Inline errors θα φανούν στα TextFormFields
       return;
     }
 
