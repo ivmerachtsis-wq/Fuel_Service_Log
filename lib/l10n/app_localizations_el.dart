@@ -231,4 +231,37 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get openFolder => 'Άνοιγμα φακέλου';
+
+  @override
+  String get exportFuelPdf => 'Εξαγωγή Fuel σε PDF';
+
+  @override
+  String get exportServicePdf => 'Εξαγωγή Service σε PDF';
+
+  @override
+  String get pdfTitleFuel => 'Εξαγωγή Καυσίμων';
+
+  @override
+  String get pdfTitleService => 'Εξαγωγή Service';
+
+  @override
+  String get pdfMetaVehicle => 'Όχημα';
+
+  @override
+  String get pdfMetaDriver => 'Οδηγός';
+
+  @override
+  String get pdfMetaCreatedAt => 'Δημιουργήθηκε';
+
+  @override
+  String get pdfSummary => 'Σύνοψη';
+
+  @override
+  String get pdfCount => 'Πλήθος';
+
+  @override
+  String get pdfTotalLiters => 'Σύνολο λίτρων';
+
+  @override
+  String get pdfTotalAmount => 'Σύνολο ποσού';
 }

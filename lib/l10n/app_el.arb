@@ -73,5 +73,16 @@
 	"validationRequired": "Απαιτούμενο πεδίο",
 	"errorFutureDateNotAllowed": "Δεν επιτρέπεται μελλοντική ημερομηνία",
 	"exportSuccess": "Η εξαγωγή ολοκληρώθηκε",
-	"openFolder": "Άνοιγμα φακέλου"
+	"openFolder": "Άνοιγμα φακέλου",
+	"exportFuelPdf": "Εξαγωγή Fuel σε PDF",
+	"exportServicePdf": "Εξαγωγή Service σε PDF",
+	"pdfTitleFuel": "Εξαγωγή Καυσίμων",
+	"pdfTitleService": "Εξαγωγή Service",
+	"pdfMetaVehicle": "Όχημα",
+	"pdfMetaDriver": "Οδηγός",
+	"pdfMetaCreatedAt": "Δημιουργήθηκε",
+	"pdfSummary": "Σύνοψη",
+	"pdfCount": "Πλήθος",
+	"pdfTotalLiters": "Σύνολο λίτρων",
+	"pdfTotalAmount": "Σύνολο ποσού"
 }
