@@ -31,7 +31,8 @@
 	"kpiMonthlyCost": "Monthly cost (last 6)",
 	"chartNoData": "Not enough data for statistics",
 	"chartAxisDate": "Date",
-	"chartAxisConsumption": "L/100km"
+	"chartAxisConsumption": "L/100km",
+	"statsHintFullToFull": "Add at least 2 full-tank refuels to see consumption statistics"
 ,
 	"noFuelEntries": "No fuel entries yet",
 	"addFuelTitle": "Add Fuel",

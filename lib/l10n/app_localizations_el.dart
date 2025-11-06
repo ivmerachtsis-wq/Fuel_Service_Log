@@ -105,6 +105,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get chartAxisConsumption => 'L/100km';
 
   @override
+  String get statsHintFullToFull => 'Προσθέστε τουλάχιστον 2 γεμίσματα με γεμάτο ρεζερβουάρ για να δείτε στατιστικά κατανάλωσης';
+
+  @override
   String get noFuelEntries => 'Δεν υπάρχουν καταχωρήσεις καυσίμων';
 
   @override

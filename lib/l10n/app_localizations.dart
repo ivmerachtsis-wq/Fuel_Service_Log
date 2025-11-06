@@ -287,6 +287,12 @@ abstract class AppLocalizations {
   /// **'L/100km'**
   String get chartAxisConsumption;
 
+  /// No description provided for @statsHintFullToFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least 2 full-tank refuels to see consumption statistics'**
+  String get statsHintFullToFull;
+
   /// No description provided for @noFuelEntries.
   ///
   /// In en, this message translates to:

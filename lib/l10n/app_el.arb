@@ -31,7 +31,8 @@
 	"kpiMonthlyCost": "Κόστος/μήνα (τελευταίοι 6)",
 	"chartNoData": "Δεν υπάρχουν επαρκή δεδομένα για στατιστικά",
 	"chartAxisDate": "Ημερομηνία",
-	"chartAxisConsumption": "L/100km"
+	"chartAxisConsumption": "L/100km",
+	"statsHintFullToFull": "Προσθέστε τουλάχιστον 2 γεμίσματα με γεμάτο ρεζερβουάρ για να δείτε στατιστικά κατανάλωσης"
 ,
 	"noFuelEntries": "Δεν υπάρχουν καταχωρήσεις καυσίμων",
 	"addFuelTitle": "Νέα Καταχώρηση Καυσίμου",

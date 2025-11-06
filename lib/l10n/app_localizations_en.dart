@@ -105,6 +105,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chartAxisConsumption => 'L/100km';
 
   @override
+  String get statsHintFullToFull => 'Add at least 2 full-tank refuels to see consumption statistics';
+
+  @override
   String get noFuelEntries => 'No fuel entries yet';
 
   @override

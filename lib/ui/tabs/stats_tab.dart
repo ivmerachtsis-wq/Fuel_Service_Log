@@ -44,8 +44,16 @@ class StatsTab extends StatelessWidget {
             // Υπολογισμός στατιστικών
             final consumptions = statsService.getFullToFullConsumptions(vehicleEntries);
             final monthlyCosts = statsService.getMonthlyCost(vehicleEntries, months: 6);
-            final avgConsumption = statsService.getAverageConsumption(consumptions);
-            final avgMonthlyCost = statsService.getAverageMonthlyCost(monthlyCosts);
+            
+            // Safe calculations με guards για NaN/null
+            final avgConsumption = consumptions.isNotEmpty 
+                ? statsService.getAverageConsumption(consumptions)
+                : double.nan;
+            final avgMonthlyCost = monthlyCosts.isNotEmpty
+                ? statsService.getAverageMonthlyCost(monthlyCosts)
+                : double.nan;
+
+            final l10n = AppLocalizations.of(context)!;
 
             return ListView(
               padding: const EdgeInsets.all(16),
@@ -55,8 +63,8 @@ class StatsTab extends StatelessWidget {
                   children: [
                     Expanded(
                       child: KpiCard(
-                        title: AppLocalizations.of(context)!.kpiAvgConsumption,
-                        value: consumptions.isEmpty 
+                        title: l10n.kpiAvgConsumption,
+                        value: avgConsumption.isNaN || avgConsumption <= 0
                             ? '—' 
                             : avgConsumption.toStringAsFixed(2),
                         icon: Icons.speed,
@@ -65,8 +73,8 @@ class StatsTab extends StatelessWidget {
                     const SizedBox(width: 16),
                     Expanded(
                       child: KpiCard(
-                        title: AppLocalizations.of(context)!.kpiMonthlyCost,
-                        value: monthlyCosts.isEmpty
+                        title: l10n.kpiMonthlyCost,
+                        value: avgMonthlyCost.isNaN || avgMonthlyCost <= 0
                             ? '—'
                             : formatCurrency(
                                 avgMonthlyCost,
@@ -81,18 +89,33 @@ class StatsTab extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // Γράφημα κατανάλωσης
-                Text(AppLocalizations.of(context)!.statsTitle,
+                Text(l10n.statsTitle,
                     style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 16),
                 
-                if (consumptions.isEmpty)
+                if (consumptions.length < 2)
                   SizedBox(
                     height: 300,
                     child: Center(
-                      child: Text(
-                        AppLocalizations.of(context)!.chartNoData,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.grey),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            l10n.chartNoData,
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            l10n.statsHintFullToFull,
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   )
@@ -122,15 +145,31 @@ class _ConsumptionChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context).toString();
+    
+    // Guard: πρέπει να έχουμε τουλάχιστον 2 σημεία
+    if (consumptions.length < 2) {
+      return Center(
+        child: Text(
+          l10n.chartNoData,
+          style: TextStyle(color: Colors.grey[600]),
+        ),
+      );
+    }
+
     final spots = consumptions
         .asMap()
         .entries
         .map((e) => FlSpot(e.key.toDouble(), e.value.litersPer100Km))
         .toList();
 
-    final minY = consumptions.map((c) => c.litersPer100Km).reduce((a, b) => a < b ? a : b);
-    final maxY = consumptions.map((c) => c.litersPer100Km).reduce((a, b) => a > b ? a : b);
-    final yPadding = (maxY - minY) * 0.2;
+    // Safe min/max calculations
+    final yValues = consumptions.map((c) => c.litersPer100Km).toList();
+    final minY = yValues.reduce((a, b) => a < b ? a : b);
+    final maxY = yValues.reduce((a, b) => a > b ? a : b);
+    
+    // Guard: αποφυγή διαίρεσης με 0 ή NaN
+    final yRange = maxY - minY;
+    final yPadding = yRange > 0 ? yRange * 0.2 : 1.0;
 
     return LineChart(
       LineChartData(
@@ -215,9 +254,19 @@ class _ConsumptionChart extends StatelessWidget {
             getTooltipItems: (touchedSpots) {
               return touchedSpots.map((spot) {
                 final idx = spot.x.toInt();
+                if (idx < 0 || idx >= consumptions.length) {
+                  return null;
+                }
                 final date = consumptions[idx].date;
+                final consumption = spot.y;
+                
+                // Guard: έλεγχος για NaN
+                if (consumption.isNaN) {
+                  return null;
+                }
+                
                 return LineTooltipItem(
-                  '${DateFormat('dd/MM/yy', locale).format(date)}\n${spot.y.toStringAsFixed(2)} ${l10n.chartAxisConsumption}',
+                  '${DateFormat('dd/MM/yy', locale).format(date)}\n${consumption.toStringAsFixed(2)} L/100km',
                   const TextStyle(color: Colors.white, fontSize: 12),
                 );
               }).toList();
