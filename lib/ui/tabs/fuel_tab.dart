@@ -100,6 +100,8 @@ class _FuelTabState extends State<FuelTab> {
                   },
                   child: Card(
                     child: ListTile(
+                      key: ValueKey(e.id),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
                       title: Text(
                         '${e.liters.toStringAsFixed(2)} ${l10n.liters}  @  ${formatCurrency(e.pricePerLiter, currencyCode: currency, context: context)} / L',
                       ),

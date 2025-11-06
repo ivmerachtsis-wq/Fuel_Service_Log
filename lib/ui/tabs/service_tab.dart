@@ -98,6 +98,8 @@ class _ServiceTabState extends State<ServiceTab> {
                   },
                   child: Card(
                     child: ListTile(
+                      key: ValueKey(e.id),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
                       title: Text(
                         e.description,
                         style: const TextStyle(fontWeight: FontWeight.w600),
