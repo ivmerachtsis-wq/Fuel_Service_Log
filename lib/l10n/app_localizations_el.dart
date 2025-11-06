@@ -264,4 +264,28 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get pdfTotalAmount => 'Σύνολο ποσού';
+
+  @override
+  String get statsFilters => 'Φίλτρα';
+
+  @override
+  String get filterVehicle => 'Όχημα';
+
+  @override
+  String get filterDriver => 'Οδηγός';
+
+  @override
+  String get filterDateRange => 'Χρονικό εύρος';
+
+  @override
+  String get range3m => 'Τελευταίοι 3 μήνες';
+
+  @override
+  String get range6m => 'Τελευταίοι 6 μήνες';
+
+  @override
+  String get range12m => 'Τελευταίοι 12 μήνες';
+
+  @override
+  String get allDrivers => 'Όλοι';
 }

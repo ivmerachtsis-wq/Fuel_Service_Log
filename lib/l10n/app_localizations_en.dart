@@ -264,4 +264,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pdfTotalAmount => 'Total amount';
+
+  @override
+  String get statsFilters => 'Filters';
+
+  @override
+  String get filterVehicle => 'Vehicle';
+
+  @override
+  String get filterDriver => 'Driver';
+
+  @override
+  String get filterDateRange => 'Date range';
+
+  @override
+  String get range3m => 'Last 3 months';
+
+  @override
+  String get range6m => 'Last 6 months';
+
+  @override
+  String get range12m => 'Last 12 months';
+
+  @override
+  String get allDrivers => 'All';
 }

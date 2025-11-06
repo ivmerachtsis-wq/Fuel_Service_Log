@@ -26,13 +26,14 @@ class ServiceEntryAdapter extends TypeAdapter<ServiceEntry> {
       invoicePhotoPath: fields[6] as String?,
       notes: fields[7] as String?,
       currencyCode: fields[8] as String?,
+      driverId: fields[9] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, ServiceEntry obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -50,7 +51,9 @@ class ServiceEntryAdapter extends TypeAdapter<ServiceEntry> {
       ..writeByte(7)
       ..write(obj.notes)
       ..writeByte(8)
-      ..write(obj.currencyCode);
+      ..write(obj.currencyCode)
+      ..writeByte(9)
+      ..write(obj.driverId);
   }
 
   @override

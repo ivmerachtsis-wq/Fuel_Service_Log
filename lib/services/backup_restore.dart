@@ -50,7 +50,8 @@ class BackupRestoreService {
           'amount': e.amount,
           'fullTank': e.fullTank,
           'notes': e.notes,
-      'currencyCode': e.currencyCode,
+          'currencyCode': e.currencyCode,
+          'driverId': e.driverId,
         }).toList();
 
     final serviceEntries = Hive.box<ServiceEntry>('service_entries').values.map((e) => {
@@ -63,6 +64,7 @@ class BackupRestoreService {
           'invoicePhotoPath': e.invoicePhotoPath,
           'notes': e.notes,
           'currencyCode': e.currencyCode,
+          'driverId': e.driverId,
         }).toList();
 
     final payload = jsonEncode({
@@ -131,6 +133,7 @@ class BackupRestoreService {
         fullTank: (m['fullTank'] as bool?) ?? true,
         notes: m['notes'] as String?,
         currencyCode: m['currencyCode'] as String?,
+        driverId: m['driverId'] as String?,
       ));
     }
 
@@ -146,6 +149,7 @@ class BackupRestoreService {
         invoicePhotoPath: m['invoicePhotoPath'] as String?,
         notes: m['notes'] as String?,
         currencyCode: m['currencyCode'] as String?,
+        driverId: m['driverId'] as String?,
       ));
     }
 
