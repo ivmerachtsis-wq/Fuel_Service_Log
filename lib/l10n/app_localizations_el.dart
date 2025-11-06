@@ -103,4 +103,70 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get chartAxisConsumption => 'L/100km';
+
+  @override
+  String get noFuelEntries => 'Δεν υπάρχουν καταχωρήσεις καυσίμων';
+
+  @override
+  String get addFuelTitle => 'Νέα Καταχώρηση Καυσίμου';
+
+  @override
+  String get editFuelTitle => 'Επεξεργασία Καυσίμου';
+
+  @override
+  String get liters => 'Λίτρα';
+
+  @override
+  String get pricePerLiter => 'Τιμή ανά λίτρο';
+
+  @override
+  String get amount => 'Ποσό';
+
+  @override
+  String get fullTank => 'Γεμάτο ρεζερβουάρ';
+
+  @override
+  String get notes => 'Σημειώσεις';
+
+  @override
+  String get save => 'Αποθήκευση';
+
+  @override
+  String get cancel => 'Άκυρο';
+
+  @override
+  String get settingsGeneral => 'Γενικές προτιμήσεις';
+
+  @override
+  String get noActiveVehicle => 'Δεν έχει οριστεί ενεργό όχημα';
+
+  @override
+  String get odometerKm => 'Χιλιόμετρα (km)';
+
+  @override
+  String get editService => 'Επεξεργασία Service';
+
+  @override
+  String get serviceNoEntries => 'Δεν υπάρχουν καταχωρήσεις service';
+
+  @override
+  String get serviceDate => 'Ημερομηνία';
+
+  @override
+  String get serviceOdometer => 'Χιλιόμετρα (km)';
+
+  @override
+  String get serviceDescription => 'Περιγραφή';
+
+  @override
+  String get serviceAmount => 'Συνολικό ποσό';
+
+  @override
+  String get serviceNotes => 'Σημειώσεις';
+
+  @override
+  String get serviceInvoice => 'Τιμολόγιο';
+
+  @override
+  String get deleted => 'Διαγράφηκε';
 }

@@ -32,4 +32,31 @@
 	"chartNoData": "Not enough data for statistics",
 	"chartAxisDate": "Date",
 	"chartAxisConsumption": "L/100km"
+,
+	"noFuelEntries": "No fuel entries yet",
+	"addFuelTitle": "Add Fuel",
+	"editFuelTitle": "Edit Fuel",
+	"liters": "Liters",
+	"pricePerLiter": "Price per liter",
+	"amount": "Amount",
+	"fullTank": "Full tank",
+	"notes": "Notes",
+	"save": "Save",
+	"cancel": "Cancel",
+	"settingsGeneral": "General preferences"
+,
+	"noActiveVehicle": "No active vehicle"
+,
+	"odometerKm": "Odometer (km)"
+,
+	"addService": "Add Service Entry",
+	"editService": "Edit Service Entry",
+	"serviceNoEntries": "No service entries yet",
+	"serviceDate": "Date",
+	"serviceOdometer": "Odometer (km)",
+	"serviceDescription": "Description",
+	"serviceAmount": "Total amount",
+	"serviceNotes": "Notes",
+	"serviceInvoice": "Invoice",
+	"deleted": "Deleted"
 }

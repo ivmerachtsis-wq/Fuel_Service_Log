@@ -71,7 +71,7 @@ class Shell extends StatelessWidget {
       case 0:
         return FuelTab(settings: settings);
       case 1:
-        return const ServiceTab();
+        return ServiceTab(settings: settings);
       case 2:
         return StatsTab(settings: settings);
       case 3:

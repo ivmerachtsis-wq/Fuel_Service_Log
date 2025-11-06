@@ -28,6 +28,9 @@ class ServiceEntry extends HiveObject {
   @HiveField(7)
   String? notes;
 
+  @HiveField(8)
+  String? currencyCode;
+
   ServiceEntry({
     required this.id,
     required this.vehicleId,
@@ -37,5 +40,6 @@ class ServiceEntry extends HiveObject {
     required this.totalAmount,
     this.invoicePhotoPath,
     this.notes,
+    this.currencyCode,
   });
 }

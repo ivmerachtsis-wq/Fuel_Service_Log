@@ -32,4 +32,31 @@
 	"chartNoData": "Δεν υπάρχουν επαρκή δεδομένα για στατιστικά",
 	"chartAxisDate": "Ημερομηνία",
 	"chartAxisConsumption": "L/100km"
+,
+	"noFuelEntries": "Δεν υπάρχουν καταχωρήσεις καυσίμων",
+	"addFuelTitle": "Νέα Καταχώρηση Καυσίμου",
+	"editFuelTitle": "Επεξεργασία Καυσίμου",
+	"liters": "Λίτρα",
+	"pricePerLiter": "Τιμή ανά λίτρο",
+	"amount": "Ποσό",
+	"fullTank": "Γεμάτο ρεζερβουάρ",
+	"notes": "Σημειώσεις",
+	"save": "Αποθήκευση",
+	"cancel": "Άκυρο",
+	"settingsGeneral": "Γενικές προτιμήσεις"
+,
+	"noActiveVehicle": "Δεν έχει οριστεί ενεργό όχημα"
+,
+	"odometerKm": "Χιλιόμετρα (km)"
+,
+	"addService": "Νέα Καταχώρηση Service",
+	"editService": "Επεξεργασία Service",
+	"serviceNoEntries": "Δεν υπάρχουν καταχωρήσεις service",
+	"serviceDate": "Ημερομηνία",
+	"serviceOdometer": "Χιλιόμετρα (km)",
+	"serviceDescription": "Περιγραφή",
+	"serviceAmount": "Συνολικό ποσό",
+	"serviceNotes": "Σημειώσεις",
+	"serviceInvoice": "Τιμολόγιο",
+	"deleted": "Διαγράφηκε"
 }

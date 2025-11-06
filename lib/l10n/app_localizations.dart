@@ -286,6 +286,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'L/100km'**
   String get chartAxisConsumption;
+
+  /// No description provided for @noFuelEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'No fuel entries yet'**
+  String get noFuelEntries;
+
+  /// No description provided for @addFuelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Fuel'**
+  String get addFuelTitle;
+
+  /// No description provided for @editFuelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Fuel'**
+  String get editFuelTitle;
+
+  /// No description provided for @liters.
+  ///
+  /// In en, this message translates to:
+  /// **'Liters'**
+  String get liters;
+
+  /// No description provided for @pricePerLiter.
+  ///
+  /// In en, this message translates to:
+  /// **'Price per liter'**
+  String get pricePerLiter;
+
+  /// No description provided for @amount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get amount;
+
+  /// No description provided for @fullTank.
+  ///
+  /// In en, this message translates to:
+  /// **'Full tank'**
+  String get fullTank;
+
+  /// No description provided for @notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get notes;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @settingsGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'General preferences'**
+  String get settingsGeneral;
+
+  /// No description provided for @noActiveVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'No active vehicle'**
+  String get noActiveVehicle;
+
+  /// No description provided for @odometerKm.
+  ///
+  /// In en, this message translates to:
+  /// **'Odometer (km)'**
+  String get odometerKm;
+
+  /// No description provided for @editService.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Service Entry'**
+  String get editService;
+
+  /// No description provided for @serviceNoEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'No service entries yet'**
+  String get serviceNoEntries;
+
+  /// No description provided for @serviceDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get serviceDate;
+
+  /// No description provided for @serviceOdometer.
+  ///
+  /// In en, this message translates to:
+  /// **'Odometer (km)'**
+  String get serviceOdometer;
+
+  /// No description provided for @serviceDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get serviceDescription;
+
+  /// No description provided for @serviceAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Total amount'**
+  String get serviceAmount;
+
+  /// No description provided for @serviceNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get serviceNotes;
+
+  /// No description provided for @serviceInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice'**
+  String get serviceInvoice;
+
+  /// No description provided for @deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted'**
+  String get deleted;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

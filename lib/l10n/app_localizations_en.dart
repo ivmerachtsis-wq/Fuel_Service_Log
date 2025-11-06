@@ -103,4 +103,70 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chartAxisConsumption => 'L/100km';
+
+  @override
+  String get noFuelEntries => 'No fuel entries yet';
+
+  @override
+  String get addFuelTitle => 'Add Fuel';
+
+  @override
+  String get editFuelTitle => 'Edit Fuel';
+
+  @override
+  String get liters => 'Liters';
+
+  @override
+  String get pricePerLiter => 'Price per liter';
+
+  @override
+  String get amount => 'Amount';
+
+  @override
+  String get fullTank => 'Full tank';
+
+  @override
+  String get notes => 'Notes';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get settingsGeneral => 'General preferences';
+
+  @override
+  String get noActiveVehicle => 'No active vehicle';
+
+  @override
+  String get odometerKm => 'Odometer (km)';
+
+  @override
+  String get editService => 'Edit Service Entry';
+
+  @override
+  String get serviceNoEntries => 'No service entries yet';
+
+  @override
+  String get serviceDate => 'Date';
+
+  @override
+  String get serviceOdometer => 'Odometer (km)';
+
+  @override
+  String get serviceDescription => 'Description';
+
+  @override
+  String get serviceAmount => 'Total amount';
+
+  @override
+  String get serviceNotes => 'Notes';
+
+  @override
+  String get serviceInvoice => 'Invoice';
+
+  @override
+  String get deleted => 'Deleted';
 }
