@@ -34,7 +34,7 @@ class SettingsTab extends StatelessWidget {
         // Version Info
         ListTile(
           leading: const Icon(Icons.info_outline),
-          title: Text(l10n.settingsVersion),
+          title: Text(l10n.version),
           trailing: Text(appVersion, style: Theme.of(context).textTheme.bodyMedium),
         ),
         const Divider(),

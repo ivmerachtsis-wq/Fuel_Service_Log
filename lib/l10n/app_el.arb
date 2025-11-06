@@ -68,5 +68,6 @@
 	"settingsExportCsvSubtitle": "Εγγραφές καυσίμων και συντήρησης σε CSV",
 	"settingsRestoreSubtitle": "Εισαγωγή από το τελευταίο αρχείο αντιγράφων ασφαλείας",
 	"ok": "OK",
-	"settingsVersion": "Έκδοση"
+		"settingsVersion": "Έκδοση",
+		"version": "Έκδοση"
 }

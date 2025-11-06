@@ -68,5 +68,6 @@
 	"settingsExportCsvSubtitle": "Fuel & Service entries as CSV files",
 	"settingsRestoreSubtitle": "Import from the latest backup file",
 	"ok": "OK",
-	"settingsVersion": "Version"
+		"settingsVersion": "Version",
+		"version": "Version"
 }

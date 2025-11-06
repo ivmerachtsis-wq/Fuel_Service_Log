@@ -216,4 +216,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get settingsVersion => 'Έκδοση';
+
+  @override
+  String get version => 'Έκδοση';
 }
