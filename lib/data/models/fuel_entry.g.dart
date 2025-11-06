@@ -26,13 +26,14 @@ class FuelEntryAdapter extends TypeAdapter<FuelEntry> {
       amount: fields[6] as double,
       fullTank: fields[7] as bool,
       notes: fields[8] as String?,
+      currencyCode: fields[9] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, FuelEntry obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -50,7 +51,9 @@ class FuelEntryAdapter extends TypeAdapter<FuelEntry> {
       ..writeByte(7)
       ..write(obj.fullTank)
       ..writeByte(8)
-      ..write(obj.notes);
+      ..write(obj.notes)
+      ..writeByte(9)
+      ..write(obj.currencyCode);
   }
 
   @override

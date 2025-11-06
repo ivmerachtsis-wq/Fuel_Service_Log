@@ -24,7 +24,7 @@ class SettingsTab extends StatelessWidget {
         ListTile(
           leading: const Icon(Icons.settings),
           title: Text(l10n.settingsTitle),
-          subtitle: const Text('General preferences'),
+          subtitle: Text(l10n.settingsGeneral),
         ),
         const Divider(),
         ListTile(
@@ -86,9 +86,9 @@ class SettingsTab extends StatelessWidget {
           title: Text(l10n.backupJson),
           onTap: () async {
             try {
-              await backupSvc.exportToJson();
+              final ok = await backupSvc.exportToJson();
               if (context.mounted) {
-                _showSnack(context, l10n.successBackup);
+                _showSnack(context, ok ? l10n.successBackup : 'Error');
               }
             } catch (e) {
               if (context.mounted) {

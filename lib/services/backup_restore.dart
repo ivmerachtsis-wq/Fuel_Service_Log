@@ -24,8 +24,9 @@ class BackupRestoreService {
     return '${now.year}${two(now.month)}${two(now.day)}_${two(now.hour)}${two(now.minute)}${two(now.second)}';
   }
 
-  Future<String> exportToJson() async {
-    final dir = await _ensureBackupsDir();
+  Future<bool> exportToJson() async {
+    try {
+      final dir = await _ensureBackupsDir();
 
     final vehicles = Hive.box<Vehicle>('vehicles').values.map((v) => {
           'id': v.id,
@@ -49,6 +50,7 @@ class BackupRestoreService {
           'amount': e.amount,
           'fullTank': e.fullTank,
           'notes': e.notes,
+      'currencyCode': e.currencyCode,
         }).toList();
 
     final serviceEntries = Hive.box<ServiceEntry>('service_entries').values.map((e) => {
@@ -69,9 +71,13 @@ class BackupRestoreService {
       'service_entries': serviceEntries,
     });
 
-    final file = File('${dir.path}${Platform.pathSeparator}FuelServiceLog${Platform.pathSeparator}backups${Platform.pathSeparator}backup_${_timestamp()}.json');
+    final file = File('${dir.path}${Platform.pathSeparator}backup_${_timestamp()}.json');
+    await file.create(recursive: true);
     await file.writeAsString(payload, encoding: utf8);
-    return file.path;
+    return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<void> importFromJson(String filePath) async {
@@ -123,6 +129,7 @@ class BackupRestoreService {
         amount: (m['amount'] as num?)?.toDouble() ?? 0,
         fullTank: (m['fullTank'] as bool?) ?? true,
         notes: m['notes'] as String?,
+        currencyCode: m['currencyCode'] as String?,
       ));
     }
 
