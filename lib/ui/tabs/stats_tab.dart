@@ -30,7 +30,105 @@ class _StatsTabState extends State<StatsTab> {
   Future<void> _exportPdf(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
     try {
-      final bytes = await buildStatsPdf(context: context);
+      // Collect stats data for PDF
+      final vehiclesBox = Hive.box<Vehicle>('vehicles');
+      final fuelBox = Hive.box<FuelEntry>('fuel_entries');
+      final serviceBox = Hive.box<ServiceEntry>('service_entries');
+      final statsService = StatsService();
+
+      final selectedVehicle = vehiclesBox.values.firstWhere(
+        (v) => v.id == _selectedVehicleId,
+        orElse: () => vehiclesBox.values.first,
+      );
+
+      final allVehicleEntries = fuelBox.values
+          .where((e) => e.vehicleId == _selectedVehicleId)
+          .toList();
+
+      final now = DateTime.now();
+      final from12 = DateTime(now.year, now.month - 11, 1);
+      final to = DateTime(now.year, now.month, 31);
+
+      // Get consumption data
+      final consumptions = statsService.getFullToFullConsumptions(
+        allVehicleEntries,
+        from: from12,
+        to: to,
+        driverId: _selectedDriverId?.isEmpty == true ? null : _selectedDriverId,
+      );
+
+      final avgConsumption = consumptions.isNotEmpty
+          ? statsService.getAverageConsumption(consumptions)
+          : double.nan;
+
+      // Get monthly fuel costs (12 months)
+      final monthlyCosts = statsService.getMonthlyCost(
+        allVehicleEntries,
+        months: 12,
+        driverId: _selectedDriverId?.isEmpty == true ? null : _selectedDriverId,
+        from: from12,
+        to: to,
+      );
+
+      // Get service entries for 12 months
+      final serviceEntries = serviceBox.values
+          .where((s) => s.vehicleId == _selectedVehicleId)
+          .where((s) => !s.date.isBefore(from12) && !s.date.isAfter(to))
+          .toList();
+
+      final serviceMonthMap = <String, double>{};
+      for (final s in serviceEntries) {
+        final key = '${s.date.year}-${s.date.month.toString().padLeft(2, '0')}';
+        serviceMonthMap[key] = (serviceMonthMap[key] ?? 0) + s.totalAmount;
+      }
+
+      // Calculate service frequency (average days between services)
+      double serviceFreqDays = double.nan;
+      if (serviceEntries.length >= 2) {
+        final sortedServices = serviceEntries.toList()
+          ..sort((a, b) => a.date.compareTo(b.date));
+        int totalDays = 0;
+        for (int i = 1; i < sortedServices.length; i++) {
+          totalDays += sortedServices[i].date.difference(sortedServices[i - 1].date).inDays;
+        }
+        serviceFreqDays = totalDays / (sortedServices.length - 1);
+      }
+
+      // Get current month cost (most recent)
+      final currentYearMonth = '${now.year}-${now.month.toString().padLeft(2, '0')}';
+      final currentFuel = monthlyCosts.firstWhere(
+        (c) => c.yearMonth == currentYearMonth,
+        orElse: () => MonthlyCost(yearMonth: currentYearMonth, amount: 0),
+      ).amount;
+      final currentService = serviceMonthMap[currentYearMonth] ?? 0;
+      final costPerMonthCurrent = currentFuel + currentService;
+
+      // Build 12-month data list
+      final monthsData = <MonthlyCostData>[];
+      for (int i = 11; i >= 0; i--) {
+        final m = DateTime(now.year, now.month - i, 1);
+        final key = '${m.year}-${m.month.toString().padLeft(2, '0')}';
+        final fuel = monthlyCosts.firstWhere(
+          (c) => c.yearMonth == key,
+          orElse: () => MonthlyCost(yearMonth: key, amount: 0),
+        ).amount;
+        final service = serviceMonthMap[key] ?? 0;
+        monthsData.add(MonthlyCostData(ym: key, fuel: fuel, service: service));
+      }
+
+      final statsData = StatsData(
+        vehicleName: selectedVehicle.title,
+        avgLPer100: avgConsumption,
+        costPerMonthCurrent: costPerMonthCurrent,
+        serviceFreqDays: serviceFreqDays,
+        months: monthsData,
+      );
+
+      final bytes = await buildStatsPdf(
+        context: context,
+        data: statsData,
+        currencyCode: widget.settings.currencyCode,
+      );
       await Printing.sharePdf(bytes: bytes, filename: 'stats_report.pdf');
     } catch (e) {
       if (context.mounted) {
