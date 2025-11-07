@@ -1,5 +1,4 @@
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:intl/intl.dart';
 import '../../data/models/fuel_entry.dart';
 import '../../data/models/service_entry.dart';
 import '../../domain/stats_service.dart';

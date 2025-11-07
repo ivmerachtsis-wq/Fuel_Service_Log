@@ -3,7 +3,7 @@ import '../state/navigation_controller.dart';
 import '../state/settings_controller.dart';
 import 'tabs/fuel_tab.dart';
 import 'tabs/service_tab.dart';
-import 'tabs/stats_tab.dart';
+// import 'tabs/stats_tab.dart'; // Replaced by StatsDashboard
 import '../features/stats/stats_dashboard.dart';
 import 'tabs/settings_tab.dart';
 import '../l10n/app_localizations.dart';
