@@ -129,7 +129,19 @@ class _StatsTabState extends State<StatsTab> {
         data: statsData,
         currencyCode: widget.settings.currencyCode,
       );
-      await Printing.sharePdf(bytes: bytes, filename: 'stats_report.pdf');
+
+      // Build improved filename: stats_report_<vehicle>_<YYYY-MM-DD>.pdf
+      final nowDate = DateTime.now();
+      final isoDate = '${nowDate.year}-${nowDate.month.toString().padLeft(2, '0')}-${nowDate.day.toString().padLeft(2, '0')}';
+      final vehicleName = selectedVehicle.title.trim();
+      final sanitizedVehicle = vehicleName.isEmpty
+          ? '-'
+          : vehicleName
+              .replaceAll(RegExp(r'\s+'), '_')
+              .replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '');
+      final filename = 'stats_report_${sanitizedVehicle}_$isoDate.pdf';
+
+      await Printing.sharePdf(bytes: bytes, filename: filename);
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
