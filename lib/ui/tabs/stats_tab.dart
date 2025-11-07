@@ -359,12 +359,33 @@ class _MonthlyCostBarChart extends StatelessWidget {
 
     final maxY = totals.fold<double>(0, (p, n) => n > p ? n : p);
 
-    return BarChart(
-      BarChartData(
-        gridData: FlGridData(show: true, drawVerticalLine: false),
-        borderData: FlBorderData(show: true, border: Border.all(color: Colors.grey[300]!)),
-        barGroups: groups,
-        titlesData: FlTitlesData(
+    return Column(
+      children: [
+        Expanded(
+          child: BarChart(
+            BarChartData(
+              gridData: FlGridData(show: true, drawVerticalLine: false),
+              borderData: FlBorderData(show: true, border: Border.all(color: Colors.grey[300]!)),
+              barGroups: groups,
+              barTouchData: BarTouchData(
+                touchTooltipData: BarTouchTooltipData(
+                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                    final idx = group.x.toInt();
+                    final monthLabel = labels[idx];
+                    final fuel = fuels[idx];
+                    final service = services[idx];
+                    final total = fuel + service;
+                    final fuelStr = formatCurrency(fuel, currencyCode: currencyCode, context: context);
+                    final serviceStr = formatCurrency(service, currencyCode: currencyCode, context: context);
+                    final totalStr = formatCurrency(total, currencyCode: currencyCode, context: context);
+                    return BarTooltipItem(
+                      '$monthLabel\n${l10n.tabFuel}: $fuelStr\n${l10n.tabService}: $serviceStr\n${l10n.pdfTotalAmount}: $totalStr',
+                      const TextStyle(color: Colors.white),
+                    );
+                  },
+                ),
+              ),
+              titlesData: FlTitlesData(
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
@@ -394,25 +415,53 @@ class _MonthlyCostBarChart extends StatelessWidget {
         ),
         minY: 0,
         maxY: maxY == 0 ? 1 : maxY * 1.2,
-        barTouchData: BarTouchData(
-          touchTooltipData: BarTouchTooltipData(
-            getTooltipItem: (group, groupIndex, rod, rodIndex) {
-              final idx = group.x.toInt();
-              final monthLabel = labels[idx];
-              final fuel = fuels[idx];
-              final service = services[idx];
-              final total = fuel + service;
-              final fuelStr = formatCurrency(fuel, currencyCode: currencyCode, context: context);
-              final serviceStr = formatCurrency(service, currencyCode: currencyCode, context: context);
-              final totalStr = formatCurrency(total, currencyCode: currencyCode, context: context);
-              return BarTooltipItem(
-                '$monthLabel\n${l10n.tabFuel}: $fuelStr\n${l10n.tabService}: $serviceStr\n${l10n.pdfTotalAmount}: $totalStr',
-                const TextStyle(color: Colors.white),
-              );
-            },
+      ),
+      duration: const Duration(milliseconds: 700),
+      curve: Curves.easeInOutCubic,
+    ),
+        ),
+        const SizedBox(height: 12),
+        // Legend
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _LegendItem(color: fuelColor, label: l10n.tabFuel),
+            const SizedBox(width: 16),
+            _LegendItem(color: serviceColor, label: l10n.tabService),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _LegendItem extends StatelessWidget {
+  final Color color;
+  final String label;
+
+  const _LegendItem({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 16,
+          height: 16,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(3),
           ),
         ),
-      ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontSize: 12,
+              ),
+        ),
+      ],
     );
   }
 }
