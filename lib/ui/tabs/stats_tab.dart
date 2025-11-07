@@ -280,7 +280,7 @@ class _StatsTabState extends State<StatsTab> {
                             l10n.chartNoData,
                             textAlign: TextAlign.center,
                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                   color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.70),
+                                   color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.70),
                                  ),
                           ),
                           const SizedBox(height: 8),
@@ -288,7 +288,7 @@ class _StatsTabState extends State<StatsTab> {
                             l10n.statsHintFullToFull,
                             textAlign: TextAlign.center,
                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                   color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.60),
+                                   color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.60),
                                  ),
                           ),
                         ],
@@ -312,7 +312,7 @@ class _StatsTabState extends State<StatsTab> {
                         child: Center(
                           child: Text(
                             l10n.chartNoData,
-                             style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.70)), 
+                             style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.70)), 
                           ),
                         ),
                       )
@@ -411,7 +411,7 @@ class _StatsTabState extends State<StatsTab> {
         if (!active) setState(() => _rangeMonths = months);
       },
       style: OutlinedButton.styleFrom(
-        backgroundColor: active ? Theme.of(context).colorScheme.primary.withOpacity(0.10) : null,
+        backgroundColor: active ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.10) : null,
       ),
       child: Text(label, style: TextStyle(fontWeight: active ? FontWeight.bold : FontWeight.normal)),
     );
@@ -448,7 +448,7 @@ class _KpiBox extends StatelessWidget {
                   child: Text(
                     title,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: cs.onSurfaceVariant.withOpacity(0.85),
+                      color: cs.onSurfaceVariant.withValues(alpha: 0.85),
                     ),
                   ),
                 ),
@@ -513,7 +513,7 @@ class _MonthlyCostBarChart extends StatelessWidget {
       return Center(
         child: Text(
           l10n.chartNoData,
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.70)),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.70)),
         ),
       );
     }
@@ -557,15 +557,15 @@ class _MonthlyCostBarChart extends StatelessWidget {
                 show: true,
                 drawVerticalLine: false,
                 getDrawingHorizontalLine: (value) => FlLine(
-                  color: cs.onSurfaceVariant.withOpacity(0.24),
+                  color: cs.onSurfaceVariant.withValues(alpha: 0.24),
                   strokeWidth: 1,
                 ),
                 getDrawingVerticalLine: (value) => FlLine(
-                  color: cs.onSurfaceVariant.withOpacity(0.24),
+                  color: cs.onSurfaceVariant.withValues(alpha: 0.24),
                   strokeWidth: 1,
                 ),
               ),
-              borderData: FlBorderData(show: true, border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.10))),
+              borderData: FlBorderData(show: true, border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.10))),
               barGroups: groups,
               barTouchData: BarTouchData(
                 touchTooltipData: BarTouchTooltipData(
@@ -594,7 +594,7 @@ class _MonthlyCostBarChart extends StatelessWidget {
                 // Δείξε σε βήματα για να μην γεμίζει
                 return Text(
                   formatCurrency(value, currencyCode: currencyCode, context: context),
-                  style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withOpacity(0.78)),
+                  style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withValues(alpha: 0.78)),
                 );
               },
             ),
@@ -606,7 +606,7 @@ class _MonthlyCostBarChart extends StatelessWidget {
               getTitlesWidget: (value, meta) {
                 final idx = value.toInt();
                 if (idx < 0 || idx >= labels.length) return const SizedBox.shrink();
-                return Text(labels[idx], style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withOpacity(0.78)));
+                return Text(labels[idx], style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withValues(alpha: 0.78)));
               },
             ),
           ),
@@ -709,7 +709,7 @@ class _ConsumptionChart extends StatelessWidget {
           drawVerticalLine: false,
           horizontalInterval: 1,
           getDrawingHorizontalLine: (value) => FlLine(
-            color: cs.onSurfaceVariant.withOpacity(0.24),
+            color: cs.onSurfaceVariant.withValues(alpha: 0.24),
             strokeWidth: 1,
           ),
         ),
@@ -717,7 +717,7 @@ class _ConsumptionChart extends StatelessWidget {
           leftTitles: AxisTitles(
             axisNameWidget: Padding(
               padding: const EdgeInsets.only(right: 8.0),
-              child: Text(l10n.chartAxisConsumption, style: TextStyle(color: cs.onSurfaceVariant.withOpacity(0.78))),
+              child: Text(l10n.chartAxisConsumption, style: TextStyle(color: cs.onSurfaceVariant.withValues(alpha: 0.78))),
             ),
             axisNameSize: 22,
             sideTitles: SideTitles(
@@ -726,7 +726,7 @@ class _ConsumptionChart extends StatelessWidget {
               getTitlesWidget: (value, meta) {
                 return Text(
                   value.toStringAsFixed(1),
-                  style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withOpacity(0.78)),
+                  style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withValues(alpha: 0.78)),
                 );
               },
             ),
@@ -734,7 +734,7 @@ class _ConsumptionChart extends StatelessWidget {
           bottomTitles: AxisTitles(
             axisNameWidget: Padding(
               padding: const EdgeInsets.only(top: 8.0),
-              child: Text(l10n.chartAxisDate, style: TextStyle(color: cs.onSurfaceVariant.withOpacity(0.78))),
+              child: Text(l10n.chartAxisDate, style: TextStyle(color: cs.onSurfaceVariant.withValues(alpha: 0.78))),
             ),
             axisNameSize: 22,
             sideTitles: SideTitles(
@@ -748,7 +748,7 @@ class _ConsumptionChart extends StatelessWidget {
                 final date = consumptions[idx].date;
                 return Text(
                   DateFormat('dd/MM', locale).format(date),
-                  style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withOpacity(0.78)),
+                  style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withValues(alpha: 0.78)),
                 );
               },
             ),
@@ -758,7 +758,7 @@ class _ConsumptionChart extends StatelessWidget {
         ),
         borderData: FlBorderData(
           show: true,
-          border: Border.all(color: cs.onSurface.withOpacity(0.10)),
+          border: Border.all(color: cs.onSurface.withValues(alpha: 0.10)),
         ),
         minX: 0,
         maxX: (consumptions.length - 1).toDouble(),
@@ -768,13 +768,13 @@ class _ConsumptionChart extends StatelessWidget {
           LineChartBarData(
             spots: spots,
             isCurved: true,
-            color: cs.primary.withOpacity(0.95),
+            color: cs.primary.withValues(alpha: 0.95),
             barWidth: 3,
             isStrokeCapRound: true,
             dotData: const FlDotData(show: true),
             belowBarData: BarAreaData(
               show: true,
-              color: cs.primary.withOpacity(0.10),
+              color: cs.primary.withValues(alpha: 0.10),
             ),
           ),
         ],
