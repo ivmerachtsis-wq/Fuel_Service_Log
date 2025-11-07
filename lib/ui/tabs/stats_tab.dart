@@ -42,142 +42,159 @@ class _StatsTabState extends State<StatsTab> {
     final driversBox = Hive.box<Driver>('drivers');
 
     return ValueListenableBuilder(
+      // Listen to fuel entries
       valueListenable: fuelBox.listenable(),
       builder: (context, Box<FuelEntry> fb, _) {
-        // Συλλογή όλων των entries για το επιλεγμένο όχημα
-        final allVehicleEntries = fb.values
-            .where((e) => e.vehicleId == _selectedVehicleId)
-            .toList();
+        return ValueListenableBuilder(
+          // Also listen to service entries for reactive updates
+          valueListenable: serviceBox.listenable(),
+          builder: (context, Box<ServiceEntry> sb, __) {
+            // Συλλογή όλων των fuel entries για το επιλεγμένο όχημα
+            final allVehicleEntries = fb.values
+                .where((e) => e.vehicleId == _selectedVehicleId)
+                .toList();
 
-        // Υπολογισμός χρονικού εύρους (from, to)
-        final now = DateTime.now();
-        final from = DateTime(now.year, now.month - (_rangeMonths - 1), 1);
-        final to = DateTime(now.year, now.month, 31); // υπερ-κάλυψη τέλους μήνα
+            // Υπολογισμός χρονικού εύρους (from, to)
+            final now = DateTime.now();
+            final from = DateTime(now.year, now.month - (_rangeMonths - 1), 1);
+            final to = DateTime(now.year, now.month, 31); // υπερ-κάλυψη τέλους μήνα
 
-        final consumptions = statsService.getFullToFullConsumptions(
-          allVehicleEntries,
-          from: from,
-          to: to,
-          driverId: _selectedDriverId?.isEmpty == true ? null : _selectedDriverId,
-        );
+            final consumptions = statsService.getFullToFullConsumptions(
+              allVehicleEntries,
+              from: from,
+              to: to,
+              driverId: _selectedDriverId?.isEmpty == true ? null : _selectedDriverId,
+            );
 
-        final monthlyCosts = statsService.getMonthlyCost(
-          allVehicleEntries,
-          months: _rangeMonths,
-          driverId: _selectedDriverId?.isEmpty == true ? null : _selectedDriverId,
-          from: from,
-          to: to,
-        );
+            final monthlyCosts = statsService.getMonthlyCost(
+              allVehicleEntries,
+              months: _rangeMonths,
+              driverId: _selectedDriverId?.isEmpty == true ? null : _selectedDriverId,
+              from: from,
+              to: to,
+            );
 
-        // Υπολογισμός Service ποσών ανά μήνα (YYYY-MM)
-        final serviceEntries = serviceBox.values
-            .where((s) => s.vehicleId == _selectedVehicleId)
-            .where((s) => !s.date.isBefore(from) && !s.date.isAfter(to))
-            .toList();
-        final serviceMonthMap = <String, double>{};
-        for (final s in serviceEntries) {
-          final key = '${s.date.year}-${s.date.month.toString().padLeft(2, '0')}';
-          serviceMonthMap[key] = (serviceMonthMap[key] ?? 0) + s.totalAmount;
-        }
+            // Υπολογισμός Service ποσών ανά μήνα (YYYY-MM)
+            final serviceEntries = sb.values
+                .where((s) => s.vehicleId == _selectedVehicleId)
+                .where((s) => !s.date.isBefore(from) && !s.date.isAfter(to))
+                .toList();
+            final serviceMonthMap = <String, double>{};
+            for (final s in serviceEntries) {
+              final key = '${s.date.year}-${s.date.month.toString().padLeft(2, '0')}';
+              serviceMonthMap[key] = (serviceMonthMap[key] ?? 0) + s.totalAmount;
+            }
 
-        final avgConsumption = consumptions.isNotEmpty
-            ? statsService.getAverageConsumption(consumptions)
-            : double.nan;
-        final avgMonthlyCost = monthlyCosts.isNotEmpty
-            ? statsService.getAverageMonthlyCost(monthlyCosts)
-            : double.nan;
+            final avgConsumption = consumptions.isNotEmpty
+                ? statsService.getAverageConsumption(consumptions)
+                : double.nan;
+            final avgMonthlyCost = monthlyCosts.isNotEmpty
+                ? statsService.getAverageMonthlyCost(monthlyCosts)
+                : double.nan;
 
-        return ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            _buildFilters(
-              l10n: l10n,
-              vehiclesBox: vehiclesBox,
-              driversBox: driversBox,
-            ),
-            const SizedBox(height: 16),
-            Row(
+            return ListView(
+              padding: const EdgeInsets.all(16),
               children: [
-                Expanded(
-                  child: KpiCard(
-                    title: l10n.kpiAvgConsumption,
-                    value: avgConsumption.isNaN || avgConsumption <= 0
-                        ? '—'
-                        : avgConsumption.toStringAsFixed(2),
-                    icon: Icons.speed,
-                  ),
+                _buildFilters(
+                  l10n: l10n,
+                  vehiclesBox: vehiclesBox,
+                  driversBox: driversBox,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: KpiCard(
-                    title: l10n.kpiMonthlyCost,
-                    value: avgMonthlyCost.isNaN || avgMonthlyCost <= 0
-                        ? '—'
-                        : formatCurrency(
-                            avgMonthlyCost,
-                            currencyCode: widget.settings.currencyCode,
-                            context: context,
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: KpiCard(
+                        title: l10n.kpiAvgConsumption,
+                        value: avgConsumption.isNaN || avgConsumption <= 0
+                            ? '—'
+                            : avgConsumption.toStringAsFixed(2),
+                        icon: Icons.speed,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: KpiCard(
+                        title: l10n.kpiMonthlyCost,
+                        value: avgMonthlyCost.isNaN || avgMonthlyCost <= 0
+                            ? '—'
+                            : formatCurrency(
+                                avgMonthlyCost,
+                                currencyCode: widget.settings.currencyCode,
+                                context: context,
+                              ),
+                        icon: Icons.euro,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Text(l10n.statsTitle, style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 16),
+                if (consumptions.length < 2)
+                  SizedBox(
+                    height: 300,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            l10n.chartNoData,
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: Colors.grey[600],
+                                ),
                           ),
-                    icon: Icons.euro,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Text(l10n.statsTitle, style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 16),
-            if (consumptions.length < 2)
-              SizedBox(
-                height: 300,
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        l10n.chartNoData,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: Colors.grey[600],
-                            ),
+                          const SizedBox(height: 8),
+                          Text(
+                            l10n.statsHintFullToFull,
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Colors.grey[500],
+                                ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        l10n.statsHintFullToFull,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.grey[500],
-                            ),
-                      ),
-                    ],
+                    ),
+                  )
+                else
+                  SizedBox(
+                    height: 300,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 16, top: 16),
+                      child: _ConsumptionChart(consumptions: consumptions),
+                    ),
                   ),
-                ),
-              )
-            else
-              SizedBox(
-                height: 300,
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 16, top: 16),
-                  child: _ConsumptionChart(consumptions: consumptions),
-                ),
-              ),
 
-            const SizedBox(height: 24),
-            // Bar chart: Συνολικό κόστος/μήνα (Fuel + Service)
-            SizedBox(
-              height: 280,
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: _MonthlyCostBarChart(
-                    costs: monthlyCosts,
-                    serviceMonthMap: serviceMonthMap,
-                    months: _rangeMonths,
-                    currencyCode: widget.settings.currencyCode,
-                  ),
-                ),
-              ),
-            ),
-          ],
+                const SizedBox(height: 24),
+                // Bar chart: Στοιβαγμένο κόστος/μήνα (Fuel + Service)
+                (monthlyCosts.isEmpty && serviceMonthMap.isEmpty)
+                    ? SizedBox(
+                        height: 280,
+                        child: Center(
+                          child: Text(
+                            l10n.chartNoData,
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                        ),
+                      )
+                    : SizedBox(
+                        height: 280,
+                        child: Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: _MonthlyCostBarChart(
+                              costs: monthlyCosts,
+                              serviceMonthMap: serviceMonthMap,
+                              months: _rangeMonths,
+                              currencyCode: widget.settings.currencyCode,
+                            ),
+                          ),
+                        ),
+                      ),
+              ],
+            );
+          },
         );
       },
     );
@@ -234,12 +251,10 @@ class _StatsTabState extends State<StatsTab> {
               },
               hint: Text(l10n.filterDriver),
             ),
-            // Range buttons 3 / 6 / 12 months
+            // Range buttons 6 / 12 months
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _rangeButton(label: l10n.range3m, months: 3),
-                const SizedBox(width: 4),
                 _rangeButton(label: l10n.range6m, months: 6),
                 const SizedBox(width: 4),
                 _rangeButton(label: l10n.range12m, months: 12),
@@ -286,6 +301,8 @@ class _MonthlyCostBarChart extends StatelessWidget {
     // Build the x-axis months based on now and window
     final now = DateTime.now();
     final labels = <String>[];
+    final fuels = <double>[];
+    final services = <double>[];
     final totals = <double>[];
     for (int i = months - 1; i >= 0; i--) {
       final m = DateTime(now.year, now.month - i, 1);
@@ -296,6 +313,8 @@ class _MonthlyCostBarChart extends StatelessWidget {
       ).amount;
       final service = serviceMonthMap[key] ?? 0;
       labels.add(DateFormat('MM/yy', locale).format(m));
+      fuels.add(fuel);
+      services.add(service);
       totals.add(fuel + service);
     }
 
@@ -309,17 +328,29 @@ class _MonthlyCostBarChart extends StatelessWidget {
       );
     }
 
+    final cs = Theme.of(context).colorScheme;
+    final fuelColor = cs.primary;
+    final serviceColor = cs.secondary;
+
     final groups = <BarChartGroupData>[];
     for (int i = 0; i < totals.length; i++) {
+      final fuel = fuels[i];
+      final service = services[i];
+      final total = totals[i];
       groups.add(
         BarChartGroupData(
           x: i,
           barRods: [
             BarChartRodData(
-              toY: totals[i],
-              color: Theme.of(context).colorScheme.primary,
+              toY: total,
               width: 16,
               borderRadius: BorderRadius.circular(4),
+              rodStackItems: [
+                // Fuel at the base
+                BarChartRodStackItem(0, fuel, fuelColor),
+                // Service stacked on top
+                BarChartRodStackItem(fuel, fuel + service, serviceColor),
+              ],
             ),
           ],
         ),
@@ -366,9 +397,18 @@ class _MonthlyCostBarChart extends StatelessWidget {
         barTouchData: BarTouchData(
           touchTooltipData: BarTouchTooltipData(
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
-              final monthLabel = labels[group.x.toInt()];
-              final amountStr = formatCurrency(rod.toY, currencyCode: currencyCode, context: context);
-              return BarTooltipItem('$monthLabel\n$amountStr', const TextStyle(color: Colors.white));
+              final idx = group.x.toInt();
+              final monthLabel = labels[idx];
+              final fuel = fuels[idx];
+              final service = services[idx];
+              final total = fuel + service;
+              final fuelStr = formatCurrency(fuel, currencyCode: currencyCode, context: context);
+              final serviceStr = formatCurrency(service, currencyCode: currencyCode, context: context);
+              final totalStr = formatCurrency(total, currencyCode: currencyCode, context: context);
+              return BarTooltipItem(
+                '$monthLabel\n${l10n.tabFuel}: $fuelStr\n${l10n.tabService}: $serviceStr\n${l10n.pdfTotalAmount}: $totalStr',
+                const TextStyle(color: Colors.white),
+              );
             },
           ),
         ),
