@@ -97,4 +97,7 @@
 	,"themeSystem": "System"
 	,"themeLight": "Light"
 	,"themeDark": "Dark"
+	,"exportPdf": "Export PDF"
+	,"statsReportTitle": "Statistics Report"
+	,"exportFailed": "Export failed"
 }

@@ -300,4 +300,13 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get themeDark => 'Σκούρο';
+
+  @override
+  String get exportPdf => 'Εξαγωγή PDF';
+
+  @override
+  String get statsReportTitle => 'Αναφορά Στατιστικών';
+
+  @override
+  String get exportFailed => 'Αποτυχία εξαγωγής';
 }

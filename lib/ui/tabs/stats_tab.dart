@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:printing/printing.dart';
 import '../../data/models/fuel_entry.dart';
 import '../../data/models/vehicle.dart';
 import '../../data/models/driver.dart';
@@ -11,6 +12,7 @@ import '../../l10n/app_localizations.dart';
 import '../widgets/kpi_card.dart';
 import '../../state/settings_controller.dart';
 import '../../utils/currency_formatter.dart';
+import '../../features/stats/pdf/stats_report_pdf.dart';
 
 class StatsTab extends StatefulWidget {
   final SettingsController settings;
@@ -24,6 +26,20 @@ class _StatsTabState extends State<StatsTab> {
   String? _selectedVehicleId;
   String? _selectedDriverId; // null ή '' => All
   int _rangeMonths = 6; // 3 / 6 / 12
+
+  Future<void> _exportPdf(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      final bytes = await buildStatsPdf(context: context);
+      await Printing.sharePdf(bytes: bytes, filename: 'stats_report.pdf');
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.exportFailed)),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,6 +111,16 @@ class _StatsTabState extends State<StatsTab> {
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
+                // Export PDF button
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _exportPdf(context),
+                    icon: const Icon(Icons.picture_as_pdf, size: 18),
+                    label: Text(l10n.exportPdf),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 _buildFilters(
                   l10n: l10n,
                   vehiclesBox: vehiclesBox,
