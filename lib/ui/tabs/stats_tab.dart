@@ -418,6 +418,57 @@ class _StatsTabState extends State<StatsTab> {
   }
 }
 
+class _KpiBox extends StatelessWidget {
+  final String title;
+  final String value;
+  final IconData icon;
+
+  const _KpiBox({
+    required this.title,
+    required this.value,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 20, color: cs.primary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: cs.onSurfaceVariant.withOpacity(0.85),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: cs.onSurface,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _MonthlyCostBarChart extends StatelessWidget {
   final List<MonthlyCost> costs; // fuel costs per month from service
   final Map<String, double> serviceMonthMap; // service amounts per YYYY-MM
@@ -467,8 +518,8 @@ class _MonthlyCostBarChart extends StatelessWidget {
       );
     }
 
-  final fuelColor = cs.primary.withOpacity(0.90);
-  final serviceColor = (cs.tertiary ?? cs.secondary).withOpacity(0.90);
+  final fuelColor = cs.primary.withValues(alpha: 0.90);
+  final serviceColor = cs.secondary.withValues(alpha: 0.90);
 
     final groups = <BarChartGroupData>[];
     for (int i = 0; i < totals.length; i++) {
@@ -518,7 +569,6 @@ class _MonthlyCostBarChart extends StatelessWidget {
               barGroups: groups,
               barTouchData: BarTouchData(
                 touchTooltipData: BarTouchTooltipData(
-                  tooltipBgColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.95),
                   getTooltipItem: (group, groupIndex, rod, rodIndex) {
                     final idx = group.x.toInt();
                     final monthLabel = labels[idx];
@@ -730,7 +780,6 @@ class _ConsumptionChart extends StatelessWidget {
         ],
         lineTouchData: LineTouchData(
           touchTooltipData: LineTouchTooltipData(
-            tooltipBgColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.95),
             getTooltipItems: (touchedSpots) {
               return touchedSpots.map((spot) {
                 final idx = spot.x.toInt();
