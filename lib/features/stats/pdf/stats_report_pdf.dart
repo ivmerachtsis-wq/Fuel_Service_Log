@@ -47,12 +47,12 @@ Future<Uint8List> buildStatsPdf({
   final l10n = AppLocalizations.of(context)!;
   final pdf = pw.Document();
 
-  // Load Unicode-safe fonts
+  // Load Unicode-safe fonts (Greek+Latin subset for smaller bundle size)
   final fontRegular = pw.Font.ttf(
-    await rootBundle.load('assets/fonts/NotoSans-Regular.ttf'),
+    await rootBundle.load('assets/fonts/NotoSans-Regular-GL.ttf'),
   );
   final fontBold = pw.Font.ttf(
-    await rootBundle.load('assets/fonts/NotoSans-Bold.ttf'),
+    await rootBundle.load('assets/fonts/NotoSans-Bold-GL.ttf'),
   );
 
   // Create theme with custom fonts
