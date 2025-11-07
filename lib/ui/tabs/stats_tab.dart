@@ -168,20 +168,30 @@ class _StatsTabState extends State<StatsTab> {
 
                 const SizedBox(height: 24),
                 // Bar chart: Στοιβαγμένο κόστος/μήνα (Fuel + Service)
-                SizedBox(
-                  height: 280,
-                  child: Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: _MonthlyCostBarChart(
-                        costs: monthlyCosts,
-                        serviceMonthMap: serviceMonthMap,
-                        months: _rangeMonths,
-                        currencyCode: widget.settings.currencyCode,
+                (monthlyCosts.isEmpty && serviceMonthMap.isEmpty)
+                    ? SizedBox(
+                        height: 280,
+                        child: Center(
+                          child: Text(
+                            l10n.chartNoData,
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                        ),
+                      )
+                    : SizedBox(
+                        height: 280,
+                        child: Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: _MonthlyCostBarChart(
+                              costs: monthlyCosts,
+                              serviceMonthMap: serviceMonthMap,
+                              months: _rangeMonths,
+                              currencyCode: widget.settings.currencyCode,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ),
               ],
             );
           },
