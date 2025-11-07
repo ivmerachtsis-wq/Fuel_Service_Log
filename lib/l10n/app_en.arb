@@ -97,4 +97,9 @@
 	,"themeSystem": "System"
 	,"themeLight": "Light"
 	,"themeDark": "Dark"
+	,"stats_title": "Statistics"
+	,"kpi_fuel_consumption": "L/100km"
+	,"kpi_cost_per_month": "Cost/Month"
+	,"kpi_service_frequency": "Service frequency"
+	,"chart_fuel_cost_per_month": "Fuel Cost per Month"
 }

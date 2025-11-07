@@ -97,4 +97,9 @@
 	,"themeSystem": "Σύστημα"
 	,"themeLight": "Φωτεινό"
 	,"themeDark": "Σκούρο"
+	,"stats_title": "Στατιστικά"
+	,"kpi_fuel_consumption": "L/100km"
+	,"kpi_cost_per_month": "Κόστος/Μήνα"
+	,"kpi_service_frequency": "Συχνότητα service"
+	,"chart_fuel_cost_per_month": "Κόστος καυσίμων ανά μήνα"
 }
