@@ -72,70 +72,93 @@ Future<Uint8List> buildStatsPdf({
     decimalDigits: 2,
   );
 
+  // Precompute sums for footer totals
+  final sumFuel = data.months.fold<double>(0.0, (p, m) => p + (m.fuel.isNaN ? 0 : m.fuel));
+  final sumService = data.months.fold<double>(0.0, (p, m) => p + (m.service.isNaN ? 0 : m.service));
+  final sumTotal = sumFuel + sumService;
+
   pdf.addPage(
-    pw.Page(
+    pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.all(32),
       theme: theme,
-      build: (pw.Context context) {
-        return pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
+      footer: (context) => pw.Column(
+        children: [
+          pw.Divider(color: PdfColors.grey400),
+          pw.SizedBox(height: 4),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Text('Date: $isoDate', style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
+              pw.Text('Page ${context.pageNumber} of ${context.pagesCount}', style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
+            ],
+          ),
+        ],
+      ),
+      build: (pw.Context context) => [
+        // Header
+        pw.Text(
+          l10n.statsReportTitle,
+          style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+        ),
+        pw.SizedBox(height: 8),
+        pw.Text('Date: $isoDate', style: const pw.TextStyle(fontSize: 12)),
+        pw.SizedBox(height: 4),
+        pw.Text(
+          '${l10n.pdfMetaVehicle}: ${data.vehicleName.isEmpty ? "—" : data.vehicleName}',
+          style: const pw.TextStyle(fontSize: 12),
+        ),
+        pw.Divider(height: 32, thickness: 1.5, color: PdfColors.grey400),
+
+        // KPIs Section
+        pw.Text(
+          'Key Performance Indicators',
+          style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+        ),
+        pw.SizedBox(height: 16),
+        pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            // Header
-            pw.Text(
-              l10n.statsReportTitle,
-              style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+            _buildKpiBox(
+              l10n.kpiAvgConsumption,
+              data.avgLPer100.isNaN || data.avgLPer100 <= 0
+                  ? '—'
+                  : '${data.avgLPer100.toStringAsFixed(2)} L/100km',
             ),
-            pw.SizedBox(height: 8),
-            pw.Text('Date: $isoDate', style: const pw.TextStyle(fontSize: 12)),
-            pw.SizedBox(height: 4),
-            pw.Text(
-              '${l10n.pdfMetaVehicle}: ${data.vehicleName.isEmpty ? "—" : data.vehicleName}',
-              style: const pw.TextStyle(fontSize: 12),
+            _buildKpiBox(
+              l10n.kpiMonthlyCost,
+              data.costPerMonthCurrent.isNaN || data.costPerMonthCurrent <= 0
+                  ? '—'
+                  : '${currencyFormat.format(data.costPerMonthCurrent)} $currencyCode',
             ),
-            pw.Divider(height: 32, thickness: 1.5, color: PdfColors.grey400),
-            
-            // KPIs Section
-            pw.Text(
-              'Key Performance Indicators',
-              style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+            _buildKpiBox(
+              'Service Frequency',
+              data.serviceFreqDays.isNaN || data.serviceFreqDays <= 0
+                  ? '—'
+                  : '${data.serviceFreqDays.toStringAsFixed(0)} days',
             ),
-            pw.SizedBox(height: 16),
-            pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-              children: [
-                _buildKpiBox(
-                  l10n.kpiAvgConsumption,
-                  data.avgLPer100.isNaN || data.avgLPer100 <= 0
-                      ? '—'
-                      : '${data.avgLPer100.toStringAsFixed(2)} L/100km',
-                ),
-                _buildKpiBox(
-                  l10n.kpiMonthlyCost,
-                  data.costPerMonthCurrent.isNaN || data.costPerMonthCurrent <= 0
-                      ? '—'
-                      : '${currencyFormat.format(data.costPerMonthCurrent)} $currencyCode',
-                ),
-                _buildKpiBox(
-                  'Service Frequency',
-                  data.serviceFreqDays.isNaN || data.serviceFreqDays <= 0
-                      ? '—'
-                      : '${data.serviceFreqDays.toStringAsFixed(0)} days',
-                ),
-              ],
-            ),
-            pw.SizedBox(height: 28),
-            
-            // Monthly Totals Table
-            pw.Text(
-              'Monthly Cost Overview (Last 12 Months)',
-              style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
-            ),
-            pw.SizedBox(height: 16),
-            _buildMonthlyTable(data.months, currencyFormat, currencyCode, l10n),
           ],
-        );
-      },
+        ),
+        pw.SizedBox(height: 28),
+
+        // Monthly Totals Table
+        pw.Text(
+          'Monthly Cost Overview (Last 12 Months)',
+          style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+        ),
+        pw.SizedBox(height: 16),
+        _buildMonthlyTable(data.months, currencyFormat, currencyCode, l10n),
+
+        pw.SizedBox(height: 20),
+        _buildFooterTotals(
+          sumFuel: sumFuel,
+          sumService: sumService,
+          sumTotal: sumTotal,
+          currencyFormat: currencyFormat,
+          currencyCode: currencyCode,
+          l10n: l10n,
+        ),
+      ],
     ),
   );
 
@@ -214,6 +237,83 @@ pw.Widget _tableCell(String text, {bool isHeader = false, pw.TextAlign? align}) 
       style: pw.TextStyle(
         fontSize: isHeader ? 11 : 10,
         fontWeight: isHeader ? pw.FontWeight.bold : pw.FontWeight.normal,
+      ),
+    ),
+  );
+}
+
+pw.Widget _buildFooterTotals({
+  required double sumFuel,
+  required double sumService,
+  required double sumTotal,
+  required NumberFormat currencyFormat,
+  required String currencyCode,
+  required AppLocalizations l10n,
+}) {
+  final labelStyle = pw.TextStyle(fontSize: 10, color: PdfColors.grey800);
+  final valueStyle = pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold);
+
+  pw.Widget valueCell(double v) => pw.Align(
+        alignment: pw.Alignment.centerRight,
+        child: pw.Text('${currencyFormat.format(v)} $currencyCode', style: valueStyle),
+      );
+
+  return pw.Align(
+    alignment: pw.Alignment.centerRight,
+    child: pw.Container(
+      width: 360,
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: PdfColors.grey300),
+        borderRadius: pw.BorderRadius.circular(4),
+      ),
+      child: pw.Table(
+        border: const pw.TableBorder(
+          horizontalInside: pw.BorderSide(color: PdfColors.grey300),
+          verticalInside: pw.BorderSide(color: PdfColors.grey300),
+        ),
+        columnWidths: {
+          0: const pw.FixedColumnWidth(180),
+          1: const pw.FixedColumnWidth(160),
+        },
+        children: [
+          pw.TableRow(
+            children: [
+              pw.Padding(
+                padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                child: pw.Text(l10n.tabFuel, style: labelStyle),
+              ),
+              pw.Padding(
+                padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                child: valueCell(sumFuel),
+              ),
+            ],
+          ),
+          pw.TableRow(
+            children: [
+              pw.Padding(
+                padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                child: pw.Text(l10n.tabService, style: labelStyle),
+              ),
+              pw.Padding(
+                padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                child: valueCell(sumService),
+              ),
+            ],
+          ),
+          pw.TableRow(
+            decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+            children: [
+              pw.Padding(
+                padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                child: pw.Text(l10n.pdfTotalAmount, style: labelStyle.copyWith(fontWeight: pw.FontWeight.bold)),
+              ),
+              pw.Padding(
+                padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                child: valueCell(sumTotal),
+              ),
+            ],
+          ),
+        ],
       ),
     ),
   );
