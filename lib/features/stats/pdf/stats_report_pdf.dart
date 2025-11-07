@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -46,6 +47,20 @@ Future<Uint8List> buildStatsPdf({
   final l10n = AppLocalizations.of(context)!;
   final pdf = pw.Document();
 
+  // Load Unicode-safe fonts
+  final fontRegular = pw.Font.ttf(
+    await rootBundle.load('assets/fonts/NotoSans-Regular.ttf'),
+  );
+  final fontBold = pw.Font.ttf(
+    await rootBundle.load('assets/fonts/NotoSans-Bold.ttf'),
+  );
+
+  // Create theme with custom fonts
+  final theme = pw.ThemeData.withFont(
+    base: fontRegular,
+    bold: fontBold,
+  );
+
   // ISO 8601 formatted date
   final now = DateTime.now();
   final isoDate = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
@@ -60,6 +75,8 @@ Future<Uint8List> buildStatsPdf({
   pdf.addPage(
     pw.Page(
       pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.all(32),
+      theme: theme,
       build: (pw.Context context) {
         return pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -76,14 +93,14 @@ Future<Uint8List> buildStatsPdf({
               '${l10n.pdfMetaVehicle}: ${data.vehicleName.isEmpty ? "—" : data.vehicleName}',
               style: const pw.TextStyle(fontSize: 12),
             ),
-            pw.SizedBox(height: 20),
+            pw.Divider(height: 32, thickness: 1.5, color: PdfColors.grey400),
             
             // KPIs Section
             pw.Text(
               'Key Performance Indicators',
-              style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+              style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
             ),
-            pw.SizedBox(height: 12),
+            pw.SizedBox(height: 16),
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
@@ -107,14 +124,14 @@ Future<Uint8List> buildStatsPdf({
                 ),
               ],
             ),
-            pw.SizedBox(height: 24),
+            pw.SizedBox(height: 28),
             
             // Monthly Totals Table
             pw.Text(
               'Monthly Cost Overview (Last 12 Months)',
-              style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+              style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
             ),
-            pw.SizedBox(height: 12),
+            pw.SizedBox(height: 16),
             _buildMonthlyTable(data.months, currencyFormat, currencyCode, l10n),
           ],
         );
@@ -159,42 +176,43 @@ pw.Widget _buildMonthlyTable(
   return pw.Table(
     border: pw.TableBorder.all(color: PdfColors.grey300),
     columnWidths: {
-      0: const pw.FlexColumnWidth(2),
-      1: const pw.FlexColumnWidth(3),
-      2: const pw.FlexColumnWidth(3),
-      3: const pw.FlexColumnWidth(3),
+      0: const pw.FixedColumnWidth(80),
+      1: const pw.FixedColumnWidth(120),
+      2: const pw.FixedColumnWidth(120),
+      3: const pw.FixedColumnWidth(120),
     },
     children: [
       // Header row
       pw.TableRow(
         decoration: const pw.BoxDecoration(color: PdfColors.grey200),
         children: [
-          _tableCell('Month', isHeader: true),
-          _tableCell('${l10n.tabFuel} ($currencyCode)', isHeader: true),
-          _tableCell('${l10n.tabService} ($currencyCode)', isHeader: true),
-          _tableCell('${l10n.pdfTotalAmount} ($currencyCode)', isHeader: true),
+          _tableCell('Month', isHeader: true, align: pw.TextAlign.left),
+          _tableCell('${l10n.tabFuel} ($currencyCode)', isHeader: true, align: pw.TextAlign.right),
+          _tableCell('${l10n.tabService} ($currencyCode)', isHeader: true, align: pw.TextAlign.right),
+          _tableCell('${l10n.pdfTotalAmount} ($currencyCode)', isHeader: true, align: pw.TextAlign.right),
         ],
       ),
       // Data rows
       ...months.map((m) => pw.TableRow(
         children: [
-          _tableCell(m.ym),
-          _tableCell(currencyFormat.format(m.fuel)),
-          _tableCell(currencyFormat.format(m.service)),
-          _tableCell(currencyFormat.format(m.total)),
+          _tableCell(m.ym, align: pw.TextAlign.left),
+          _tableCell(currencyFormat.format(m.fuel), align: pw.TextAlign.right),
+          _tableCell(currencyFormat.format(m.service), align: pw.TextAlign.right),
+          _tableCell(currencyFormat.format(m.total), align: pw.TextAlign.right),
         ],
       )),
     ],
   );
 }
 
-pw.Widget _tableCell(String text, {bool isHeader = false}) {
+pw.Widget _tableCell(String text, {bool isHeader = false, pw.TextAlign? align}) {
   return pw.Padding(
-    padding: const pw.EdgeInsets.all(8),
+    padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8),
     child: pw.Text(
       text,
+      textAlign: align ?? pw.TextAlign.left,
       style: pw.TextStyle(
-        fontSize: isHeader ? 10 : 9,
+        fontSize: isHeader ? 11 : 10,
         fontWeight: isHeader ? pw.FontWeight.bold : pw.FontWeight.normal,
       ),
     ),
