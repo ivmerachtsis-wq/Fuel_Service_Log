@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../data/models/fuel_entry.dart';
 import '../../data/models/vehicle.dart';
 import '../../data/models/driver.dart';
+import '../../data/models/service_entry.dart';
 import '../../domain/stats_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../widgets/kpi_card.dart';
@@ -36,7 +37,8 @@ class _StatsTabState extends State<StatsTab> {
     // Ορισμός default vehicle αν δεν έχει επιλεγεί
     _selectedVehicleId ??= vehiclesBox.values.first.id;
 
-    final fuelBox = Hive.box<FuelEntry>('fuel_entries');
+  final fuelBox = Hive.box<FuelEntry>('fuel_entries');
+  final serviceBox = Hive.box<ServiceEntry>('service_entries');
     final driversBox = Hive.box<Driver>('drivers');
 
     return ValueListenableBuilder(
@@ -66,6 +68,17 @@ class _StatsTabState extends State<StatsTab> {
           from: from,
           to: to,
         );
+
+        // Υπολογισμός Service ποσών ανά μήνα (YYYY-MM)
+        final serviceEntries = serviceBox.values
+            .where((s) => s.vehicleId == _selectedVehicleId)
+            .where((s) => !s.date.isBefore(from) && !s.date.isAfter(to))
+            .toList();
+        final serviceMonthMap = <String, double>{};
+        for (final s in serviceEntries) {
+          final key = '${s.date.year}-${s.date.month.toString().padLeft(2, '0')}';
+          serviceMonthMap[key] = (serviceMonthMap[key] ?? 0) + s.totalAmount;
+        }
 
         final avgConsumption = consumptions.isNotEmpty
             ? statsService.getAverageConsumption(consumptions)
@@ -147,6 +160,23 @@ class _StatsTabState extends State<StatsTab> {
                   child: _ConsumptionChart(consumptions: consumptions),
                 ),
               ),
+
+            const SizedBox(height: 24),
+            // Bar chart: Συνολικό κόστος/μήνα (Fuel + Service)
+            SizedBox(
+              height: 280,
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: _MonthlyCostBarChart(
+                    costs: monthlyCosts,
+                    serviceMonthMap: serviceMonthMap,
+                    months: _rangeMonths,
+                    currencyCode: widget.settings.currencyCode,
+                  ),
+                ),
+              ),
+            ),
           ],
         );
       },
@@ -231,6 +261,118 @@ class _StatsTabState extends State<StatsTab> {
         backgroundColor: active ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1) : null,
       ),
       child: Text(label, style: TextStyle(fontWeight: active ? FontWeight.bold : FontWeight.normal)),
+    );
+  }
+}
+
+class _MonthlyCostBarChart extends StatelessWidget {
+  final List<MonthlyCost> costs; // fuel costs per month from service
+  final Map<String, double> serviceMonthMap; // service amounts per YYYY-MM
+  final int months; // window size (e.g., 6/12)
+  final String currencyCode;
+
+  const _MonthlyCostBarChart({
+    required this.costs,
+    required this.serviceMonthMap,
+    required this.months,
+    required this.currencyCode,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toString();
+
+    // Build the x-axis months based on now and window
+    final now = DateTime.now();
+    final labels = <String>[];
+    final totals = <double>[];
+    for (int i = months - 1; i >= 0; i--) {
+      final m = DateTime(now.year, now.month - i, 1);
+      final key = '${m.year}-${m.month.toString().padLeft(2, '0')}';
+      final fuel = costs.firstWhere(
+        (c) => c.yearMonth == key,
+        orElse: () => MonthlyCost(yearMonth: key, amount: 0),
+      ).amount;
+      final service = serviceMonthMap[key] ?? 0;
+      labels.add(DateFormat('MM/yy', locale).format(m));
+      totals.add(fuel + service);
+    }
+
+    final hasData = totals.any((v) => v > 0);
+    if (!hasData) {
+      return Center(
+        child: Text(
+          l10n.chartNoData,
+          style: TextStyle(color: Colors.grey[600]),
+        ),
+      );
+    }
+
+    final groups = <BarChartGroupData>[];
+    for (int i = 0; i < totals.length; i++) {
+      groups.add(
+        BarChartGroupData(
+          x: i,
+          barRods: [
+            BarChartRodData(
+              toY: totals[i],
+              color: Theme.of(context).colorScheme.primary,
+              width: 16,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final maxY = totals.fold<double>(0, (p, n) => n > p ? n : p);
+
+    return BarChart(
+      BarChartData(
+        gridData: FlGridData(show: true, drawVerticalLine: false),
+        borderData: FlBorderData(show: true, border: Border.all(color: Colors.grey[300]!)),
+        barGroups: groups,
+        titlesData: FlTitlesData(
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 44,
+              getTitlesWidget: (value, meta) {
+                // Δείξε σε βήματα για να μην γεμίζει
+                return Text(
+                  formatCurrency(value, currencyCode: currencyCode, context: context),
+                  style: const TextStyle(fontSize: 10),
+                );
+              },
+            ),
+          ),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 28,
+              getTitlesWidget: (value, meta) {
+                final idx = value.toInt();
+                if (idx < 0 || idx >= labels.length) return const SizedBox.shrink();
+                return Text(labels[idx], style: const TextStyle(fontSize: 10));
+              },
+            ),
+          ),
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        ),
+        minY: 0,
+        maxY: maxY == 0 ? 1 : maxY * 1.2,
+        barTouchData: BarTouchData(
+          touchTooltipData: BarTouchTooltipData(
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              final monthLabel = labels[group.x.toInt()];
+              final amountStr = formatCurrency(rod.toY, currencyCode: currencyCode, context: context);
+              return BarTooltipItem('$monthLabel\n$amountStr', const TextStyle(color: Colors.white));
+            },
+          ),
+        ),
+      ),
     );
   }
 }
