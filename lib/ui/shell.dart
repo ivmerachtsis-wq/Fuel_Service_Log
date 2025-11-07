@@ -4,6 +4,7 @@ import '../state/settings_controller.dart';
 import 'tabs/fuel_tab.dart';
 import 'tabs/service_tab.dart';
 import 'tabs/stats_tab.dart';
+import '../features/stats/stats_dashboard.dart';
 import 'tabs/settings_tab.dart';
 import '../l10n/app_localizations.dart';
 
@@ -73,7 +74,7 @@ class Shell extends StatelessWidget {
       case 1:
         return ServiceTab(settings: settings);
       case 2:
-        return StatsTab(settings: settings);
+        return StatsDashboard(settings: settings);
       case 3:
         return SettingsTab(settings: settings);
       default:
