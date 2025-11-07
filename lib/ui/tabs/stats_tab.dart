@@ -9,7 +9,6 @@ import '../../data/models/driver.dart';
 import '../../data/models/service_entry.dart';
 import '../../domain/stats_service.dart';
 import '../../l10n/app_localizations.dart';
-import '../widgets/kpi_card.dart';
 import '../../state/settings_controller.dart';
 import '../../utils/currency_formatter.dart';
 import '../../features/stats/pdf/stats_report_pdf.dart';
@@ -124,12 +123,27 @@ class _StatsTabState extends State<StatsTab> {
         months: monthsData,
       );
 
+    // Prepare filename parts BEFORE any await to satisfy lints
+    final locale = Localizations.localeOf(context);
+    final nowDate = DateTime.now();
+    final formattedDate = DateFormat.yMd(locale.toString()).format(nowDate);
+      final vehicleName = selectedVehicle.title.trim();
+      final vehicleNameSanitized = vehicleName.isEmpty
+          ? 'vehicle'
+          : vehicleName.replaceAll(RegExp(r'[^A-Za-z0-9_-]+'), '_');
+    final sanitizedDate = formattedDate.replaceAll(RegExp(r'[^A-Za-z0-9_-]+'), '_');
+    final langCode = locale.languageCode; // 'el' ή 'en'
+
       final bytes = await buildStatsPdf(
         context: context,
         data: statsData,
         currencyCode: widget.settings.currencyCode,
       );
-      await Printing.sharePdf(bytes: bytes, filename: 'stats_report.pdf');
+
+  // Build improved filename: stats_report_<vehicle>_<localized_date>_<lang>.pdf
+  final filename = 'stats_report_${vehicleNameSanitized}_${sanitizedDate}_$langCode.pdf';
+
+      await Printing.sharePdf(bytes: bytes, filename: filename);
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -228,7 +242,7 @@ class _StatsTabState extends State<StatsTab> {
                 Row(
                   children: [
                     Expanded(
-                      child: KpiCard(
+                      child: _KpiBox(
                         title: l10n.kpiAvgConsumption,
                         value: avgConsumption.isNaN || avgConsumption <= 0
                             ? '—'
@@ -238,7 +252,7 @@ class _StatsTabState extends State<StatsTab> {
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: KpiCard(
+                      child: _KpiBox(
                         title: l10n.kpiMonthlyCost,
                         value: avgMonthlyCost.isNaN || avgMonthlyCost <= 0
                             ? '—'
@@ -265,17 +279,17 @@ class _StatsTabState extends State<StatsTab> {
                           Text(
                             l10n.chartNoData,
                             textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: Colors.grey[600],
-                                ),
+                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                   color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.70),
+                                 ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             l10n.statsHintFullToFull,
                             textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Colors.grey[500],
-                                ),
+                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                   color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.60),
+                                 ),
                           ),
                         ],
                       ),
@@ -298,7 +312,7 @@ class _StatsTabState extends State<StatsTab> {
                         child: Center(
                           child: Text(
                             l10n.chartNoData,
-                            style: TextStyle(color: Colors.grey[600]),
+                             style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.70)), 
                           ),
                         ),
                       )
@@ -397,7 +411,7 @@ class _StatsTabState extends State<StatsTab> {
         if (!active) setState(() => _rangeMonths = months);
       },
       style: OutlinedButton.styleFrom(
-        backgroundColor: active ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1) : null,
+        backgroundColor: active ? Theme.of(context).colorScheme.primary.withOpacity(0.10) : null,
       ),
       child: Text(label, style: TextStyle(fontWeight: active ? FontWeight.bold : FontWeight.normal)),
     );
@@ -421,6 +435,7 @@ class _MonthlyCostBarChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context).toString();
+    final cs = Theme.of(context).colorScheme;
 
     // Build the x-axis months based on now and window
     final now = DateTime.now();
@@ -447,14 +462,13 @@ class _MonthlyCostBarChart extends StatelessWidget {
       return Center(
         child: Text(
           l10n.chartNoData,
-          style: TextStyle(color: Colors.grey[600]),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.70)),
         ),
       );
     }
 
-    final cs = Theme.of(context).colorScheme;
-    final fuelColor = cs.primary;
-    final serviceColor = cs.secondary;
+  final fuelColor = cs.primary.withOpacity(0.90);
+  final serviceColor = (cs.tertiary ?? cs.secondary).withOpacity(0.90);
 
     final groups = <BarChartGroupData>[];
     for (int i = 0; i < totals.length; i++) {
@@ -488,11 +502,23 @@ class _MonthlyCostBarChart extends StatelessWidget {
         Expanded(
           child: BarChart(
             BarChartData(
-              gridData: FlGridData(show: true, drawVerticalLine: false),
-              borderData: FlBorderData(show: true, border: Border.all(color: Colors.grey[300]!)),
+              gridData: FlGridData(
+                show: true,
+                drawVerticalLine: false,
+                getDrawingHorizontalLine: (value) => FlLine(
+                  color: cs.onSurfaceVariant.withOpacity(0.24),
+                  strokeWidth: 1,
+                ),
+                getDrawingVerticalLine: (value) => FlLine(
+                  color: cs.onSurfaceVariant.withOpacity(0.24),
+                  strokeWidth: 1,
+                ),
+              ),
+              borderData: FlBorderData(show: true, border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.10))),
               barGroups: groups,
               barTouchData: BarTouchData(
                 touchTooltipData: BarTouchTooltipData(
+                  tooltipBgColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.95),
                   getTooltipItem: (group, groupIndex, rod, rodIndex) {
                     final idx = group.x.toInt();
                     final monthLabel = labels[idx];
@@ -504,7 +530,7 @@ class _MonthlyCostBarChart extends StatelessWidget {
                     final totalStr = formatCurrency(total, currencyCode: currencyCode, context: context);
                     return BarTooltipItem(
                       '$monthLabel\n${l10n.tabFuel}: $fuelStr\n${l10n.tabService}: $serviceStr\n${l10n.pdfTotalAmount}: $totalStr',
-                      const TextStyle(color: Colors.white),
+                      TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w500),
                     );
                   },
                 ),
@@ -518,7 +544,7 @@ class _MonthlyCostBarChart extends StatelessWidget {
                 // Δείξε σε βήματα για να μην γεμίζει
                 return Text(
                   formatCurrency(value, currencyCode: currencyCode, context: context),
-                  style: const TextStyle(fontSize: 10),
+                  style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withOpacity(0.78)),
                 );
               },
             ),
@@ -530,7 +556,7 @@ class _MonthlyCostBarChart extends StatelessWidget {
               getTitlesWidget: (value, meta) {
                 final idx = value.toInt();
                 if (idx < 0 || idx >= labels.length) return const SizedBox.shrink();
-                return Text(labels[idx], style: const TextStyle(fontSize: 10));
+                return Text(labels[idx], style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withOpacity(0.78)));
               },
             ),
           ),
@@ -599,6 +625,7 @@ class _ConsumptionChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context).toString();
+    final cs = Theme.of(context).colorScheme;
     
     // Guard: πρέπει να έχουμε τουλάχιστον 2 σημεία
     if (consumptions.length < 2) {
@@ -631,18 +658,16 @@ class _ConsumptionChart extends StatelessWidget {
           show: true,
           drawVerticalLine: false,
           horizontalInterval: 1,
-          getDrawingHorizontalLine: (value) {
-            return FlLine(
-              color: Colors.grey[300],
-              strokeWidth: 1,
-            );
-          },
+          getDrawingHorizontalLine: (value) => FlLine(
+            color: cs.onSurfaceVariant.withOpacity(0.24),
+            strokeWidth: 1,
+          ),
         ),
         titlesData: FlTitlesData(
           leftTitles: AxisTitles(
             axisNameWidget: Padding(
               padding: const EdgeInsets.only(right: 8.0),
-              child: Text(l10n.chartAxisConsumption),
+              child: Text(l10n.chartAxisConsumption, style: TextStyle(color: cs.onSurfaceVariant.withOpacity(0.78))),
             ),
             axisNameSize: 22,
             sideTitles: SideTitles(
@@ -651,7 +676,7 @@ class _ConsumptionChart extends StatelessWidget {
               getTitlesWidget: (value, meta) {
                 return Text(
                   value.toStringAsFixed(1),
-                  style: const TextStyle(fontSize: 10),
+                  style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withOpacity(0.78)),
                 );
               },
             ),
@@ -659,7 +684,7 @@ class _ConsumptionChart extends StatelessWidget {
           bottomTitles: AxisTitles(
             axisNameWidget: Padding(
               padding: const EdgeInsets.only(top: 8.0),
-              child: Text(l10n.chartAxisDate),
+              child: Text(l10n.chartAxisDate, style: TextStyle(color: cs.onSurfaceVariant.withOpacity(0.78))),
             ),
             axisNameSize: 22,
             sideTitles: SideTitles(
@@ -673,7 +698,7 @@ class _ConsumptionChart extends StatelessWidget {
                 final date = consumptions[idx].date;
                 return Text(
                   DateFormat('dd/MM', locale).format(date),
-                  style: const TextStyle(fontSize: 10),
+                  style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withOpacity(0.78)),
                 );
               },
             ),
@@ -683,7 +708,7 @@ class _ConsumptionChart extends StatelessWidget {
         ),
         borderData: FlBorderData(
           show: true,
-          border: Border.all(color: Colors.grey[300]!),
+          border: Border.all(color: cs.onSurface.withOpacity(0.10)),
         ),
         minX: 0,
         maxX: (consumptions.length - 1).toDouble(),
@@ -693,18 +718,19 @@ class _ConsumptionChart extends StatelessWidget {
           LineChartBarData(
             spots: spots,
             isCurved: true,
-            color: Theme.of(context).primaryColor,
+            color: cs.primary.withOpacity(0.95),
             barWidth: 3,
             isStrokeCapRound: true,
             dotData: const FlDotData(show: true),
             belowBarData: BarAreaData(
               show: true,
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+              color: cs.primary.withOpacity(0.10),
             ),
           ),
         ],
         lineTouchData: LineTouchData(
           touchTooltipData: LineTouchTooltipData(
+            tooltipBgColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.95),
             getTooltipItems: (touchedSpots) {
               return touchedSpots.map((spot) {
                 final idx = spot.x.toInt();
@@ -721,7 +747,7 @@ class _ConsumptionChart extends StatelessWidget {
                 
                 return LineTooltipItem(
                   '${DateFormat('dd/MM/yy', locale).format(date)}\n${consumption.toStringAsFixed(2)} L/100km',
-                  const TextStyle(color: Colors.white, fontSize: 12),
+                  TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 12, fontWeight: FontWeight.w500),
                 );
               }).toList();
             },
