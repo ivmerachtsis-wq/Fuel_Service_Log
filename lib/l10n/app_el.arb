@@ -97,4 +97,7 @@
 	,"themeSystem": "Σύστημα"
 	,"themeLight": "Φωτεινό"
 	,"themeDark": "Σκούρο"
+	,"exportPdf": "Εξαγωγή PDF"
+	,"statsReportTitle": "Αναφορά Στατιστικών"
+	,"exportFailed": "Αποτυχία εξαγωγής"
 }

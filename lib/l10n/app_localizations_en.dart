@@ -300,4 +300,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get themeDark => 'Dark';
+
+  @override
+  String get exportPdf => 'Export PDF';
+
+  @override
+  String get statsReportTitle => 'Statistics Report';
+
+  @override
+  String get exportFailed => 'Export failed';
 }
