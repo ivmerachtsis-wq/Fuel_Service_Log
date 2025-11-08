@@ -67,6 +67,27 @@ class SnapshotStore {
     await _writeNow(boxes);
   }
 
+  /// Debounced write for a complete CachedState (preconstructed by caller).
+  void debouncedWriteState(CachedState state) {
+    if (!_enabled) return;
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(seconds: 1), () async {
+      await _writeStateNow(state);
+    });
+  }
+
+  /// Measure write duration for a complete CachedState and log it.
+  /// Returns the duration in milliseconds.
+  Future<int> measureWriteState(CachedState state) async {
+    if (!_enabled) return 0;
+    final sw = Stopwatch()..start();
+    await _writeStateNow(state);
+    sw.stop();
+    final ms = sw.elapsedMilliseconds;
+    debugPrint('[SnapshotStore] write in $ms ms');
+    return ms;
+  }
+
   Future<void> _writeNow(Map<String, List<Map<String, dynamic>>> boxes) async {
     try {
       final boxSnapshots = <String, BoxSnapshot>{};
@@ -91,6 +112,17 @@ class SnapshotStore {
       final jsonStr = jsonEncode(state.toJson());
       await file.writeAsString(jsonStr);
 
+      debugPrint('[SnapshotStore] Snapshot written: ${state.boxes.length} boxes');
+    } catch (e, st) {
+      debugPrint('[SnapshotStore] Write failed: $e\n$st');
+    }
+  }
+
+  Future<void> _writeStateNow(CachedState state) async {
+    try {
+      final file = await _getSnapshotFile();
+      final jsonStr = jsonEncode(state.toJson());
+      await file.writeAsString(jsonStr);
       debugPrint('[SnapshotStore] Snapshot written: ${state.boxes.length} boxes');
     } catch (e, st) {
       debugPrint('[SnapshotStore] Write failed: $e\n$st');

@@ -1,4 +1,6 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import 'cached_box_service.dart';
 import 'models/cached_state.dart';
 import '../../data/models/vehicle.dart';
@@ -72,6 +74,35 @@ class CachedServices {
       'fuel_entries': fuelEntries.getAll().map(_fuelToJson).toList(),
       'service_entries': serviceEntries.getAll().map(_serviceToJson).toList(),
     };
+  }
+
+  /// Build a full CachedState from current RAM contents (for direct state write / benchmarking).
+  CachedState toCachedState(int schemaVersion, String appVersion) {
+    final boxData = toSnapshotData();
+    final boxSnapshots = <String, BoxSnapshot>{};
+    for (final entry in boxData.entries) {
+      final checksum = _computeChecksum(entry.value);
+      boxSnapshots[entry.key] = BoxSnapshot(
+        revision: 0,
+        checksum: checksum,
+        items: entry.value,
+      );
+    }
+    return CachedState(
+      schemaVersion: schemaVersion,
+      generatedAt: DateTime.now(),
+      appVersion: appVersion,
+      boxes: boxSnapshots,
+    );
+  }
+
+  String _computeChecksum(List<Map<String, dynamic>> items) {
+    final sortedItems = items.map((item) {
+      final keys = item.keys.toList()..sort();
+      return {for (final k in keys) k: item[k]};
+    }).toList();
+    final stableJson = jsonEncode(sortedItems);
+    return md5.convert(utf8.encode(stableJson)).toString();
   }
 
   Map<dynamic, T>? _mapPreload<T>(CachedState snapshot, String boxName, T Function(Map<String,dynamic>) factory) {
