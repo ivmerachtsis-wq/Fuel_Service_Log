@@ -21,6 +21,7 @@ import '../../data/models/service_entry.dart';
 import '../../features/exports/pdf/active_vehicle_report.dart';
 import '../../state/stats_cache_provider.dart';
 import '../../features/stats/stats_cache.dart';
+import 'package:open_filex/open_filex.dart';
 
 class SettingsTab extends StatelessWidget {
   final SettingsController settings;
@@ -345,17 +346,22 @@ class SettingsTab extends StatelessWidget {
                 service: service,
                 kpis: kpis,
                 l10n: l10n,
+                currencyCode: settings.currencyCode,
               );
               Directory? downloads;
               try { downloads = await getDownloadsDirectory(); } catch (_) {}
               downloads ??= await getApplicationDocumentsDirectory();
-              final filePath = '${downloads.path}/active_vehicle_report.pdf';
+              final datePart = DateTime.now().toIso8601String().split('T').first;
+              final platePart = (vehicle.plate ?? vehicle.title).replaceAll(RegExp(r'[^A-Za-z0-9_-]+'), '_');
+              final filePath = '${downloads.path}/ActiveVehicle_${platePart}_$datePart.pdf';
               final file = File(filePath);
               await file.writeAsBytes(bytes, flush: true);
               debugPrint('[PDF] Saved active vehicle report to $filePath');
               if (context.mounted) {
                 _showSnack(context, 'Saved PDF to $filePath');
               }
+              // Optional: open the file for the user
+              try { await OpenFilex.open(filePath); } catch (_) {}
             } catch (e) {
               if (context.mounted) _showSnack(context, 'Error: $e');
             }
