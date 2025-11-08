@@ -16,6 +16,11 @@ import '../../l10n/app_localizations.dart';
 import '../../constants/app_version.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import '../../data/models/fuel_entry.dart';
+import '../../data/models/service_entry.dart';
+import '../../features/exports/pdf/active_vehicle_report.dart';
+import '../../state/stats_cache_provider.dart';
+import '../../features/stats/stats_cache.dart';
 
 class SettingsTab extends StatelessWidget {
   final SettingsController settings;
@@ -289,6 +294,70 @@ class SettingsTab extends StatelessWidget {
               if (context.mounted) {
                 _showSnack(context, 'Error: $e');
               }
+            }
+          },
+        ),
+        const Divider(),
+        ListTile(
+          leading: const Icon(Icons.picture_as_pdf),
+          title: Text(l10n.exportPdfActiveVehicle),
+          subtitle: Text(l10n.activeVehicleReport),
+          onTap: () async {
+            try {
+              final vehicleBox = Hive.box<Vehicle>('vehicles');
+              if (vehicleBox.values.isEmpty) {
+                if (context.mounted) _showSnack(context, l10n.noActiveVehicle);
+                return;
+              }
+              final vehicle = vehicleBox.values.firstWhere(
+                (v) => v.active,
+                orElse: () => vehicleBox.values.first,
+              );
+              // Collect last entries for tables
+              final fuelBox = Hive.box<FuelEntry>('fuel_entries');
+              final serviceBox = Hive.box<ServiceEntry>('service_entries');
+              final fuel = fuelBox.values.where((e) => e.vehicleId == vehicle.id).toList()
+                ..sort((a,b)=>b.date.compareTo(a.date));
+              final service = serviceBox.values.where((e) => e.vehicleId == vehicle.id).toList()
+                ..sort((a,b)=>b.date.compareTo(a.date));
+
+              // KPIs via StatsCache
+              final now = DateTime.now();
+              final from = DateTime(now.year, now.month - 5, 1); // last 6 months window
+              final to = DateTime(now.year, now.month, 31);
+              final statsCache = StatsCacheProvider().cache;
+              final Kpis k = await statsCache.getKpis(
+                vehicleId: vehicle.id,
+                from: from,
+                to: to,
+                months: 6,
+                driverId: null,
+              );
+              final kpis = StatsKpis(
+                avgConsumption: k.avgConsumptionLPer100km,
+                costPerKm: k.costPerKm,
+                monthlyCost: k.monthlyCost,
+              );
+
+              final bytes = await buildActiveVehicleReport(
+                v: vehicle,
+                fuel: fuel,
+                service: service,
+                kpis: kpis,
+                l10n: l10n,
+              );
+              Directory? downloads;
+              try { downloads = await getDownloadsDirectory(); } catch (_) {}
+              downloads ??= await getApplicationDocumentsDirectory();
+              final filePath = '${downloads.path}/active_vehicle_report.pdf';
+              final file = File(filePath);
+              await file.writeAsBytes(bytes, flush: true);
+              debugPrint('[PDF] Saved active vehicle report to $filePath');
+              if (context.mounted) {
+                _showSnack(context, 'Saved PDF to $filePath');
+              }
+            } catch (e) {
+              if (context.mounted) _showSnack(context, 'Error: $e');
             }
           },
         ),

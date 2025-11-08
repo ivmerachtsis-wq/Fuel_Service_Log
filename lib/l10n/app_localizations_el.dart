@@ -309,4 +309,55 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get exportFailed => 'Αποτυχία εξαγωγής';
+
+  @override
+  String get pdfKpiHeader => 'Σύνοψη Δεικτών Απόδοσης (Key Performance Indicators)';
+
+  @override
+  String get pdfMonthlyOverviewHeader => 'Επισκόπηση Εξόδων 12 Μηνών';
+
+  @override
+  String get pdfPageFooter => 'Σελίδα';
+
+  @override
+  String get pdfPageOf => 'από';
+
+  @override
+  String get useSnapshotCache => 'Χρήση Snapshot Cache';
+
+  @override
+  String get useSnapshotCacheDesc => 'Επιτάχυνση cold start με τοπικό JSON snapshot';
+
+  @override
+  String get pdfExport => 'Εξαγωγή PDF';
+
+  @override
+  String get activeVehicleReport => 'Αναφορά Ενεργού Οχήματος';
+
+  @override
+  String get litersHeader => 'Λίτρα';
+
+  @override
+  String get amountHeader => 'Ποσό';
+
+  @override
+  String get odometerHeader => 'Χιλιόμετρα';
+
+  @override
+  String get pricePerLiterHeader => 'Τιμή/Λ';
+
+  @override
+  String get avgConsumptionHeader => 'Μέση κατανάλωση (L/100km)';
+
+  @override
+  String get costPerKmHeader => 'Κόστος ανά km (€)';
+
+  @override
+  String get monthlyCostHeader => 'Κόστος/μήνα';
+
+  @override
+  String get pdfGeneratedFooter => 'Παράχθηκε από Fuel & Service Log — v1.1';
+
+  @override
+  String get exportPdfActiveVehicle => 'Εξαγωγή PDF (Ενεργό Όχημα)';
 }

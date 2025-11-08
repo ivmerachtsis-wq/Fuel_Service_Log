@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../../core/cache/cache_invalidator.dart';
 import '../../domain/stats_service.dart';
 import '../../data/models/fuel_entry.dart';
+import '../../data/repo/fuel_repo.dart';
 
 /// Stats aggregation cache with selective invalidation.
 /// 
@@ -11,6 +12,7 @@ import '../../data/models/fuel_entry.dart';
 class StatsCache {
   final StatsService _statsService = StatsService();
   final CacheInvalidator _invalidator = CacheInvalidator();
+  final FuelRepo _fuelRepo = FuelRepo();
 
   // Cache key: "${vehicleId}_${periodKey}" → computed result
   final Map<String, _CachedStats> _cache = {};
@@ -128,6 +130,64 @@ class StatsCache {
     for (final notifier in _revisions.values) {
       notifier.dispose();
     }
+    _revisions.clear();
+    _cache.clear();
+  }
+
+  /// Aggregate KPIs for a vehicle and period using cached computations where possible.
+  Future<Kpis> getKpis({
+    required String vehicleId,
+    required DateTime from,
+    required DateTime to,
+    int months = 6,
+    String? driverId,
+  }) async {
+    // Gather entries for vehicle once
+    final allVehicleEntries = _fuelRepo.listByVehicle(vehicleId);
+
+    // Average consumption (L/100km)
+    final avgConsumption = await getAverageConsumption(
+      vehicleId: vehicleId,
+      entries: allVehicleEntries,
+      from: from,
+      to: to,
+      driverId: driverId,
+    );
+
+    // Monthly costs and average monthly cost
+    final monthsWindow = months <= 0 ? 6 : months;
+    final monthlyCosts = await getMonthlyCosts(
+      vehicleId: vehicleId,
+      entries: allVehicleEntries,
+      months: monthsWindow,
+      from: from,
+      to: to,
+      driverId: driverId,
+    );
+    final avgMonthlyCost = _statsService.getAverageMonthlyCost(monthlyCosts);
+
+    // Cost per km: sum amount over window / distance traveled over window
+    final filtered = allVehicleEntries.where((e) {
+      final afterFrom = !e.date.isBefore(from);
+      final beforeTo = !e.date.isAfter(to);
+      final driverOk = driverId == null || driverId.isEmpty || e.driverId == driverId;
+      return afterFrom && beforeTo && driverOk;
+    }).toList();
+    double costPerKm = 0;
+    if (filtered.isNotEmpty) {
+      filtered.sort((a,b)=>a.odometerKm.compareTo(b.odometerKm));
+      final distance = (filtered.last.odometerKm - filtered.first.odometerKm).toDouble();
+      final totalAmount = filtered.fold<double>(0.0, (sum, e) => sum + e.amount);
+      if (distance > 0) {
+        costPerKm = totalAmount / distance;
+      }
+    }
+
+    return Kpis(
+      avgConsumptionLPer100km: avgConsumption.isNaN ? 0 : avgConsumption,
+      costPerKm: costPerKm,
+      monthlyCost: avgMonthlyCost,
+    );
   }
 }
 
@@ -144,6 +204,19 @@ class _CachedStats {
       monthlyCosts: monthlyCosts ?? this.monthlyCosts,
     );
   }
+}
+
+/// KPI aggregate model
+class Kpis {
+  final double avgConsumptionLPer100km;
+  final double costPerKm;
+  final double monthlyCost; // average monthly cost over window
+
+  const Kpis({
+    required this.avgConsumptionLPer100km,
+    required this.costPerKm,
+    required this.monthlyCost,
+  });
 }
 
 /// Isolate function for consumption computation.
