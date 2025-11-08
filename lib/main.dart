@@ -80,6 +80,7 @@ void main() async {
 
   // Initialize aggregated cached services with optional snapshot preload
   final cachedServices = CachedServices();
+  final preloadSw = Stopwatch()..start();
   await cachedServices.init(snapshot: snapshot);
 
   // Start auto snapshot writer on mutations
@@ -88,6 +89,8 @@ void main() async {
 
   // t1 after L1 hydration (snapshot or direct)
   AppStartMetrics.markT1();
+  preloadSw.stop();
+  final preloadMs = preloadSw.elapsedMilliseconds;
 
   // Integrity check & reconciliation
   final integrityStart = Stopwatch()..start();
@@ -100,14 +103,16 @@ void main() async {
     await cachedServices.rehydrateFromHive();
     final freshState = cachedServices.toCachedState(1, '1.1.0');
     final writeMs = await snapshotStore.measureWriteState(freshState);
-    debugPrint('[Benchmark] write(after-mismatch)=${writeMs}ms validation=${validationMs}ms');
+    if (kBenchmark) {
+      debugPrint('[Benchmark] preload=${preloadMs}ms validation=${validationMs}ms write=${writeMs}ms');
+    }
   } else {
     debugPrint('[Integrity] Snapshot checksums match Hive');
     if (kBenchmark) {
       // Measure write anyway for benchmarking
       final benchState = cachedServices.toCachedState(1, '1.1.0');
-      final writeMs = await snapshotStore.measureWriteState(benchState);
-      debugPrint('[Benchmark] validation=${validationMs}ms write=${writeMs}ms');
+  final writeMs = await snapshotStore.measureWriteState(benchState);
+  debugPrint('[Benchmark] preload=${preloadMs}ms validation=${validationMs}ms write=${writeMs}ms');
     }
   }
 
