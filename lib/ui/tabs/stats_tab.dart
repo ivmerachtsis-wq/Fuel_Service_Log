@@ -10,6 +10,7 @@ import '../../data/models/service_entry.dart';
 import '../../domain/stats_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/settings_controller.dart';
+import '../../state/stats_cache_provider.dart';
 import '../../utils/currency_formatter.dart';
 import '../../features/stats/pdf/stats_report_pdf.dart';
 
@@ -157,6 +158,7 @@ class _StatsTabState extends State<StatsTab> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final statsService = StatsService();
+    final statsCache = StatsCacheProvider().cache;
 
     final vehiclesBox = Hive.box<Vehicle>('vehicles');
     if (vehiclesBox.isEmpty) {
@@ -169,16 +171,12 @@ class _StatsTabState extends State<StatsTab> {
   final serviceBox = Hive.box<ServiceEntry>('service_entries');
     final driversBox = Hive.box<Driver>('drivers');
 
-    return ValueListenableBuilder(
-      // Listen to fuel entries
-      valueListenable: fuelBox.listenable(),
-      builder: (context, Box<FuelEntry> fb, _) {
-        return ValueListenableBuilder(
-          // Also listen to service entries for reactive updates
-          valueListenable: serviceBox.listenable(),
-          builder: (context, Box<ServiceEntry> sb, __) {
+    // Use ValueListenableBuilder<int> on cache revision for targeted rebuilds
+    return ValueListenableBuilder<int>(
+      valueListenable: statsCache.revisionForVehicle(_selectedVehicleId!),
+      builder: (context, revision, _) {
             // Συλλογή όλων των fuel entries για το επιλεγμένο όχημα
-            final allVehicleEntries = fb.values
+            final allVehicleEntries = fuelBox.values
                 .where((e) => e.vehicleId == _selectedVehicleId)
                 .toList();
 
@@ -203,7 +201,7 @@ class _StatsTabState extends State<StatsTab> {
             );
 
             // Υπολογισμός Service ποσών ανά μήνα (YYYY-MM)
-            final serviceEntries = sb.values
+            final serviceEntries = serviceBox.values
                 .where((s) => s.vehicleId == _selectedVehicleId)
                 .where((s) => !s.date.isBefore(from) && !s.date.isAfter(to))
                 .toList();
@@ -332,8 +330,6 @@ class _StatsTabState extends State<StatsTab> {
                       ),
               ],
             );
-          },
-        );
       },
     );
   }
