@@ -7,11 +7,13 @@ class SettingsController extends ChangeNotifier {
   static const String _localeKey = 'locale';
   static const String _currencyKey = 'currency';
   static const String _themeModeKey = 'themeMode';
+  static const String _useSnapshotCacheKey = 'useSnapshotCache';
 
   late Box _box;
   Locale _currentLocale = const Locale('el'); // Default to Greek
   String currencyCode = 'EUR'; // Default currency
   ThemeMode themeMode = ThemeMode.system; // Default theme mode
+  bool useSnapshotCache = true; // Default: enabled
 
   Locale get currentLocale => _currentLocale;
 
@@ -23,6 +25,7 @@ class SettingsController extends ChangeNotifier {
     currencyCode = (_box.get(_currencyKey, defaultValue: 'EUR') as String);
     final savedTheme = (_box.get(_themeModeKey, defaultValue: 'system') as String);
     themeMode = _parseThemeMode(savedTheme);
+    useSnapshotCache = (_box.get(_useSnapshotCacheKey, defaultValue: true) as bool);
     notifyListeners();
   }
 
@@ -46,6 +49,14 @@ class SettingsController extends ChangeNotifier {
     if (themeMode == m) return;
     themeMode = m;
     await _box.put(_themeModeKey, _themeModeToString(m));
+    notifyListeners();
+  }
+
+  /// Set snapshot cache enabled/disabled and persist.
+  Future<void> setUseSnapshotCache(bool enabled) async {
+    if (useSnapshotCache == enabled) return;
+    useSnapshotCache = enabled;
+    await _box.put(_useSnapshotCacheKey, enabled);
     notifyListeners();
   }
 

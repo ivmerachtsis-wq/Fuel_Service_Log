@@ -3,11 +3,14 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'ui/shell.dart';
 import 'state/navigation_controller.dart';
 import 'state/settings_controller.dart';
+import 'state/stats_cache_provider.dart';
 import 'bootstrap/app_bootstrap.dart';
+import 'core/diagnostics/app_start_metrics.dart';
 import 'l10n/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  AppStartMetrics.markT0();
   
   // Αρχικοποίηση Hive
   await initHive();
@@ -16,7 +19,16 @@ void main() async {
   final settings = SettingsController();
   await settings.init();
   
+  AppStartMetrics.markT1(); // Snapshot hydration placeholder (L2 not wired yet)
+  
+  // Initialize StatsCache
+  StatsCacheProvider().init();
+  
   runApp(MyApp(controller: nav, settings: settings));
+  
+  // Post-UI initialization (Hive fully ready)
+  AppStartMetrics.markT2();
+  debugPrint('[AppStart] ${AppStartMetrics.summary()}');
 }
 
 class MyApp extends StatelessWidget {

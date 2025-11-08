@@ -100,4 +100,10 @@
 	,"exportPdf": "Εξαγωγή PDF"
 	,"statsReportTitle": "Αναφορά Στατιστικών"
 	,"exportFailed": "Αποτυχία εξαγωγής"
+	,"pdfKpiHeader": "Σύνοψη Δεικτών Απόδοσης (Key Performance Indicators)"
+	,"pdfMonthlyOverviewHeader": "Επισκόπηση Εξόδων 12 Μηνών"
+	,"pdfPageFooter": "Σελίδα"
+	,"pdfPageOf": "από"
+	,"useSnapshotCache": "Χρήση Snapshot Cache"
+	,"useSnapshotCacheDesc": "Επιτάχυνση cold start με τοπικό JSON snapshot"
 }

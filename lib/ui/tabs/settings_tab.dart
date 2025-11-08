@@ -61,6 +61,19 @@ class SettingsTab extends StatelessWidget {
           ),
         ),
         const Divider(),
+        // Performance Section
+        ListTile(
+          leading: const Icon(Icons.speed),
+          title: Text(l10n.useSnapshotCache),
+          subtitle: Text(l10n.useSnapshotCacheDesc),
+          trailing: Switch(
+            value: settings.useSnapshotCache,
+            onChanged: (value) {
+              settings.setUseSnapshotCache(value);
+            },
+          ),
+        ),
+        const Divider(),
         // Version Info
         ListTile(
           leading: const Icon(Icons.info_outline),

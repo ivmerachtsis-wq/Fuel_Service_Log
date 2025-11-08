@@ -100,4 +100,10 @@
 	,"exportPdf": "Export PDF"
 	,"statsReportTitle": "Statistics Report"
 	,"exportFailed": "Export failed"
+	,"pdfKpiHeader": "Key Performance Indicators"
+	,"pdfMonthlyOverviewHeader": "Monthly Cost Overview (Last 12 Months)"
+	,"pdfPageFooter": "Page"
+	,"pdfPageOf": "of"
+	,"useSnapshotCache": "Use Snapshot Cache"
+	,"useSnapshotCacheDesc": "Accelerate cold start using a local JSON snapshot"
 }
