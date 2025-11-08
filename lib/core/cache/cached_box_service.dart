@@ -21,25 +21,26 @@ class CachedBoxService<T> {
 
   CachedBoxService(this._box, this.boxName);
 
-  /// Initialize cache: optionally hydrate from preloaded state (L2 snapshot).
-  /// 
-  /// If [preload] is null, hydrate from Hive immediately.
+  /// Initialize (or re-initialize) cache: optionally hydrate from preloaded state (L2 snapshot).
+  /// Safe to call multiple times; cancels previous watcher and clears memory before hydration.
   Future<void> init({Map<dynamic, T>? preload}) async {
+    // Cancel existing subscription (if any) to avoid multiple listeners.
+    await _boxWatchSubscription?.cancel();
+    _boxWatchSubscription = null;
+    _mem.clear();
+
     if (preload != null) {
       _mem.addAll(preload);
-      revision.value++;
     } else {
-      // Fallback: hydrate from Hive
       for (final key in _box.keys) {
         final value = _box.get(key);
         if (value != null) {
           _mem[key] = value;
         }
       }
-      revision.value++;
     }
+    revision.value++;
 
-    // Watch Hive box changes and sync to memory
     _boxWatchSubscription = _box.watch().listen((event) {
       if (event.deleted) {
         _mem.remove(event.key);
