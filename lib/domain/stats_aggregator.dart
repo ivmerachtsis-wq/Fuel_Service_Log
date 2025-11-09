@@ -1,4 +1,6 @@
 import 'package:collection/collection.dart';
+import '../data/models/fuel_entry.dart';
+import '../data/models/service_entry.dart';
 
 /// A key for grouping entries by month.
 class MonthKey implements Comparable<MonthKey> {
@@ -177,3 +179,89 @@ ExtraKpi computeExtraKpi({
 
   return ExtraKpi(costPerKm: costPerKm, litersPer100km: litersPer100km);
 }
+
+// === Day 10 additions: unified monthly series + distance fallback ===
+
+class MonthlyBucket {
+  final DateTime month; // normalized (year, month, 1)
+  final double fuelAmount;
+  final double serviceAmount;
+  final double liters;
+
+  const MonthlyBucket({
+    required this.month,
+    required this.fuelAmount,
+    required this.serviceAmount,
+    required this.liters,
+  });
+}
+
+List<MonthlyBucket> seriesFromTotals({
+  required List<FuelEntry> fuel,
+  required List<ServiceEntry> service,
+}) {
+  DateTime norm(DateTime d) => DateTime(d.year, d.month, 1);
+  String key(DateTime d) => '${d.year}-${d.month.toString().padLeft(2, '0')}';
+
+  final map = <String, MonthlyBucket>{};
+
+  for (final f in fuel) {
+    final m = norm(f.date);
+    final k = key(m);
+    final cur = map[k];
+    map[k] = MonthlyBucket(
+      month: m,
+      fuelAmount: (cur?.fuelAmount ?? 0) + f.amount,
+      serviceAmount: cur?.serviceAmount ?? 0,
+      liters: (cur?.liters ?? 0) + f.liters,
+    );
+  }
+
+  for (final s in service) {
+    final m = norm(s.date);
+    final k = key(m);
+    final cur = map[k];
+    map[k] = MonthlyBucket(
+      month: m,
+      fuelAmount: cur?.fuelAmount ?? 0,
+      serviceAmount: (cur?.serviceAmount ?? 0) + s.totalAmount,
+      liters: cur?.liters ?? 0,
+    );
+  }
+
+  final out = map.values.toList()
+    ..sort((a, b) => a.month.compareTo(b.month));
+  return out;
+}
+
+/// Compute distance (km) preferring fuel odometer span; fallback to service span; else 0.
+double computeDistanceKm({
+  required List<FuelEntry> fuel,
+  required List<ServiceEntry> service,
+}) {
+  double span(List<double> xs) {
+    if (xs.isEmpty) return 0;
+    double minX = xs.first, maxX = xs.first;
+    for (final v in xs) {
+      if (v < minX) minX = v;
+      if (v > maxX) maxX = v;
+    }
+    return (maxX - minX).abs();
+  }
+
+  // 1) Try fuel entries (robust to order; allows >=1 entry; span can be 0)
+  if (fuel.isNotEmpty) {
+    final d = span(fuel.map((e) => e.odometerKm).toList());
+    if (d > 0 || fuel.length >= 2) return d;
+  }
+
+  // 2) Fallback via service entries
+  if (service.isNotEmpty) {
+    final d = span(service.map((e) => e.odometerKm).toList());
+    if (d > 0) return d;
+  }
+
+  // 3) Nothing usable
+  return 0;
+}
+// === End of Day 10 additions ===

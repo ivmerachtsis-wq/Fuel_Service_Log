@@ -1,10 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter/widgets.dart';
-import 'package:hive/hive.dart';
-import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
-import 'package:path_provider_platform_interface/src/method_channel_path_provider.dart';
-import 'dart:typed_data';
+// Intentionally minimal imports to avoid analyzer warnings
 
 import 'package:fuel_service_log/features/exports/pdf/active_vehicle_report.dart';
 import 'package:fuel_service_log/data/models/vehicle.dart';

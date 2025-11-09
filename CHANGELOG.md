@@ -10,14 +10,20 @@
 - AI Continuous Dev Cycle: `AI_DEV_CYCLE.md`, branch `ai-dev`, nightly analyzer/build script.
 - Stats: `stats_aggregator.dart` (MonthlyTotals, KPIs), `computeExtraKpi` (€/km, L/100km),
   UI integration with new KPI row in Stats tab.
+- Unified monthly aggregation via `seriesFromTotals()` (fuel/service amounts, liters).
+- Distance fallback from service odometers when fuel entries are insufficient.
 
 ### Tests
 - `test/stats/stats_aggregator_test.dart` — aggregation & KPI math
 - `test/stats/stats_extra_kpi_test.dart` — €/km & L/100km window KPIs
+- Added `series_from_totals_test.dart` and `distance_fallback_test.dart`.
 
 ### Changed
 - Ενοποιημένο theme για PDF (`pw.ThemeData.withFont`), σταθερά margins/στήλες (A4).
 - Καθαροί κανόνες PR & commits για AI-driven ροή.
+- Stats charts now consume the unified monthly series.
+- KPI widgets handle zero-distance gracefully (placeholder + tooltip).
+- Chart polish: rounded bars (radius 6px), improved tooltips with month/fuel/service breakdown.
 
 ### Fixed
 - Μηδενικά analyzer warnings (0) σε Windows/Android builds.

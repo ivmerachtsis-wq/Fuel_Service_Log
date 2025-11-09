@@ -106,13 +106,18 @@ class _StatsTabState extends State<StatsTab> {
 
       // Build 12-month data list
       final monthsData = <MonthlyCostData>[];
-      for (int i = 11; i >= 0; i--) {
-        final m = DateTime(now.year, now.month - i, 1);
+      for (int i = 0; i < 12; i++) {
+        // Υπολογίζουμε από τον παλαιότερο μήνα προς τον τρέχοντα
+        final monthsBack = 11 - i; // 11, 10, 9, ..., 1, 0
+        final m = DateTime(now.year, now.month - monthsBack, 1);
         final key = '${m.year}-${m.month.toString().padLeft(2, '0')}';
-        final fuel = monthlyCosts.firstWhere(
+        
+        // Βρίσκουμε το αντίστοιχο fuel cost από το monthlyCosts
+        final fuelCost = monthlyCosts.firstWhere(
           (c) => c.yearMonth == key,
           orElse: () => MonthlyCost(yearMonth: key, amount: 0),
-        ).amount;
+        );
+        final fuel = fuelCost.amount;
         final service = serviceMonthMap[key] ?? 0;
         monthsData.add(MonthlyCostData(ym: key, fuel: fuel, service: service));
       }
@@ -227,11 +232,21 @@ class _StatsTabState extends State<StatsTab> {
                 .where((s) => s.vehicleId == _selectedVehicleId)
                 .where((s) => !s.date.isBefore(from) && !s.date.isAfter(to))
                 .toList();
-            double distanceKmWindow = 0;
-            if (windowFuel.length >= 2) {
-              final odoSorted = [...windowFuel]..sort((a,b)=>a.odometerKm.compareTo(b.odometerKm));
-              distanceKmWindow = (odoSorted.last.odometerKm - odoSorted.first.odometerKm).abs();
-            }
+            // Day 10: Use computeDistanceKm with fallback logic
+            final distanceKmWindow = computeDistanceKm(
+              fuel: windowFuel,
+              service: windowService,
+            );
+            // Debug logging για επαλήθευση (θα αφαιρεθεί σε production)
+            // ignore: avoid_print
+            debugPrint('[StatsTab][Window] range=${from.toIso8601String()} -> ${to.toIso8601String()}');
+            // ignore: avoid_print
+            debugPrint('[StatsTab][Window] fuelEntries=${windowFuel.length}, serviceEntries=${windowService.length}');
+            final sumFuelLiters = windowFuel.fold<double>(0, (s,e)=> s + e.liters);
+            final sumFuelCost = windowFuel.fold<double>(0, (s,e)=> s + e.amount);
+            final sumServiceCost = windowService.fold<double>(0, (s,e)=> s + e.totalAmount);
+            // ignore: avoid_print
+            debugPrint('[StatsTab][Window] liters=${sumFuelLiters.toStringAsFixed(2)}, fuelCost=${sumFuelCost.toStringAsFixed(2)}, serviceCost=${sumServiceCost.toStringAsFixed(2)}, distance=${distanceKmWindow.toStringAsFixed(2)}');
             final extraKpi = computeExtraKpi(
               fuelEntries: windowFuel,
               serviceEntries: windowService,
@@ -239,6 +254,8 @@ class _StatsTabState extends State<StatsTab> {
               to: to,
               distanceKmInWindow: distanceKmWindow,
             );
+            // ignore: avoid_print
+            debugPrint('[StatsTab][Window] costPerKm=${extraKpi.costPerKm.toStringAsFixed(3)}, L/100km=${extraKpi.litersPer100km.toStringAsFixed(2)}');
 
             return ListView(
               padding: const EdgeInsets.all(16),
@@ -292,7 +309,7 @@ class _StatsTabState extends State<StatsTab> {
                     Expanded(
                       child: _KpiBox(
                         title: l10n.kpiCostPerKm,
-                        value: extraKpi.costPerKm <= 0 || extraKpi.costPerKm.isNaN
+                        value: distanceKmWindow <= 0 || extraKpi.costPerKm <= 0 || extraKpi.costPerKm.isNaN
                             ? '—'
                             : formatCurrency(
                                 extraKpi.costPerKm,
@@ -300,16 +317,18 @@ class _StatsTabState extends State<StatsTab> {
                                 context: context,
                               ),
                         icon: Icons.route,
+                        tooltip: distanceKmWindow <= 0 ? 'Ανεπαρκή δεδομένα για υπολογισμό απόστασης' : null,
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: _KpiBox(
                         title: l10n.kpiLitersPer100km,
-                        value: extraKpi.litersPer100km <= 0 || extraKpi.litersPer100km.isNaN
+                        value: distanceKmWindow <= 0 || extraKpi.litersPer100km <= 0 || extraKpi.litersPer100km.isNaN
                             ? '—'
                             : extraKpi.litersPer100km.toStringAsFixed(2),
                         icon: Icons.local_gas_station,
+                        tooltip: distanceKmWindow <= 0 ? 'Ανεπαρκή δεδομένα για υπολογισμό απόστασης' : null,
                       ),
                     ),
                   ],
@@ -468,17 +487,19 @@ class _KpiBox extends StatelessWidget {
   final String title;
   final String value;
   final IconData icon;
+  final String? tooltip;
 
   const _KpiBox({
     required this.title,
     required this.value,
     required this.icon,
+    this.tooltip,
   });
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return Card(
+    final card = Card(
       elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -512,6 +533,14 @@ class _KpiBox extends StatelessWidget {
         ),
       ),
     );
+
+    if (tooltip != null) {
+      return Tooltip(
+        message: tooltip!,
+        child: card,
+      );
+    }
+    return card;
   }
 }
 
@@ -579,7 +608,7 @@ class _MonthlyCostBarChart extends StatelessWidget {
             BarChartRodData(
               toY: total,
               width: 16,
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(6),
               rodStackItems: [
                 // Fuel at the base
                 BarChartRodStackItem(0, fuel, fuelColor),

@@ -16,18 +16,29 @@ import 'data/models/vehicle.dart';
 import 'data/models/fuel_entry.dart';
 import 'data/models/service_entry.dart';
 import 'core/cache/snapshot_auto_writer.dart';
+import 'utils/test_data_loader.dart';
 
 // Benchmark mode flag (enable with --dart-define=BENCHMARK_MODE=true)
 const bool kBenchmark = bool.fromEnvironment('BENCHMARK_MODE');
+// Test data mode (enable with --dart-define=TEST_DATA=true)
+const bool kLoadTestData = bool.fromEnvironment('TEST_DATA');
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   AppStartMetrics.markT0();
 
+  // Open Hive boxes (register adapters + open) - MUST be first!
+  await initHive();
+
+  // Load test data if requested
+  if (kLoadTestData) {
+    await loadTestData();
+  }
+
   final settings = SettingsController();
   await settings.init();
 
-  // Attempt snapshot preload BEFORE opening Hive boxes (fast path)
+  // Attempt snapshot preload BEFORE opening other boxes (fast path)
   final snapshotStore = SnapshotStore();
   snapshotStore.setEnabled(settings.useSnapshotCache);
   CachedState? snapshot;
@@ -35,11 +46,7 @@ void main() async {
     snapshot = await snapshotStore.readIfValid();
   }
 
-  // Synthetic data generation (before Hive open) only if benchmark mode.
-  // We open Hive first because we need adapters and boxes to insert.
-
-  // Open Hive boxes (register adapters + open)
-  await initHive();
+  // Synthetic data generation (only if benchmark mode)
 
   if (kBenchmark) {
     // Generate synthetic data only if boxes are empty (avoid duplication)

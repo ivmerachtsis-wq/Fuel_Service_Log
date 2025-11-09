@@ -102,6 +102,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kpiMonthlyCost => 'Monthly cost (last 6)';
 
   @override
+  String get kpiCostPerKm => 'Cost per km';
+
+  @override
+  String get kpiLitersPer100km => 'Consumption (L/100km)';
+
+  @override
+  String get kpiDistanceWindow => 'Distance (window)';
+
+  @override
   String get chartNoData => 'Not enough data for statistics';
 
   @override

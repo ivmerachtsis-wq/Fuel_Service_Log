@@ -281,6 +281,24 @@ abstract class AppLocalizations {
   /// **'Monthly cost (last 6)'**
   String get kpiMonthlyCost;
 
+  /// No description provided for @kpiCostPerKm.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost per km'**
+  String get kpiCostPerKm;
+
+  /// No description provided for @kpiLitersPer100km.
+  ///
+  /// In en, this message translates to:
+  /// **'Consumption (L/100km)'**
+  String get kpiLitersPer100km;
+
+  /// No description provided for @kpiDistanceWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance (window)'**
+  String get kpiDistanceWindow;
+
   /// No description provided for @chartNoData.
   ///
   /// In en, this message translates to:

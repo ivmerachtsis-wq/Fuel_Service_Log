@@ -102,6 +102,15 @@ class AppLocalizationsEl extends AppLocalizations {
   String get kpiMonthlyCost => 'Κόστος/μήνα (τελευταίοι 6)';
 
   @override
+  String get kpiCostPerKm => 'Κόστος ανά χλμ';
+
+  @override
+  String get kpiLitersPer100km => 'Κατανάλωση (L/100km)';
+
+  @override
+  String get kpiDistanceWindow => 'Χλμ. (παράθυρο)';
+
+  @override
   String get chartNoData => 'Δεν υπάρχουν επαρκή δεδομένα για στατιστικά';
 
   @override
