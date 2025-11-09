@@ -48,7 +48,8 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   path_provider: ^2.1.5
-  path: ^1.9.1
+  # Pin to match flutter_test requirement on CI (Flutter 3.27.1)
+  path: 1.9.0
   fl_chart: ^1.1.1
   url_launcher: ^6.3.0
   pdf: ^3.11.3
