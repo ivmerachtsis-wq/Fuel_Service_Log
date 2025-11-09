@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/widgets.dart';
 import 'package:fuel_service_log/data/models/fuel_entry.dart';
 import 'package:fuel_service_log/data/models/service_entry.dart';
 import 'package:fuel_service_log/data/models/vehicle.dart';
@@ -7,6 +8,10 @@ import 'package:fuel_service_log/state/stats_filter.dart';
 import 'package:fuel_service_log/state/stats_metric.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  test('binding is initialized', () {
+    expect(WidgetsBinding.instance, isNotNull);
+  });
   group('ActiveVehiclePdfReport', () {
     test('generates valid PDF bytes with sample data', () async {
       // Arrange

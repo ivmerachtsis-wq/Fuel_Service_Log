@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:flutter/services.dart' show rootBundle;
 
 import '../data/models/fuel_entry.dart';
 import '../data/models/service_entry.dart';
@@ -49,7 +50,9 @@ class PdfMonthlyRow {
 /// Generate PDF report for active vehicle filtered stats
 class ActiveVehiclePdfReport {
   static Future<Uint8List> build(PdfStatsReportInput input) async {
-    final pdf = pw.Document();
+  final pdf = pw.Document();
+    // Load fonts defensively
+    final (regular, bold, theme) = await _loadPdfFonts();
 
     // Filter entries by date range
     final filteredFuel = input.fuelEntries.where((e) => input.filter.includes(e.date)).toList();
@@ -101,25 +104,31 @@ class ActiveVehiclePdfReport {
             ))
         .toList();
 
-    // Build PDF page
+    // Build PDF page(s) using MultiPage with theme
     pdf.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
-        build: (context) => pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            _buildHeader(),
-            pw.SizedBox(height: 16),
-            _buildMeta(input.vehicle, input.filter),
-            pw.SizedBox(height: 16),
-            _buildKpisBox(costPerKm, litersPer100Km, totalCost),
-            pw.SizedBox(height: 24),
-            _buildBarChart(rows, input.metric),
-            pw.SizedBox(height: 24),
-            _buildMonthlyTable(rows),
-          ],
+      pw.MultiPage(
+        pageTheme: pw.PageTheme(
+          margin: const pw.EdgeInsets.all(24),
+          textDirection: pw.TextDirection.ltr,
+          orientation: pw.PageOrientation.portrait,
+          theme: theme,
         ),
+        build: (context) => [
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              _buildHeader(),
+              pw.SizedBox(height: 16),
+              _buildMeta(input.vehicle, input.filter),
+              pw.SizedBox(height: 16),
+              _buildKpisBox(costPerKm, litersPer100Km, totalCost),
+              pw.SizedBox(height: 24),
+              _buildBarChart(rows, input.metric),
+              pw.SizedBox(height: 24),
+              _buildMonthlyTable(rows),
+            ],
+          ),
+        ],
       ),
     );
 
@@ -324,4 +333,21 @@ class _PdfMonthlyBucket {
   double liters = 0;
   double distanceKm = 0;
   _PdfMonthlyBucket(this.key);
+}
+
+// Defensive font loader for PDF with fallback and global fontFallback.
+Future<(pw.Font, pw.Font, pw.ThemeData)> _loadPdfFonts() async {
+  try {
+    final base = pw.Font.ttf(await rootBundle.load('assets/fonts/NotoSans-Regular.ttf'));
+    final bold = pw.Font.ttf(await rootBundle.load('assets/fonts/NotoSans-Bold.ttf'));
+    var theme = pw.ThemeData.withFont(base: base, bold: bold);
+    theme = theme.copyWith(defaultTextStyle: pw.TextStyle(fontFallback: [base]));
+    return (base, bold, theme);
+  } catch (_) {
+    final base = pw.Font.helvetica();
+    final bold = pw.Font.helveticaBold();
+    var theme = pw.ThemeData.withFont(base: base, bold: bold);
+    theme = theme.copyWith(defaultTextStyle: pw.TextStyle(fontFallback: [base]));
+    return (base, bold, theme);
+  }
 }
