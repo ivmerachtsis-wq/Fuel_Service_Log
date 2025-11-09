@@ -34,8 +34,8 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-  # Required by generated localization code
-  intl: 0.20.2
+  # Pin to match flutter_localizations on CI (Flutter 3.27.1)
+  intl: 0.19.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
