@@ -15,6 +15,7 @@ import '../../state/stats_filter.dart';
 import '../../state/stats_metric.dart';
 import '../../utils/currency_formatter.dart';
 import '../../features/stats/pdf/stats_report_pdf.dart';
+import '../../pdf/active_vehicle_report.dart';
 import '../../domain/stats_aggregator.dart';
 
 class StatsTab extends StatefulWidget {
@@ -32,6 +33,7 @@ class _StatsTabState extends State<StatsTab> {
   StatsFilter _filter = StatsFilter.last90(); // Day 11: default filter
   StatsMetric _metric = StatsMetric.cost; // Day 11: default metric
 
+  // Legacy export (pre Day 12) kept for compatibility
   Future<void> _exportPdf(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
     try {
@@ -154,6 +156,52 @@ class _StatsTabState extends State<StatsTab> {
   // Build improved filename: stats_report_<vehicle>_<localized_date>_<lang>.pdf
   final filename = 'stats_report_${vehicleNameSanitized}_${sanitizedDate}_$langCode.pdf';
 
+      await Printing.sharePdf(bytes: bytes, filename: filename);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.exportFailed)),
+        );
+      }
+    }
+  }
+
+  /// Day 12: Export filtered stats PDF with current filter & metric
+  Future<void> _exportFilteredPdf(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      final vehiclesBox = Hive.box<Vehicle>('vehicles');
+      final fuelBox = Hive.box<FuelEntry>('fuel_entries');
+      final serviceBox = Hive.box<ServiceEntry>('service_entries');
+
+      final selectedVehicle = vehiclesBox.values.firstWhere(
+        (v) => v.id == _selectedVehicleId,
+        orElse: () => vehiclesBox.values.first,
+      );
+
+      final allFuelEntries = fuelBox.values.where((e) => e.vehicleId == _selectedVehicleId).toList();
+      final allServiceEntries = serviceBox.values.where((s) => s.vehicleId == _selectedVehicleId).toList();
+
+      final input = PdfStatsReportInput(
+        vehicle: selectedVehicle,
+        fuelEntries: allFuelEntries,
+        serviceEntries: allServiceEntries,
+        filter: _filter,
+        metric: _metric,
+      );
+
+      final locale = Localizations.localeOf(context);
+      final nowDate = DateTime.now();
+      final formattedDate = DateFormat.yMd(locale.toString()).format(nowDate);
+      final vehicleName = selectedVehicle.title.trim();
+      final vehicleNameSanitized = vehicleName.isEmpty
+          ? 'vehicle'
+          : vehicleName.replaceAll(RegExp(r'[^A-Za-z0-9_-]+'), '_');
+      final sanitizedDate = formattedDate.replaceAll(RegExp(r'[^A-Za-z0-9_-]+'), '_');
+      final langCode = locale.languageCode;
+
+      final bytes = await ActiveVehiclePdfReport.build(input);
+      final filename = 'filtered_stats_${vehicleNameSanitized}_${sanitizedDate}_$langCode.pdf';
       await Printing.sharePdf(bytes: bytes, filename: filename);
     } catch (e) {
       if (context.mounted) {
@@ -290,14 +338,22 @@ class _StatsTabState extends State<StatsTab> {
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                // Export PDF button
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: OutlinedButton.icon(
-                    onPressed: () => _exportPdf(context),
-                    icon: const Icon(Icons.picture_as_pdf, size: 18),
-                    label: Text(l10n.exportPdf),
-                  ),
+                // Export PDF buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () => _exportPdf(context),
+                      icon: const Icon(Icons.picture_as_pdf, size: 18),
+                      label: Text(l10n.exportPdf),
+                    ),
+                    const SizedBox(width: 8),
+                    FilledButton.icon(
+                      onPressed: () => _exportFilteredPdf(context),
+                      icon: const Icon(Icons.filter_alt, size: 18),
+                      label: const Text('Export Filtered'),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 12),
                 _buildFilters(

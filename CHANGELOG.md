@@ -15,12 +15,16 @@
 - Date-range filter presets (Last 30/90/180, YTD, All) and custom range dialog for Stats.
 - Charts metric toggle (Cost €, Liters L, Distance km) based on unified monthly buckets.
 - Helper `estimateMonthlyDistanceKm()` for monthly distance estimation in charts.
+- Filtered Stats PDF v1.1 (`ActiveVehiclePdfReport`): KPIs (€/km, L/100km, Total Cost), monthly table (Fuel, Service, Liters, Distance, Total), embedded bar chart (Cost/Liters/Distance) honoring active date-range & metric.
+- Export action: Added secondary "Export Filtered" button in Stats tab wiring current filter + metric to PDF.
+- Basic PDF tests (`pdf_stats_report_test.dart`) validating byte size & magic header across metrics and empty dataset.
 
 ### Tests
 - `test/stats/stats_aggregator_test.dart` — aggregation & KPI math
 - `test/stats/stats_extra_kpi_test.dart` — €/km & L/100km window KPIs
 - Added `series_from_totals_test.dart` and `distance_fallback_test.dart`.
 - Added `filter_and_metric_test.dart` for filter range, series aggregation with filtered inputs, and monthly distance estimation.
+- Added `pdf/pdf_stats_report_test.dart` for filtered stats PDF generation (bytes >1KB, metrics loop, empty data case).
 
 ### Changed
 - Ενοποιημένο theme για PDF (`pw.ThemeData.withFont`), σταθερά margins/στήλες (A4).
