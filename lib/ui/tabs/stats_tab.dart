@@ -13,6 +13,7 @@ import '../../state/settings_controller.dart';
 import '../../state/stats_cache_provider.dart';
 import '../../utils/currency_formatter.dart';
 import '../../features/stats/pdf/stats_report_pdf.dart';
+import '../../domain/stats_aggregator.dart';
 
 class StatsTab extends StatefulWidget {
   final SettingsController settings;
@@ -218,6 +219,27 @@ class _StatsTabState extends State<StatsTab> {
                 ? statsService.getAverageMonthlyCost(monthlyCosts)
                 : double.nan;
 
+            // Extra KPIs using aggregator helper over current window
+            final windowFuel = allVehicleEntries
+                .where((e) => !e.date.isBefore(from) && !e.date.isAfter(to))
+                .toList();
+            final windowService = serviceBox.values
+                .where((s) => s.vehicleId == _selectedVehicleId)
+                .where((s) => !s.date.isBefore(from) && !s.date.isAfter(to))
+                .toList();
+            double distanceKmWindow = 0;
+            if (windowFuel.length >= 2) {
+              final odoSorted = [...windowFuel]..sort((a,b)=>a.odometerKm.compareTo(b.odometerKm));
+              distanceKmWindow = (odoSorted.last.odometerKm - odoSorted.first.odometerKm).abs();
+            }
+            final extraKpi = computeExtraKpi(
+              fuelEntries: windowFuel,
+              serviceEntries: windowService,
+              from: from,
+              to: to,
+              distanceKmInWindow: distanceKmWindow,
+            );
+
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -260,6 +282,34 @@ class _StatsTabState extends State<StatsTab> {
                                 context: context,
                               ),
                         icon: Icons.euro,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _KpiBox(
+                        title: '€/km',
+                        value: extraKpi.costPerKm <= 0 || extraKpi.costPerKm.isNaN
+                            ? '—'
+                            : formatCurrency(
+                                extraKpi.costPerKm,
+                                currencyCode: widget.settings.currencyCode,
+                                context: context,
+                              ),
+                        icon: Icons.route,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _KpiBox(
+                        title: 'L/100km',
+                        value: extraKpi.litersPer100km <= 0 || extraKpi.litersPer100km.isNaN
+                            ? '—'
+                            : extraKpi.litersPer100km.toStringAsFixed(2),
+                        icon: Icons.local_gas_station,
                       ),
                     ),
                   ],

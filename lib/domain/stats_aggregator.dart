@@ -137,3 +137,43 @@ double distanceFromOdometer(dynamic current, dynamic previous) {
   final prev = (previous as num?)?.toDouble() ?? 0.0;
   return (curr - prev).abs();
 }
+
+// --- Extra KPI extension ---
+/// Additional KPI bundle for direct window calculations.
+class ExtraKpi {
+  final double costPerKm;       // €/km
+  final double litersPer100km;  // L/100km
+  const ExtraKpi({required this.costPerKm, required this.litersPer100km});
+}
+
+/// Computes extra KPIs given raw fuel & service entries inside [from,to] window.
+/// Each fuel entry must expose: date(DateTime), liters(num), amount(num).
+/// Each service entry must expose: date(DateTime), totalAmount(num).
+ExtraKpi computeExtraKpi({
+  required Iterable<dynamic> fuelEntries,
+  required Iterable<dynamic> serviceEntries,
+  required DateTime from,
+  required DateTime to,
+  required double distanceKmInWindow,
+}) {
+  double fuelLiters = 0.0;
+  double totalCost = 0.0;
+  bool inRange(DateTime d) => !d.isBefore(from) && !d.isAfter(to);
+
+  for (final e in fuelEntries) {
+    final d = e.date as DateTime;
+    if (!inRange(d)) continue;
+    fuelLiters += (e.liters as num).toDouble();
+    totalCost += (e.amount as num).toDouble();
+  }
+  for (final s in serviceEntries) {
+    final d = s.date as DateTime;
+    if (!inRange(d)) continue;
+    totalCost += (s.totalAmount as num).toDouble();
+  }
+
+  final costPerKm = distanceKmInWindow > 0 ? totalCost / distanceKmInWindow : 0.0;
+  final litersPer100km = distanceKmInWindow > 0 ? (fuelLiters / distanceKmInWindow) * 100.0 : 0.0;
+
+  return ExtraKpi(costPerKm: costPerKm, litersPer100km: litersPer100km);
+}
