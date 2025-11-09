@@ -276,7 +276,7 @@ class _ServiceFormState extends State<ServiceForm> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      initialValue: _currencyCode,
+                      value: _currencyCode,
                       decoration: InputDecoration(
                         labelText: l10n.currency,
                         border: const OutlineInputBorder(),

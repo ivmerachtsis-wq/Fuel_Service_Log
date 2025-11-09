@@ -13,6 +13,8 @@ analyzer:
   exclude:
     # Exclude temporary QA scripts from analysis
     - tool/**
+    # Exclude duplicate subdirectory from analysis
+    - fuel_service_log/**
 
 linter:
   # The lint rules applied to this project can be customized in the
