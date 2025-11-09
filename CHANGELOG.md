@@ -8,6 +8,12 @@
 - PDF Reports: βελτιωμένη τυπογραφία (NotoSans Regular/Bold), locale-aware αριθμοί/νομίσματα.
 - Προετοιμασία custom table rendering (Fuel/Service πίνακες με headers/footers).
 - AI Continuous Dev Cycle: `AI_DEV_CYCLE.md`, branch `ai-dev`, nightly analyzer/build script.
+- Stats: `stats_aggregator.dart` (MonthlyTotals, KPIs), `computeExtraKpi` (€/km, L/100km),
+  UI integration with new KPI row in Stats tab.
+
+### Tests
+- `test/stats/stats_aggregator_test.dart` — aggregation & KPI math
+- `test/stats/stats_extra_kpi_test.dart` — €/km & L/100km window KPIs
 
 ### Changed
 - Ενοποιημένο theme για PDF (`pw.ThemeData.withFont`), σταθερά margins/στήλες (A4).

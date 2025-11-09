@@ -291,7 +291,7 @@ class _StatsTabState extends State<StatsTab> {
                   children: [
                     Expanded(
                       child: _KpiBox(
-                        title: '€/km',
+                        title: l10n.kpiCostPerKm,
                         value: extraKpi.costPerKm <= 0 || extraKpi.costPerKm.isNaN
                             ? '—'
                             : formatCurrency(
@@ -305,7 +305,7 @@ class _StatsTabState extends State<StatsTab> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: _KpiBox(
-                        title: 'L/100km',
+                        title: l10n.kpiLitersPer100km,
                         value: extraKpi.litersPer100km <= 0 || extraKpi.litersPer100km.isNaN
                             ? '—'
                             : extraKpi.litersPer100km.toStringAsFixed(2),
