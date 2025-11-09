@@ -50,7 +50,8 @@ dependencies:
   path_provider: ^2.1.5
   # Pin to match flutter_test requirement on CI (Flutter 3.27.1)
   path: 1.9.0
-  fl_chart: ^1.1.1
+  # Downgraded for Dart 3.6.0 compatibility (CI Flutter 3.27.1)
+  fl_chart: 0.71.0
   url_launcher: ^6.3.0
   pdf: ^3.11.3
   printing: ^5.14.2
