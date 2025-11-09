@@ -1,6 +1,7 @@
 # Fuel & Service Log
 
-[![Flutter CI](https://github.com/ivmerachtsis-wq/fuel-service-log-app/actions/workflows/flutter-ci.yml/badge.svg)](https://github.com/ivmerachtsis-wq/fuel-service-log-app/actions/workflows/flutter-ci.yml)
+[![Flutter CI](https://github.com/ivmerachtsis-wq/fuel-service-log-app/actions/workflows/flutter-ci.yml/badge.svg)](https://github.com/ivmerachtsis-wq/fuel-service-log-app/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Παρακολούθηση καυσίμων, service και στατιστικών οχημάτων.  
 Flutter app — Windows & Android.
