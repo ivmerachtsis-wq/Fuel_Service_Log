@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:flutter/services.dart' show rootBundle;
+import 'pdf_fonts.dart';
 
 import '../data/models/fuel_entry.dart';
 import '../data/models/service_entry.dart';
@@ -50,9 +50,9 @@ class PdfMonthlyRow {
 /// Generate PDF report for active vehicle filtered stats
 class ActiveVehiclePdfReport {
   static Future<Uint8List> build(PdfStatsReportInput input) async {
-  final pdf = pw.Document();
-    // Load fonts defensively
-    final (regular, bold, theme) = await _loadPdfFonts();
+    final pdf = pw.Document();
+    // Shared theme via helper
+    final theme = await loadPdfTheme();
 
     // Filter entries by date range
     final filteredFuel = input.fuelEntries.where((e) => input.filter.includes(e.date)).toList();
@@ -335,19 +335,4 @@ class _PdfMonthlyBucket {
   _PdfMonthlyBucket(this.key);
 }
 
-// Defensive font loader for PDF with fallback and global fontFallback.
-Future<(pw.Font, pw.Font, pw.ThemeData)> _loadPdfFonts() async {
-  try {
-    final base = pw.Font.ttf(await rootBundle.load('assets/fonts/NotoSans-Regular.ttf'));
-    final bold = pw.Font.ttf(await rootBundle.load('assets/fonts/NotoSans-Bold.ttf'));
-    var theme = pw.ThemeData.withFont(base: base, bold: bold);
-    theme = theme.copyWith(defaultTextStyle: pw.TextStyle(fontFallback: [base]));
-    return (base, bold, theme);
-  } catch (_) {
-    final base = pw.Font.helvetica();
-    final bold = pw.Font.helveticaBold();
-    var theme = pw.ThemeData.withFont(base: base, bold: bold);
-    theme = theme.copyWith(defaultTextStyle: pw.TextStyle(fontFallback: [base]));
-    return (base, bold, theme);
-  }
-}
+// Legacy inline font loader removed; using shared helper in pdf_fonts.dart.
