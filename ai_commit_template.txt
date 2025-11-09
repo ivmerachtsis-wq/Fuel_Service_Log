@@ -1,0 +1,4 @@
+[AI] feat(module): short description
+- summary of what changed
+- analyzer: PASS / FAIL
+- build: OK / issues

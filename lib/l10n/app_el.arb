@@ -1,0 +1,123 @@
+﻿{
+	"@@locale": "el",
+	"appTitle": "Καταγραφή Καυσίμων & Service",
+	"tabFuel": "Καύσιμα",
+	"tabService": "Service",
+	"tabStats": "Στατιστικά",
+	"tabSettings": "Ρυθμίσεις",
+	"emptyFuel": "Δεν υπάρχουν καταχωρήσεις καυσίμων",
+	"emptyService": "Δεν υπάρχουν καταχωρήσεις service",
+	"statsTitle": "Στατιστικά",
+	"settingsTitle": "Ρυθμίσεις",
+	"actionAdd": "Προσθήκη",
+	"actionEdit": "Επεξεργασία",
+	"actionDelete": "Διαγραφή",
+	"actionUndo": "Αναίρεση",
+	"addFuel": "Νέα Καταχώρηση Καυσίμου",
+	"addService": "Νέα Καταχώρηση Service",
+	"exportCsv": "Εξαγωγή CSV",
+	"backupJson": "Δημιουργία Αντιγράφου",
+	"restoreJson": "Επαναφορά Αντιγράφου",
+	"language": "Γλώσσα",
+	"languageEnglish": "Αγγλικά",
+	"languageGreek": "Ελληνικά",
+	"theme": "Θέμα",
+	"currency": "Νόμισμα",
+	"currencyEUR": "Ευρώ (€)",
+	"currencyUSD": "Δολάριο ΗΠΑ ($)",
+	"currencyGBP": "Λίρα Αγγλίας (£)",
+	"successExport": "Η εξαγωγή ολοκληρώθηκε επιτυχώς",
+	"successBackup": "Το αντίγραφο δημιουργήθηκε επιτυχώς",
+	"successRestore": "Η επαναφορά ολοκληρώθηκε επιτυχώς",
+	"kpiAvgConsumption": "Μέση κατανάλωση (L/100km)",
+	"kpiMonthlyCost": "Κόστος/μήνα (τελευταίοι 6)",
+	"kpiCostPerKm": "Κόστος ανά χλμ",
+	"kpiLitersPer100km": "Κατανάλωση (L/100km)",
+	"kpiDistanceWindow": "Χλμ. (παράθυρο)",
+	"chartNoData": "Δεν υπάρχουν επαρκή δεδομένα για στατιστικά",
+	"chartAxisDate": "Ημερομηνία",
+	"chartAxisConsumption": "L/100km",
+	"statsHintFullToFull": "Προσθέστε τουλάχιστον 2 γεμίσματα με γεμάτο ρεζερβουάρ για να δείτε στατιστικά κατανάλωσης",
+	"noFuelEntries": "Δεν υπάρχουν καταχωρήσεις καυσίμων",
+	"addFuelTitle": "Νέα Καταχώρηση Καυσίμου",
+	"editFuelTitle": "Επεξεργασία Καυσίμου",
+	"liters": "Λίτρα",
+	"pricePerLiter": "Τιμή ανά λίτρο",
+	"amount": "Ποσό",
+	"fullTank": "Γεμάτο ρεζερβουάρ",
+	"notes": "Σημειώσεις",
+	"save": "Αποθήκευση",
+	"cancel": "Άκυρο",
+	"settingsGeneral": "Γενικές προτιμήσεις",
+	"noActiveVehicle": "Δεν έχει οριστεί ενεργό όχημα",
+	"odometerKm": "Χιλιόμετρα (km)",
+	"editService": "Επεξεργασία Service",
+	"serviceNoEntries": "Δεν υπάρχουν καταχωρήσεις service",
+	"serviceDate": "Ημερομηνία",
+	"serviceOdometer": "Χιλιόμετρα (km)",
+	"serviceDescription": "Περιγραφή",
+	"serviceAmount": "Συνολικό ποσό",
+	"serviceNotes": "Σημειώσεις",
+	"serviceInvoice": "Τιμολόγιο",
+	"deleted": "Διαγράφηκε",
+	"settingsMaintenance": "Συντήρηση & Ακεραιότητα Δεδομένων",
+	"runIntegrityCheck": "Έλεγχος δεδομένων",
+	"integrityOk": "Δεν βρέθηκαν προβλήματα",
+	"integrityIssuesFound": "Βρέθηκαν προβλήματα",
+	"autoBackupOk": "Ο αυτόματος backup ολοκληρώθηκε",
+	"autoBackupFailed": "Αποτυχία αυτόματου backup",
+	"integrityReportTitle": "Αναφορά Ακεραιότητας Δεδομένων",
+	"integrityReportSummary": "Καύσιμα: {fuel}, Συντήρηση: {service}",
+	"settingsExportCsvSubtitle": "Εγγραφές καυσίμων και συντήρησης σε CSV",
+	"settingsRestoreSubtitle": "Εισαγωγή από το τελευταίο αρχείο αντιγράφων ασφαλείας",
+	"ok": "OK",
+		"settingsVersion": "Έκδοση",
+		"version": "Έκδοση",
+	"validationRequired": "Απαιτούμενο πεδίο",
+	"errorFutureDateNotAllowed": "Δεν επιτρέπεται μελλοντική ημερομηνία",
+	"exportSuccess": "Η εξαγωγή ολοκληρώθηκε",
+	"openFolder": "Άνοιγμα φακέλου",
+	"exportFuelPdf": "Εξαγωγή Fuel σε PDF",
+	"exportServicePdf": "Εξαγωγή Service σε PDF",
+	"pdfTitleFuel": "Εξαγωγή Καυσίμων",
+	"pdfTitleService": "Εξαγωγή Service",
+	"pdfMetaVehicle": "Όχημα",
+	"pdfMetaDriver": "Οδηγός",
+	"pdfMetaCreatedAt": "Δημιουργήθηκε",
+	"pdfSummary": "Σύνοψη",
+	"pdfCount": "Πλήθος",
+	"pdfTotalLiters": "Σύνολο λίτρων",
+	"pdfTotalAmount": "Σύνολο ποσού",
+	"statsFilters": "Φίλτρα",
+	"filterVehicle": "Όχημα",
+	"filterDriver": "Οδηγός",
+	"filterDateRange": "Χρονικό εύρος",
+	"range3m": "Τελευταίοι 3 μήνες",
+	"range6m": "Τελευταίοι 6 μήνες",
+	"range12m": "Τελευταίοι 12 μήνες",
+	"allDrivers": "Όλοι"
+	,"appearance": "Εμφάνιση"
+	,"themeSystem": "Σύστημα"
+	,"themeLight": "Φωτεινό"
+	,"themeDark": "Σκούρο"
+	,"exportPdf": "Εξαγωγή PDF"
+	,"statsReportTitle": "Αναφορά Στατιστικών"
+	,"exportFailed": "Αποτυχία εξαγωγής"
+	,"pdfKpiHeader": "Σύνοψη Δεικτών Απόδοσης (Key Performance Indicators)"
+	,"pdfMonthlyOverviewHeader": "Επισκόπηση Εξόδων 12 Μηνών"
+	,"pdfPageFooter": "Σελίδα"
+	,"pdfPageOf": "από"
+	,"useSnapshotCache": "Χρήση Snapshot Cache"
+	,"useSnapshotCacheDesc": "Επιτάχυνση cold start με τοπικό JSON snapshot"
+		,"pdfExport": "Εξαγωγή PDF"
+		,"activeVehicleReport": "Αναφορά Ενεργού Οχήματος"
+		,"litersHeader": "Λίτρα"
+		,"amountHeader": "Ποσό"
+		,"odometerHeader": "Χιλιόμετρα"
+		,"pricePerLiterHeader": "Τιμή/Λ"
+		,"avgConsumptionHeader": "Μέση κατανάλωση (L/100km)"
+		,"costPerKmHeader": "Κόστος ανά km (€)"
+		,"monthlyCostHeader": "Κόστος/μήνα"
+		,"pdfGeneratedFooter": "Παράχθηκε από Fuel & Service Log — v1.1"
+		,"exportPdfActiveVehicle": "Εξαγωγή PDF (Ενεργό Όχημα)"
+}
