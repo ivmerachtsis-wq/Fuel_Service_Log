@@ -11,6 +11,8 @@ import '../../domain/stats_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/settings_controller.dart';
 import '../../state/stats_cache_provider.dart';
+import '../../state/stats_filter.dart';
+import '../../state/stats_metric.dart';
 import '../../utils/currency_formatter.dart';
 import '../../features/stats/pdf/stats_report_pdf.dart';
 import '../../domain/stats_aggregator.dart';
@@ -26,7 +28,9 @@ class StatsTab extends StatefulWidget {
 class _StatsTabState extends State<StatsTab> {
   String? _selectedVehicleId;
   String? _selectedDriverId; // null ή '' => All
-  int _rangeMonths = 6; // 3 / 6 / 12
+  final int _rangeMonths = 6; // 3 / 6 / 12 (legacy, kept for PDF export compatibility)
+  StatsFilter _filter = StatsFilter.last90(); // Day 11: default filter
+  StatsMetric _metric = StatsMetric.cost; // Day 11: default metric
 
   Future<void> _exportPdf(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
@@ -160,6 +164,31 @@ class _StatsTabState extends State<StatsTab> {
     }
   }
 
+  Future<void> _showCustomDateRange(BuildContext context) async {
+    final now = DateTime.now();
+    final initialFrom = _filter.from ?? now.subtract(const Duration(days: 90));
+    final initialTo = _filter.to ?? now;
+
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020, 1, 1),
+      lastDate: now,
+      initialDateRange: DateTimeRange(start: initialFrom, end: initialTo),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null && context.mounted) {
+      setState(() {
+        _filter = StatsFilter.custom(picked.start, picked.end);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -225,12 +254,13 @@ class _StatsTabState extends State<StatsTab> {
                 : double.nan;
 
             // Extra KPIs using aggregator helper over current window
+            // Day 11: Apply filter to window
             final windowFuel = allVehicleEntries
-                .where((e) => !e.date.isBefore(from) && !e.date.isAfter(to))
+                .where((e) => _filter.includes(e.date))
                 .toList();
             final windowService = serviceBox.values
                 .where((s) => s.vehicleId == _selectedVehicleId)
-                .where((s) => !s.date.isBefore(from) && !s.date.isAfter(to))
+                .where((s) => _filter.includes(s.date))
                 .toList();
             // Day 10: Use computeDistanceKm with fallback logic
             final distanceKmWindow = computeDistanceKm(
@@ -389,9 +419,9 @@ class _StatsTabState extends State<StatsTab> {
                           child: Padding(
                             padding: const EdgeInsets.all(16),
                             child: _MonthlyCostBarChart(
-                              costs: monthlyCosts,
-                              serviceMonthMap: serviceMonthMap,
-                              months: _rangeMonths,
+                              windowFuel: windowFuel,
+                              windowService: windowService,
+                              metric: _metric,
                               currencyCode: widget.settings.currencyCode,
                             ),
                           ),
@@ -454,31 +484,58 @@ class _StatsTabState extends State<StatsTab> {
               },
               hint: Text(l10n.filterDriver),
             ),
-            // Range buttons 6 / 12 months
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _rangeButton(label: l10n.range6m, months: 6),
-                const SizedBox(width: 4),
-                _rangeButton(label: l10n.range12m, months: 12),
+            // Day 11: Date range filter preset dropdown
+            DropdownButton<StatsPreset>(
+              value: _filter.preset,
+              items: const [
+                DropdownMenuItem(value: StatsPreset.last30, child: Text('Last 30 days')),
+                DropdownMenuItem(value: StatsPreset.last90, child: Text('Last 90 days')),
+                DropdownMenuItem(value: StatsPreset.last180, child: Text('Last 180 days')),
+                DropdownMenuItem(value: StatsPreset.ytd, child: Text('YTD')),
+                DropdownMenuItem(value: StatsPreset.all, child: Text('All')),
+                DropdownMenuItem(value: StatsPreset.custom, child: Text('Custom...')),
               ],
+              onChanged: (val) {
+                if (val == null) return;
+                setState(() {
+                  switch (val) {
+                    case StatsPreset.last30:
+                      _filter = StatsFilter.last30();
+                    case StatsPreset.last90:
+                      _filter = StatsFilter.last90();
+                    case StatsPreset.last180:
+                      _filter = StatsFilter.last180();
+                    case StatsPreset.ytd:
+                      _filter = StatsFilter.ytd();
+                    case StatsPreset.all:
+                      _filter = const StatsFilter.all();
+                    case StatsPreset.custom:
+                      // Will show dialog below
+                      break;
+                  }
+                });
+                if (val == StatsPreset.custom) {
+                  _showCustomDateRange(context);
+                }
+              },
+            ),
+            // Day 11: Metric toggle (Cost / Liters / Distance)
+            SegmentedButton<StatsMetric>(
+              segments: const [
+                ButtonSegment(value: StatsMetric.cost, label: Text('€'), icon: Icon(Icons.euro, size: 16)),
+                ButtonSegment(value: StatsMetric.liters, label: Text('L'), icon: Icon(Icons.local_gas_station, size: 16)),
+                ButtonSegment(value: StatsMetric.distance, label: Text('km'), icon: Icon(Icons.route, size: 16)),
+              ],
+              selected: {_metric},
+              onSelectionChanged: (Set<StatsMetric> newSelection) {
+                setState(() {
+                  _metric = newSelection.first;
+                });
+              },
             ),
           ],
         ),
       ],
-    );
-  }
-
-  Widget _rangeButton({required String label, required int months}) {
-    final active = _rangeMonths == months;
-    return OutlinedButton(
-      onPressed: () {
-        if (!active) setState(() => _rangeMonths = months);
-      },
-      style: OutlinedButton.styleFrom(
-        backgroundColor: active ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.10) : null,
-      ),
-      child: Text(label, style: TextStyle(fontWeight: active ? FontWeight.bold : FontWeight.normal)),
     );
   }
 }
@@ -545,15 +602,15 @@ class _KpiBox extends StatelessWidget {
 }
 
 class _MonthlyCostBarChart extends StatelessWidget {
-  final List<MonthlyCost> costs; // fuel costs per month from service
-  final Map<String, double> serviceMonthMap; // service amounts per YYYY-MM
-  final int months; // window size (e.g., 6/12)
+  final List<FuelEntry> windowFuel;
+  final List<ServiceEntry> windowService;
+  final StatsMetric metric;
   final String currencyCode;
 
   const _MonthlyCostBarChart({
-    required this.costs,
-    required this.serviceMonthMap,
-    required this.months,
+    required this.windowFuel,
+    required this.windowService,
+    required this.metric,
     required this.currencyCode,
   });
 
@@ -563,65 +620,87 @@ class _MonthlyCostBarChart extends StatelessWidget {
     final locale = Localizations.localeOf(context).toString();
     final cs = Theme.of(context).colorScheme;
 
-    // Build the x-axis months based on now and window
-    final now = DateTime.now();
-    final labels = <String>[];
-    final fuels = <double>[];
-    final services = <double>[];
-    final totals = <double>[];
-    for (int i = months - 1; i >= 0; i--) {
-      final m = DateTime(now.year, now.month - i, 1);
-      final key = '${m.year}-${m.month.toString().padLeft(2, '0')}';
-      final fuel = costs.firstWhere(
-        (c) => c.yearMonth == key,
-        orElse: () => MonthlyCost(yearMonth: key, amount: 0),
-      ).amount;
-      final service = serviceMonthMap[key] ?? 0;
-      labels.add(DateFormat('MM/yy', locale).format(m));
-      fuels.add(fuel);
-      services.add(service);
-      totals.add(fuel + service);
-    }
-
-    final hasData = totals.any((v) => v > 0);
-    if (!hasData) {
+    // Day 11: Use seriesFromTotals to build monthly buckets
+    final series = seriesFromTotals(fuel: windowFuel, service: windowService);
+    
+    if (series.isEmpty) {
       return Center(
         child: Text(
           l10n.chartNoData,
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.70)),
+          style: TextStyle(color: cs.onSurfaceVariant.withValues(alpha: 0.70)),
         ),
       );
     }
 
-  final fuelColor = cs.primary.withValues(alpha: 0.90);
-  final serviceColor = cs.secondary.withValues(alpha: 0.90);
+    final labels = <String>[];
+    final values = <double>[];
+    
+    // Build data based on selected metric
+    for (final bucket in series) {
+      labels.add(DateFormat('MM/yy', locale).format(bucket.month));
+      
+      switch (metric) {
+        case StatsMetric.cost:
+          values.add(bucket.fuelAmount + bucket.serviceAmount);
+        case StatsMetric.liters:
+          values.add(bucket.liters);
+        case StatsMetric.distance:
+          // Estimate distance for this month using entries from that month
+          final monthFuel = windowFuel.where((e) => 
+            e.date.year == bucket.month.year && e.date.month == bucket.month.month
+          ).toList();
+          final monthService = windowService.where((e) => 
+            e.date.year == bucket.month.year && e.date.month == bucket.month.month
+          ).toList();
+          final dist = estimateMonthlyDistanceKm(
+            fuelMonth: monthFuel,
+            serviceMonth: monthService,
+          );
+          values.add(dist);
+      }
+    }
 
+    final hasData = values.any((v) => v > 0);
+    if (!hasData) {
+      return Center(
+        child: Text(
+          l10n.chartNoData,
+          style: TextStyle(color: cs.onSurfaceVariant.withValues(alpha: 0.70)),
+        ),
+      );
+    }
+
+    final barColor = cs.primary.withValues(alpha: 0.90);
     final groups = <BarChartGroupData>[];
-    for (int i = 0; i < totals.length; i++) {
-      final fuel = fuels[i];
-      final service = services[i];
-      final total = totals[i];
+    
+    for (int i = 0; i < values.length; i++) {
       groups.add(
         BarChartGroupData(
           x: i,
           barRods: [
             BarChartRodData(
-              toY: total,
+              toY: values[i],
               width: 16,
               borderRadius: BorderRadius.circular(6),
-              rodStackItems: [
-                // Fuel at the base
-                BarChartRodStackItem(0, fuel, fuelColor),
-                // Service stacked on top
-                BarChartRodStackItem(fuel, fuel + service, serviceColor),
-              ],
+              color: barColor,
             ),
           ],
         ),
       );
     }
 
-    final maxY = totals.fold<double>(0, (p, n) => n > p ? n : p);
+    final maxY = values.fold<double>(0, (p, n) => n > p ? n : p);
+    
+    // Determine unit label
+    String unitLabel;
+    switch (metric) {
+      case StatsMetric.cost:
+        unitLabel = '€';
+      case StatsMetric.liters:
+        unitLabel = 'L';
+      case StatsMetric.distance:
+        unitLabel = 'km';
+    }
 
     return Column(
       children: [
@@ -635,106 +714,83 @@ class _MonthlyCostBarChart extends StatelessWidget {
                   color: cs.onSurfaceVariant.withValues(alpha: 0.24),
                   strokeWidth: 1,
                 ),
-                getDrawingVerticalLine: (value) => FlLine(
-                  color: cs.onSurfaceVariant.withValues(alpha: 0.24),
-                  strokeWidth: 1,
-                ),
               ),
-              borderData: FlBorderData(show: true, border: Border.all(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.10))),
+              borderData: FlBorderData(
+                show: true,
+                border: Border.all(color: cs.onSurface.withValues(alpha: 0.10)),
+              ),
               barGroups: groups,
               barTouchData: BarTouchData(
                 touchTooltipData: BarTouchTooltipData(
                   getTooltipItem: (group, groupIndex, rod, rodIndex) {
                     final idx = group.x.toInt();
+                    if (idx < 0 || idx >= labels.length) return null;
                     final monthLabel = labels[idx];
-                    final fuel = fuels[idx];
-                    final service = services[idx];
-                    final total = fuel + service;
-                    final fuelStr = formatCurrency(fuel, currencyCode: currencyCode, context: context);
-                    final serviceStr = formatCurrency(service, currencyCode: currencyCode, context: context);
-                    final totalStr = formatCurrency(total, currencyCode: currencyCode, context: context);
+                    final value = values[idx];
+                    String formattedValue;
+                    if (metric == StatsMetric.cost) {
+                      formattedValue = formatCurrency(value, currencyCode: currencyCode, context: context);
+                    } else {
+                      formattedValue = '${value.toStringAsFixed(metric == StatsMetric.distance ? 0 : 1)} $unitLabel';
+                    }
                     return BarTooltipItem(
-                      '$monthLabel\n${l10n.tabFuel}: $fuelStr\n${l10n.tabService}: $serviceStr\n${l10n.pdfTotalAmount}: $totalStr',
-                      TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w500),
+                      '$monthLabel – $formattedValue',
+                      TextStyle(color: cs.onSurface, fontWeight: FontWeight.w500),
                     );
                   },
                 ),
               ),
               titlesData: FlTitlesData(
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 44,
-              getTitlesWidget: (value, meta) {
-                // Δείξε σε βήματα για να μην γεμίζει
-                return Text(
-                  formatCurrency(value, currencyCode: currencyCode, context: context),
-                  style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withValues(alpha: 0.78)),
-                );
-              },
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 44,
+                    getTitlesWidget: (value, meta) {
+                      if (metric == StatsMetric.cost) {
+                        return Text(
+                          formatCurrency(value, currencyCode: currencyCode, context: context),
+                          style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withValues(alpha: 0.78)),
+                        );
+                      } else {
+                        return Text(
+                          '${value.toStringAsFixed(0)}$unitLabel',
+                          style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withValues(alpha: 0.78)),
+                        );
+                      }
+                    },
+                  ),
+                ),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 28,
+                    getTitlesWidget: (value, meta) {
+                      final idx = value.toInt();
+                      if (idx < 0 || idx >= labels.length) return const SizedBox.shrink();
+                      return Text(
+                        labels[idx],
+                        style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withValues(alpha: 0.78)),
+                      );
+                    },
+                  ),
+                ),
+                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              ),
+              minY: 0,
+              maxY: maxY == 0 ? 1 : maxY * 1.2,
             ),
+            duration: const Duration(milliseconds: 700),
+            curve: Curves.easeInOutCubic,
           ),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 28,
-              getTitlesWidget: (value, meta) {
-                final idx = value.toInt();
-                if (idx < 0 || idx >= labels.length) return const SizedBox.shrink();
-                return Text(labels[idx], style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withValues(alpha: 0.78)));
-              },
-            ),
-          ),
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        ),
-        minY: 0,
-        maxY: maxY == 0 ? 1 : maxY * 1.2,
-      ),
-      duration: const Duration(milliseconds: 700),
-      curve: Curves.easeInOutCubic,
-    ),
         ),
         const SizedBox(height: 12),
-        // Legend
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _LegendItem(color: fuelColor, label: l10n.tabFuel),
-            const SizedBox(width: 16),
-            _LegendItem(color: serviceColor, label: l10n.tabService),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _LegendItem extends StatelessWidget {
-  final Color color;
-  final String label;
-
-  const _LegendItem({required this.color, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 16,
-          height: 16,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(3),
-          ),
-        ),
-        const SizedBox(width: 6),
+        // Legend showing current metric
         Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontSize: 12,
-              ),
+          metric == StatsMetric.cost ? '${l10n.tabFuel} + ${l10n.tabService}' :
+          metric == StatsMetric.liters ? 'Fuel (L)' :
+          'Distance (km)',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 12),
         ),
       ],
     );

@@ -265,3 +265,33 @@ double computeDistanceKm({
   return 0;
 }
 // === End of Day 10 additions ===
+
+// === Day 11 addition: monthly distance estimation ===
+/// Estimated monthly distance per bucket:
+/// Uses odometer span from that month's fuel entries; if 0, tries service span; else 0.
+double estimateMonthlyDistanceKm({
+  required List<FuelEntry> fuelMonth,
+  required List<ServiceEntry> serviceMonth,
+}) {
+  double span(List<double> xs) {
+    if (xs.isEmpty) return 0;
+    double minX = xs.first, maxX = xs.first;
+    for (final v in xs) {
+      if (v < minX) minX = v;
+      if (v > maxX) maxX = v;
+    }
+    return (maxX - minX).abs();
+  }
+
+  final fuelOdo = fuelMonth.map((e) => e.odometerKm).toList();
+  final distFuel = span(fuelOdo);
+  if (distFuel > 0) return distFuel;
+
+  final servOdo = serviceMonth.map((e) => e.odometerKm).toList();
+  final distServ = span(servOdo);
+  if (distServ > 0) return distServ;
+
+  return 0;
+}
+// === End of Day 11 addition ===
+
