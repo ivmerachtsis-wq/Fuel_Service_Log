@@ -34,8 +34,8 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-  # Pin to match flutter_localizations on CI (Flutter 3.27.1)
-  intl: 0.19.0
+  # Compatible with both CI (Flutter 3.27.1 / intl 0.19.0) and local (Flutter 3.35.7 / intl 0.20.2)
+  intl: ">=0.19.0 <1.0.0"
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -49,7 +49,7 @@ dependencies:
   hive_flutter: ^1.1.0
   path_provider: ^2.1.5
   # Pin to match flutter_test requirement on CI (Flutter 3.27.1)
-  path: 1.9.0
+  path: ">=1.9.0 <2.0.0"
   # Downgraded for Dart 3.6.0 compatibility (CI Flutter 3.27.1)
   fl_chart: 0.71.0
   url_launcher: ^6.3.0
