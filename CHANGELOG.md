@@ -3,6 +3,13 @@
 Όλες οι σημαντικές αλλαγές σε αυτό το project θα τεκμηριώνονται εδώ, ακολουθώντας το
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) και [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.1.0-rc.4 — 2025-11-10
+- PDF: Filtered Stats export for Active Vehicle
+- Empty-data guard: minimal valid PDF when filters return no entries
+- Smoke tests: normal (>1024 bytes) & empty-data (valid header)
+- Compatibility: Flutter 3.27.1 / Dart 3.6.0 / pdf 3.11.3
+- Note: i18n key pending for "No data in selected filters"
+
 ## [Unreleased] – v1.1.0
 ### Added
 - PDF Reports: βελτιωμένη τυπογραφία (NotoSans Regular/Bold), locale-aware αριθμοί/νομίσματα.
