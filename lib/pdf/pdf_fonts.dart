@@ -15,6 +15,5 @@ Future<pw.ThemeData> loadPdfTheme() async {
   return pw.ThemeData.withFont(
     base: base,
     bold: bold,
-    defaultTextStyle: pw.TextStyle(fontFallback: [base]),
   );
 }
