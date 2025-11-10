@@ -3,6 +3,22 @@
 Όλες οι σημαντικές αλλαγές σε αυτό το project θα τεκμηριώνονται εδώ, ακολουθώντας το
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) και [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.1.0 — 2025-11-11
+### Highlights
+- Filtered-Stats PDF export (Active Vehicle)
+- Empty-data guard: minimal valid PDF with friendly note
+- Full test suite (45 tests) passing on main
+- CSV & JSON exports verified
+- Backup/Restore fully functional
+- Dependency ranges widened for SDK parity (path ≥1.9.0 <2.0.0, intl ≥0.19.0 <1.0.0)
+
+### Known follow-ups (for v1.1.1)
+- Greek font fallback (NotoSans lacks Greek subset)
+- CSV encoding → UTF-8 BOM
+- DataIntegrityService RangeError guard
+- Persist Stats filter selection between tabs
+- Vehicle CRUD via Settings tab
+
 ## v1.1.0-rc.4 — 2025-11-10
 - PDF: Filtered Stats export for Active Vehicle
 - Empty-data guard: minimal valid PDF when filters return no entries
