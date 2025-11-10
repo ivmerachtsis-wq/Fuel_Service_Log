@@ -117,3 +117,11 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+  # Custom fonts for PDF generation (Greek+Latin subset for smaller bundle size)
+  fonts:
+    - family: NotoSans
+      fonts:
+        - asset: assets/fonts/NotoSans-Regular-GL.ttf
+        - asset: assets/fonts/NotoSans-Bold-GL.ttf
+          weight: 700
