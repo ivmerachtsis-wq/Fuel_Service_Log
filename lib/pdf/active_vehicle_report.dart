@@ -58,6 +58,38 @@ class ActiveVehiclePdfReport {
     final filteredFuel = input.fuelEntries.where((e) => input.filter.includes(e.date)).toList();
     final filteredService = input.serviceEntries.where((e) => input.filter.includes(e.date)).toList();
 
+    // Guard: if no data in filtered range, return a minimal PDF with a note
+    if (filteredFuel.isEmpty && filteredService.isEmpty) {
+      pdf.addPage(
+        pw.Page(
+          pageTheme: pw.PageTheme(
+            margin: const pw.EdgeInsets.all(24),
+            textDirection: pw.TextDirection.ltr,
+            orientation: pw.PageOrientation.portrait,
+            theme: theme,
+          ),
+          build: (context) => pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              _buildHeader(),
+              pw.SizedBox(height: 16),
+              _buildMeta(input.vehicle, input.filter),
+              pw.SizedBox(height: 24),
+              pw.Container(
+                alignment: pw.Alignment.center,
+                padding: const pw.EdgeInsets.all(32),
+                child: pw.Text(
+                  'No data in selected filters',
+                  style: pw.TextStyle(fontSize: 16, color: PdfColors.grey600),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      return pdf.save();
+    }
+
     // Totals & KPIs
     final totalFuelCost = filteredFuel.fold<double>(0.0, (sum, e) => sum + e.amount);
     final totalServiceCost = filteredService.fold<double>(0.0, (sum, e) => sum + e.totalAmount);
