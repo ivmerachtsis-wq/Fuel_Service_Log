@@ -1,0 +1,2 @@
+id,vehicleId,date,odometerKm,liters,pricePerLiter,amount,fullTank,currencyCode,notes
+fuel-test-1,v1,2025-11-11,15000.0,45.5,1.65,75.08,true,EUR,Τακτική συντήρηση 5 - γεμάτο ρεζερβουάρ

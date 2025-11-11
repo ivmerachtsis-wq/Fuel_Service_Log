@@ -1,0 +1,2 @@
+id,vehicleId,date,odometerKm,liters,pricePerLiter,amount,fullTank,currencyCode,notes
+fuel-mixed-1,v1,2025-11-10,10000.0,50.0,1.5,75.0,true,EUR,"Test with Ελληνικά, English, άέήίόύώ, and numbers 123"
