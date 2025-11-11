@@ -3,14 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:fuel_service_log/data/models/vehicle.dart';
-import 'package:fuel_service_log/data/repo/vehicle_repo.dart';
 import 'package:fuel_service_log/ui/widgets/vehicle_form_dialog.dart';
 import 'package:fuel_service_log/l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
   late Directory tempDir;
-  late VehicleRepo vehicleRepo;
 
   setUp(() async {
     // Initialize Hive in temp directory for testing
@@ -22,7 +20,6 @@ void main() {
     }
     
     await Hive.openBox<Vehicle>('vehicles');
-    vehicleRepo = VehicleRepo();
   });
 
   tearDown(() async {
