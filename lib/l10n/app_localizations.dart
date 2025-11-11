@@ -814,6 +814,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Export PDF (Active Vehicle)'**
   String get exportPdfActiveVehicle;
+
+  /// Shown when the active stats filter yields no entries in PDF/UI.
+  ///
+  /// In en, this message translates to:
+  /// **'No data in selected filters'**
+  String get stats_noDataInSelectedFilters;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

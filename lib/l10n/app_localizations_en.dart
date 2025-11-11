@@ -369,4 +369,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exportPdfActiveVehicle => 'Export PDF (Active Vehicle)';
+
+  @override
+  String get stats_noDataInSelectedFilters => 'No data in selected filters';
 }

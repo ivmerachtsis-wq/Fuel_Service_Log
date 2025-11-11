@@ -58,6 +58,7 @@ void main() {
         serviceEntries: serviceEntries,
         filter: StatsFilter.last90(),
         metric: StatsMetric.cost,
+        noDataText: 'No data in selected filters',
       );
 
       // Act
@@ -85,6 +86,7 @@ void main() {
         serviceEntries: [],
         filter: const StatsFilter.all(),
         metric: StatsMetric.distance,
+        noDataText: 'No data in selected filters',
       );
 
       // Act
@@ -122,6 +124,7 @@ void main() {
           serviceEntries: [],
           filter: StatsFilter.ytd(),
           metric: metric,
+          noDataText: 'No data in selected filters',
         );
 
         final bytes = await ActiveVehiclePdfReport.build(input);
@@ -132,3 +135,4 @@ void main() {
     });
   });
 }
+

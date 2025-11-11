@@ -67,6 +67,7 @@ void main() {
         serviceEntries: serviceEntries,
         filter: filter,
         metric: StatsMetric.cost,
+        noDataText: 'No data in selected filters',
       );
 
       // Act
@@ -123,6 +124,7 @@ void main() {
         serviceEntries: serviceEntries,
         filter: filter,
         metric: StatsMetric.cost,
+        noDataText: 'No data in selected filters',
       );
 
       // Act

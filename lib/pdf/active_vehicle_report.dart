@@ -18,6 +18,7 @@ class PdfStatsReportInput {
   final List<ServiceEntry> serviceEntries;
   final StatsFilter filter;
   final StatsMetric metric;
+  final String noDataText;
 
   const PdfStatsReportInput({
     required this.vehicle,
@@ -25,6 +26,7 @@ class PdfStatsReportInput {
     required this.serviceEntries,
     required this.filter,
     required this.metric,
+    required this.noDataText,
   });
 }
 
@@ -80,7 +82,7 @@ class ActiveVehiclePdfReport {
                 alignment: pw.Alignment.center,
                 padding: const pw.EdgeInsets.all(32),
                 child: pw.Text(
-                  'No data in selected filters',
+                  input.noDataText,
                   style: pw.TextStyle(fontSize: 16, color: PdfColors.grey600, font: fonts.base),
                 ),
               ),
