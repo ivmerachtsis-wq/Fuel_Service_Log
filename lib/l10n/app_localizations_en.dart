@@ -372,4 +372,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get stats_noDataInSelectedFilters => 'No data in selected filters';
+
+  @override
+  String get settingsAskWhereToSave => 'Ask where to save (PDF/CSV/Backup)';
 }

@@ -9,6 +9,9 @@ abstract class UiPrefs {
   StatsMetric loadStatsMetric();
   Future<void> saveStatsFilter(StatsFilter filter);
   Future<void> saveStatsMetric(StatsMetric metric);
+  
+  bool loadAskWhereToSave();
+  Future<void> saveAskWhereToSave(bool value);
 }
 
 /// In-memory implementation for tests (no IO)
@@ -83,6 +86,16 @@ class UiPrefsMemory implements UiPrefs {
     storage['stats.metric'] = metric.name;
   }
   
+  @override
+  bool loadAskWhereToSave() {
+    return storage['settings.askWhereToSave'] as bool? ?? false;
+  }
+  
+  @override
+  Future<void> saveAskWhereToSave(bool value) async {
+    storage['settings.askWhereToSave'] = value;
+  }
+  
   StatsPreset? _parseStatsPreset(String str) {
     try {
       return StatsPreset.values.firstWhere((e) => e.name == str);
@@ -107,6 +120,7 @@ class UiPrefsService implements UiPrefs {
   static const String _statsFilterFromKey = 'stats.filter.from';
   static const String _statsFilterToKey = 'stats.filter.to';
   static const String _statsMetricKey = 'stats.metric';
+  static const String _askWhereToSaveKey = 'settings.askWhereToSave';
 
   Box get _box => Hive.box(_boxName);
 
@@ -179,6 +193,16 @@ class UiPrefsService implements UiPrefs {
   @override
   Future<void> saveStatsMetric(StatsMetric metric) async {
     await _box.put(_statsMetricKey, metric.name);
+  }
+  
+  @override
+  bool loadAskWhereToSave() {
+    return _box.get(_askWhereToSaveKey) as bool? ?? false;
+  }
+  
+  @override
+  Future<void> saveAskWhereToSave(bool value) async {
+    await _box.put(_askWhereToSaveKey, value);
   }
 
   /// Parse StatsPreset from string

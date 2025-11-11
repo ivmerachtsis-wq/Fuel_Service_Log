@@ -372,4 +372,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get stats_noDataInSelectedFilters => 'Δεν υπάρχουν δεδομένα για τα επιλεγμένα φίλτρα';
+
+  @override
+  String get settingsAskWhereToSave => 'Ρώτα πού να αποθηκεύσω (PDF/CSV/Backup)';
 }
