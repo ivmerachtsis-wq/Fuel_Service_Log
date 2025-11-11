@@ -110,7 +110,7 @@ class UiPrefsService implements UiPrefs {
 
   Box get _box => Hive.box(_boxName);
 
-  /// Load the saved StatsFilter, returns ytd() as default
+  @override
   StatsFilter loadStatsFilter() {
     final presetStr = _box.get(_statsFilterPresetKey) as String?;
     if (presetStr == null) {
@@ -152,7 +152,7 @@ class UiPrefsService implements UiPrefs {
     }
   }
 
-  /// Save the StatsFilter
+  @override
   Future<void> saveStatsFilter(StatsFilter filter) async {
     await _box.put(_statsFilterPresetKey, filter.preset.name);
     if (filter.preset == StatsPreset.custom) {
@@ -167,7 +167,7 @@ class UiPrefsService implements UiPrefs {
     }
   }
 
-  /// Load the saved StatsMetric, returns cost as default
+  @override
   StatsMetric loadStatsMetric() {
     final metricStr = _box.get(_statsMetricKey) as String?;
     if (metricStr == null) {
@@ -176,7 +176,7 @@ class UiPrefsService implements UiPrefs {
     return _parseStatsMetric(metricStr) ?? StatsMetric.cost;
   }
 
-  /// Save the StatsMetric
+  @override
   Future<void> saveStatsMetric(StatsMetric metric) async {
     await _box.put(_statsMetricKey, metric.name);
   }

@@ -1,11 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fuel_service_log/services/ui_prefs_service.dart';
 import 'package:fuel_service_log/state/stats_filter_controller.dart';
 import 'package:fuel_service_log/state/stats_filter.dart';
 import 'package:fuel_service_log/state/stats_metric.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:fuel_service_log/l10n/app_localizations.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
