@@ -51,8 +51,9 @@ class PdfMonthlyRow {
 class ActiveVehiclePdfReport {
   static Future<Uint8List> build(PdfStatsReportInput input) async {
     final pdf = pw.Document();
-    // Shared theme via helper
-    final theme = await loadPdfTheme();
+    // Load fonts with Greek glyph support (issue #24)
+    final fonts = await PdfFonts.load();
+    final theme = fonts.theme;
 
     // Filter entries by date range
     final filteredFuel = input.fuelEntries.where((e) => input.filter.includes(e.date)).toList();
@@ -71,16 +72,16 @@ class ActiveVehiclePdfReport {
           build: (context) => pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              _buildHeader(),
+              _buildHeader(fonts.bold),
               pw.SizedBox(height: 16),
-              _buildMeta(input.vehicle, input.filter),
+              _buildMeta(input.vehicle, input.filter, fonts),
               pw.SizedBox(height: 24),
               pw.Container(
                 alignment: pw.Alignment.center,
                 padding: const pw.EdgeInsets.all(32),
                 child: pw.Text(
                   'No data in selected filters',
-                  style: pw.TextStyle(fontSize: 16, color: PdfColors.grey600),
+                  style: pw.TextStyle(fontSize: 16, color: PdfColors.grey600, font: fonts.base),
                 ),
               ),
             ],
@@ -149,15 +150,15 @@ class ActiveVehiclePdfReport {
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              _buildHeader(),
+              _buildHeader(fonts.bold),
               pw.SizedBox(height: 16),
-              _buildMeta(input.vehicle, input.filter),
+              _buildMeta(input.vehicle, input.filter, fonts),
               pw.SizedBox(height: 16),
-              _buildKpisBox(costPerKm, litersPer100Km, totalCost),
+              _buildKpisBox(costPerKm, litersPer100Km, totalCost, fonts),
               pw.SizedBox(height: 24),
-              _buildBarChart(rows, input.metric),
+              _buildBarChart(rows, input.metric, fonts),
               pw.SizedBox(height: 24),
-              _buildMonthlyTable(rows),
+              _buildMonthlyTable(rows, fonts),
             ],
           ),
         ],
@@ -167,14 +168,14 @@ class ActiveVehiclePdfReport {
     return pdf.save();
   }
 
-  static pw.Widget _buildHeader() {
+  static pw.Widget _buildHeader(pw.Font boldFont) {
     return pw.Text(
       'Fuel Service Log - Stats Report',
-      style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+      style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold, font: boldFont),
     );
   }
 
-  static pw.Widget _buildMeta(Vehicle vehicle, StatsFilter filter) {
+  static pw.Widget _buildMeta(Vehicle vehicle, StatsFilter filter, PdfFonts fonts) {
     String label;
     switch (filter.preset) {
       case StatsPreset.all:
@@ -209,12 +210,12 @@ class ActiveVehiclePdfReport {
       children: [
         pw.Text(
           'Vehicle: ${vehicle.title}',
-          style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+          style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, font: fonts.bold),
         ),
         pw.SizedBox(height: 4),
         pw.Text(
           'Date Range: $label',
-          style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey700),
+          style: pw.TextStyle(fontSize: 12, color: PdfColors.grey700, font: fonts.base),
         ),
       ],
     );
@@ -224,6 +225,7 @@ class ActiveVehiclePdfReport {
     double costPerKm,
     double litersPer100Km,
     double totalCost,
+    PdfFonts fonts,
   ) {
     return pw.Container(
       padding: const pw.EdgeInsets.all(12),
@@ -234,33 +236,37 @@ class ActiveVehiclePdfReport {
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
         children: [
-          _buildKpiItem('Cost/km', '€${costPerKm.toStringAsFixed(2)}'),
-          _buildKpiItem('L/100km', litersPer100Km.toStringAsFixed(2)),
-          _buildKpiItem('Total Cost', '€${totalCost.toStringAsFixed(2)}'),
+          _buildKpiItem('Cost/km', '€${costPerKm.toStringAsFixed(2)}', fonts),
+          _buildKpiItem('L/100km', litersPer100Km.toStringAsFixed(2), fonts),
+          _buildKpiItem('Total Cost', '€${totalCost.toStringAsFixed(2)}', fonts),
         ],
       ),
     );
   }
 
-  static pw.Widget _buildKpiItem(String label, String value) {
+  static pw.Widget _buildKpiItem(String label, String value, PdfFonts fonts) {
     return pw.Column(
       children: [
         pw.Text(
           label,
-          style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+          style: pw.TextStyle(fontSize: 10, color: PdfColors.grey600, font: fonts.base),
         ),
         pw.SizedBox(height: 4),
         pw.Text(
           value,
-          style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+          style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, font: fonts.bold),
         ),
       ],
     );
   }
 
-  static pw.Widget _buildBarChart(List<PdfMonthlyRow> rows, StatsMetric metric) {
+  static pw.Widget _buildBarChart(List<PdfMonthlyRow> rows, StatsMetric metric, PdfFonts fonts) {
     if (rows.isEmpty) {
-      return pw.Container(height: 150, alignment: pw.Alignment.center, child: pw.Text('No data to display'));
+      return pw.Container(
+        height: 150,
+        alignment: pw.Alignment.center,
+        child: pw.Text('No data to display', style: pw.TextStyle(font: fonts.base)),
+      );
     }
 
     // Extract values based on metric
@@ -280,7 +286,7 @@ class ActiveVehiclePdfReport {
       return pw.Container(
         height: 150,
         alignment: pw.Alignment.center,
-        child: pw.Text('No data to display'),
+        child: pw.Text('No data to display', style: pw.TextStyle(font: fonts.base)),
       );
     }
 
@@ -307,7 +313,7 @@ class ActiveVehiclePdfReport {
       children: [
         pw.Text(
           'Monthly Chart: $metricLabel',
-          style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
+          style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, font: fonts.bold),
         ),
         pw.SizedBox(height: 8),
         pw.CustomPaint(
@@ -329,16 +335,19 @@ class ActiveVehiclePdfReport {
     );
   }
 
-  static pw.Widget _buildMonthlyTable(List<PdfMonthlyRow> rows) {
+  static pw.Widget _buildMonthlyTable(List<PdfMonthlyRow> rows, PdfFonts fonts) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Text('Monthly Breakdown', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
+        pw.Text(
+          'Monthly Breakdown',
+          style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, font: fonts.bold),
+        ),
         pw.SizedBox(height: 8),
         pw.TableHelper.fromTextArray(
-          headerStyle: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.white),
+          headerStyle: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.white, font: fonts.bold),
           headerDecoration: const pw.BoxDecoration(color: PdfColors.blue),
-          cellStyle: const pw.TextStyle(fontSize: 9),
+          cellStyle: pw.TextStyle(fontSize: 9, font: fonts.base),
           cellAlignment: pw.Alignment.centerRight,
           headerAlignment: pw.Alignment.centerRight,
           headers: const ['Month', 'Fuel', 'Service', 'Liters', 'Distance', 'Total'],
