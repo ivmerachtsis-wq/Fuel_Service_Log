@@ -65,7 +65,13 @@ class ExportCsvService {
     
     final csv = const ListToCsvConverter().convert(rows);
     final file = File('${dir.path}${Platform.pathSeparator}fuel_${vehicleId}_${_timestamp()}.csv');
-    await file.writeAsString(csv, encoding: utf8);
+    
+    // Write as UTF-8 with BOM for Excel/Notepad compatibility
+    const bom = [0xEF, 0xBB, 0xBF];
+    final contentBytes = utf8.encode(csv);
+    final bytes = <int>[...bom, ...contentBytes];
+    await file.writeAsBytes(bytes, flush: true);
+    
     return file;
   }
 
@@ -104,7 +110,13 @@ class ExportCsvService {
     
     final csv = const ListToCsvConverter().convert(rows);
     final file = File('${dir.path}${Platform.pathSeparator}service_${vehicleId}_${_timestamp()}.csv');
-    await file.writeAsString(csv, encoding: utf8);
+    
+    // Write as UTF-8 with BOM for Excel/Notepad compatibility
+    const bom = [0xEF, 0xBB, 0xBF];
+    final contentBytes = utf8.encode(csv);
+    final bytes = <int>[...bom, ...contentBytes];
+    await file.writeAsBytes(bytes, flush: true);
+    
     return file;
   }
 }
