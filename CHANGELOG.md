@@ -1,3 +1,9 @@
+## v1.2.0 � 2025-11-11
+- Vehicle CRUD in Settings (Add/Edit/Delete, undo)
+- Save-path toggle & resolver DI
+- i18n improvements
+- Platform-agnostic resolver tests; CI stability
+
 # Changelog
 
 Όλες οι σημαντικές αλλαγές σε αυτό το project θα τεκμηριώνονται εδώ, ακολουθώντας το
@@ -91,3 +97,4 @@
 
 ### Notes
 - Tag snapshot πριν την έναρξη του AI dev cycle.
+
