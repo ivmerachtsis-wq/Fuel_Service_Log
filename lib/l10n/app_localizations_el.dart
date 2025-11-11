@@ -369,4 +369,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get exportPdfActiveVehicle => 'Εξαγωγή PDF (Ενεργό Όχημα)';
+
+  @override
+  String get stats_noDataInSelectedFilters => 'Δεν υπάρχουν δεδομένα για τα επιλεγμένα φίλτρα';
 }

@@ -81,6 +81,7 @@ void main() {
         serviceEntries: serviceEntries,
         filter: filter,
         metric: StatsMetric.cost,
+        noDataText: 'No data in selected filters',
       );
 
       // Act: Build PDF with Greek content
@@ -142,6 +143,7 @@ void main() {
         serviceEntries: serviceEntries,
         filter: filter,
         metric: StatsMetric.liters,
+        noDataText: 'No data in selected filters',
       );
 
       // Act
@@ -185,6 +187,7 @@ void main() {
         serviceEntries: serviceEntries,
         filter: filter,
         metric: StatsMetric.cost,
+        noDataText: 'No data in selected filters',
       );
 
       // Act
@@ -229,6 +232,7 @@ void main() {
         serviceEntries: const [],
         filter: filter,
         metric: StatsMetric.cost,
+        noDataText: 'No data in selected filters',
       );
 
       // Act
@@ -247,3 +251,4 @@ void main() {
     });
   });
 }
+

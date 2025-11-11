@@ -188,6 +188,7 @@ class _StatsTabState extends State<StatsTab> {
         serviceEntries: allServiceEntries,
         filter: _filter,
         metric: _metric,
+        noDataText: l10n.stats_noDataInSelectedFilters,
       );
 
       final locale = Localizations.localeOf(context);
