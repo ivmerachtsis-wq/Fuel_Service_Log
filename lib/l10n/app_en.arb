@@ -124,4 +124,8 @@
 	,"@stats_noDataInSelectedFilters": {
 		"description": "Shown when the active stats filter yields no entries in PDF/UI."
 	}
+	,"settingsAskWhereToSave": "Ask where to save (PDF/CSV/Backup)"
+	,"@settingsAskWhereToSave": {
+		"description": "Settings toggle to enable platform file/folder pickers before saving exports and backups."
+	}
 }

@@ -12,6 +12,7 @@ import '../../l10n/app_localizations.dart';
 import '../../state/settings_controller.dart';
 import '../../state/stats_cache_provider.dart';
 import '../../state/stats_filter.dart';
+import '../../state/stats_filter_controller.dart';
 import '../../state/stats_metric.dart';
 import '../../utils/currency_formatter.dart';
 import '../../features/stats/pdf/stats_report_pdf.dart';
@@ -20,7 +21,8 @@ import '../../domain/stats_aggregator.dart';
 
 class StatsTab extends StatefulWidget {
   final SettingsController settings;
-  const StatsTab({required this.settings, super.key});
+  final StatsFilterController statsFilterController;
+  const StatsTab({required this.settings, required this.statsFilterController, super.key});
 
   @override
   State<StatsTab> createState() => _StatsTabState();
@@ -30,8 +32,6 @@ class _StatsTabState extends State<StatsTab> {
   String? _selectedVehicleId;
   String? _selectedDriverId; // null ή '' => All
   final int _rangeMonths = 6; // 3 / 6 / 12 (legacy, kept for PDF export compatibility)
-  StatsFilter _filter = StatsFilter.last90(); // Day 11: default filter
-  StatsMetric _metric = StatsMetric.cost; // Day 11: default metric
 
   // Legacy export (pre Day 12) kept for compatibility
   Future<void> _exportPdf(BuildContext context) async {
@@ -186,8 +186,8 @@ class _StatsTabState extends State<StatsTab> {
         vehicle: selectedVehicle,
         fuelEntries: allFuelEntries,
         serviceEntries: allServiceEntries,
-        filter: _filter,
-        metric: _metric,
+        filter: widget.statsFilterController.filter,
+        metric: widget.statsFilterController.metric,
         noDataText: l10n.stats_noDataInSelectedFilters,
       );
 
@@ -215,8 +215,9 @@ class _StatsTabState extends State<StatsTab> {
 
   Future<void> _showCustomDateRange(BuildContext context) async {
     final now = DateTime.now();
-    final initialFrom = _filter.from ?? now.subtract(const Duration(days: 90));
-    final initialTo = _filter.to ?? now;
+    final filter = widget.statsFilterController.filter;
+    final initialFrom = filter.from ?? now.subtract(const Duration(days: 90));
+    final initialTo = filter.to ?? now;
 
     final picked = await showDateRangePicker(
       context: context,
@@ -232,9 +233,7 @@ class _StatsTabState extends State<StatsTab> {
     );
 
     if (picked != null && context.mounted) {
-      setState(() {
-        _filter = StatsFilter.custom(picked.start, picked.end);
-      });
+      widget.statsFilterController.setFilter(StatsFilter.custom(picked.start, picked.end));
     }
   }
 
@@ -255,9 +254,13 @@ class _StatsTabState extends State<StatsTab> {
   final serviceBox = Hive.box<ServiceEntry>('service_entries');
     final driversBox = Hive.box<Driver>('drivers');
 
-    // Use ValueListenableBuilder<int> on cache revision for targeted rebuilds
-    return ValueListenableBuilder<int>(
-      valueListenable: statsCache.revisionForVehicle(_selectedVehicleId!),
+    // Listen to filter controller changes
+    return ListenableBuilder(
+      listenable: widget.statsFilterController,
+      builder: (context, _) {
+        // Use ValueListenableBuilder<int> on cache revision for targeted rebuilds
+        return ValueListenableBuilder<int>(
+          valueListenable: statsCache.revisionForVehicle(_selectedVehicleId!),
       builder: (context, revision, _) {
             // Συλλογή όλων των fuel entries για το επιλεγμένο όχημα
             final allVehicleEntries = fuelBox.values
@@ -304,12 +307,13 @@ class _StatsTabState extends State<StatsTab> {
 
             // Extra KPIs using aggregator helper over current window
             // Day 11: Apply filter to window
+            final filter = widget.statsFilterController.filter;
             final windowFuel = allVehicleEntries
-                .where((e) => _filter.includes(e.date))
+                .where((e) => filter.includes(e.date))
                 .toList();
             final windowService = serviceBox.values
                 .where((s) => s.vehicleId == _selectedVehicleId)
-                .where((s) => _filter.includes(s.date))
+                .where((s) => filter.includes(s.date))
                 .toList();
             // Day 10: Use computeDistanceKm with fallback logic
             final distanceKmWindow = computeDistanceKm(
@@ -478,7 +482,7 @@ class _StatsTabState extends State<StatsTab> {
                             child: _MonthlyCostBarChart(
                               windowFuel: windowFuel,
                               windowService: windowService,
-                              metric: _metric,
+                              metric: widget.statsFilterController.metric,
                               currencyCode: widget.settings.currencyCode,
                             ),
                           ),
@@ -486,6 +490,8 @@ class _StatsTabState extends State<StatsTab> {
                       ),
               ],
             );
+      },
+        );
       },
     );
   }
@@ -543,7 +549,7 @@ class _StatsTabState extends State<StatsTab> {
             ),
             // Day 11: Date range filter preset dropdown
             DropdownButton<StatsPreset>(
-              value: _filter.preset,
+              value: widget.statsFilterController.filter.preset,
               items: const [
                 DropdownMenuItem(value: StatsPreset.last30, child: Text('Last 30 days')),
                 DropdownMenuItem(value: StatsPreset.last90, child: Text('Last 90 days')),
@@ -554,26 +560,24 @@ class _StatsTabState extends State<StatsTab> {
               ],
               onChanged: (val) {
                 if (val == null) return;
-                setState(() {
-                  switch (val) {
-                    case StatsPreset.last30:
-                      _filter = StatsFilter.last30();
-                    case StatsPreset.last90:
-                      _filter = StatsFilter.last90();
-                    case StatsPreset.last180:
-                      _filter = StatsFilter.last180();
-                    case StatsPreset.ytd:
-                      _filter = StatsFilter.ytd();
-                    case StatsPreset.all:
-                      _filter = const StatsFilter.all();
-                    case StatsPreset.custom:
-                      // Will show dialog below
-                      break;
-                  }
-                });
-                if (val == StatsPreset.custom) {
-                  _showCustomDateRange(context);
+                StatsFilter newFilter;
+                switch (val) {
+                  case StatsPreset.last30:
+                    newFilter = StatsFilter.last30();
+                  case StatsPreset.last90:
+                    newFilter = StatsFilter.last90();
+                  case StatsPreset.last180:
+                    newFilter = StatsFilter.last180();
+                  case StatsPreset.ytd:
+                    newFilter = StatsFilter.ytd();
+                  case StatsPreset.all:
+                    newFilter = const StatsFilter.all();
+                  case StatsPreset.custom:
+                    // Will show dialog below
+                    _showCustomDateRange(context);
+                    return;
                 }
+                widget.statsFilterController.setFilter(newFilter);
               },
             ),
             // Day 11: Metric toggle (Cost / Liters / Distance)
@@ -583,11 +587,9 @@ class _StatsTabState extends State<StatsTab> {
                 ButtonSegment(value: StatsMetric.liters, label: Text('L'), icon: Icon(Icons.local_gas_station, size: 16)),
                 ButtonSegment(value: StatsMetric.distance, label: Text('km'), icon: Icon(Icons.route, size: 16)),
               ],
-              selected: {_metric},
+              selected: {widget.statsFilterController.metric},
               onSelectionChanged: (Set<StatsMetric> newSelection) {
-                setState(() {
-                  _metric = newSelection.first;
-                });
+                widget.statsFilterController.setMetric(newSelection.first);
               },
             ),
           ],

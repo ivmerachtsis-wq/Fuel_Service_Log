@@ -124,4 +124,8 @@
 	,"@stats_noDataInSelectedFilters": {
 		"description": "Εμφανίζεται όταν τα φίλτρα στατιστικών δεν επιστρέφουν εγγραφές, σε PDF και UI."
 	}
+	,"settingsAskWhereToSave": "Ρώτα πού να αποθηκεύσω (PDF/CSV/Backup)"
+	,"@settingsAskWhereToSave": {
+		"description": "Εναλλαγή ρύθμισης για επιλογή διαδρομής αποθήκευσης πριν τις εξαγωγές και τα αντίγραφα ασφαλείας."
+	}
 }

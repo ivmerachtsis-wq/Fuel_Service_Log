@@ -820,6 +820,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No data in selected filters'**
   String get stats_noDataInSelectedFilters;
+
+  /// Settings toggle to enable platform file/folder pickers before saving exports and backups.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask where to save (PDF/CSV/Backup)'**
+  String get settingsAskWhereToSave;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../state/navigation_controller.dart';
 import '../state/settings_controller.dart';
+import '../state/stats_filter_controller.dart';
 import 'tabs/fuel_tab.dart';
 import 'tabs/service_tab.dart';
 import 'tabs/stats_tab.dart';
@@ -10,7 +11,8 @@ import '../l10n/app_localizations.dart';
 class Shell extends StatelessWidget {
   final NavigationController controller;
   final SettingsController settings;
-  const Shell({required this.controller, required this.settings, super.key});
+  final StatsFilterController statsFilterController;
+  const Shell({required this.controller, required this.settings, required this.statsFilterController, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +75,7 @@ class Shell extends StatelessWidget {
       case 1:
         return ServiceTab(settings: settings);
       case 2:
-        return StatsTab(settings: settings);
+        return StatsTab(settings: settings, statsFilterController: statsFilterController);
       case 3:
         return SettingsTab(settings: settings);
       default:

@@ -20,4 +20,5 @@ Future<void> initHive() async {
   await Hive.openBox<Driver>('drivers');
   await Hive.openBox<FuelEntry>('fuel_entries');
   await Hive.openBox<ServiceEntry>('service_entries');
+  await Hive.openBox('ui_prefs'); // UI preferences (filter selections, etc.)
 }
