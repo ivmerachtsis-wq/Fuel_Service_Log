@@ -4,6 +4,23 @@ import '../state/settings_controller.dart';
 
 /// Service για έλεγχο ακεραιότητας δεδομένων
 class DataIntegrityService {
+  /// Safe substring helper - επιστρέφει κενό string αν τα όρια είναι εκτός εύρους
+  static String _safeSubstring(String s, int start, [int? end]) {
+    if (s.isEmpty) return '';
+    final len = s.length;
+    final s0 = (start < 0) ? 0 : (start > len ? len : start);
+    final e0 = (end == null) ? len : (end < 0 ? 0 : (end > len ? len : end));
+    if (e0 < s0) return '';
+    return s.substring(s0, e0);
+  }
+
+  /// Safe truncation για εμφάνιση ID - επιστρέφει το πρώτο μέρος ή ολόκληρο αν είναι μικρό
+  static String _truncateId(String id, [int maxLen = 8]) {
+    if (id.isEmpty) return '(κενό)';
+    if (id.length <= maxLen) return id;
+    return '${_safeSubstring(id, 0, maxLen)}...';
+  }
+
   /// Εκτελεί πλήρη έλεγχο ακεραιότητας για Fuel και Service entries
   static Future<DataIntegrityReport> runFullCheck({
     required SettingsController settings,
@@ -43,7 +60,7 @@ class DataIntegrityService {
       
       // Έλεγχος currencyCode
       if (entry.currencyCode == null) {
-        issues.add('Fuel: Κενό νόμισμα για entry ${entry.id.substring(0, 8)}... (προτείνεται: ${settings.currencyCode})');
+        issues.add('Fuel: Κενό νόμισμα για entry ${_truncateId(entry.id)} (προτείνεται: ${settings.currencyCode})');
       }
     }
     
@@ -63,7 +80,7 @@ class DataIntegrityService {
       
       // Έλεγχος περιγραφής
       if (entry.description.trim().isEmpty) {
-        issues.add('Service: Κενή περιγραφή για entry ${entry.id.substring(0, 8)}...');
+        issues.add('Service: Κενή περιγραφή για entry ${_truncateId(entry.id)}');
       }
       
       // Έλεγχος odometerKm
@@ -79,7 +96,7 @@ class DataIntegrityService {
       
       // Έλεγχος currencyCode
       if (entry.currencyCode == null) {
-        issues.add('Service: Κενό νόμισμα για entry ${entry.id.substring(0, 8)}... (προτείνεται: ${settings.currencyCode})');
+        issues.add('Service: Κενό νόμισμα για entry ${_truncateId(entry.id)} (προτείνεται: ${settings.currencyCode})');
       }
     }
     
