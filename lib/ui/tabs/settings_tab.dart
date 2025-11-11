@@ -8,8 +8,10 @@ import '../../services/export_csv.dart';
 import '../../services/backup_restore.dart';
 import '../../services/export_pdf.dart';
 import '../../services/data_integrity_service.dart';
+import '../../services/ui_prefs_service.dart';
 import '../../data/repo/fuel_repo.dart';
 import '../../data/repo/service_repo.dart';
+import '../../data/repo/vehicle_repo.dart';
 import '../../state/active_vehicle_controller.dart';
 import '../../state/settings_controller.dart';
 import '../../l10n/app_localizations.dart';
@@ -22,10 +24,52 @@ import '../../features/exports/pdf/active_vehicle_report.dart';
 import '../../state/stats_cache_provider.dart';
 import '../../features/stats/stats_cache.dart';
 import 'package:open_filex/open_filex.dart';
+import '../widgets/vehicle_form_dialog.dart';
 
-class SettingsTab extends StatelessWidget {
+class SettingsTab extends StatefulWidget {
   final SettingsController settings;
-  const SettingsTab({required this.settings, super.key});
+  final UiPrefs? uiPrefs; // Optional DI for tests
+  
+  const SettingsTab({
+    required this.settings,
+    this.uiPrefs,
+    super.key,
+  });
+
+  @override
+  State<SettingsTab> createState() => _SettingsTabState();
+}
+
+class _SettingsTabState extends State<SettingsTab> {
+  late final UiPrefs _uiPrefs;
+  bool _askWhereToSave = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Use injected prefs or default to production service
+    _uiPrefs = widget.uiPrefs ?? UiPrefsService();
+    // Fire-and-forget load
+    _loadPrefs();
+  }
+
+  void _loadPrefs() {
+    final ask = _uiPrefs.loadAskWhereToSave();
+    if (mounted) {
+      setState(() {
+        _askWhereToSave = ask;
+      });
+    }
+  }
+
+  Future<void> _setAskWhereToSave(bool value) async {
+    await _uiPrefs.saveAskWhereToSave(value);
+    if (mounted) {
+      setState(() {
+        _askWhereToSave = value;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +87,9 @@ class SettingsTab extends StatelessWidget {
           subtitle: Text(l10n.settingsGeneral),
         ),
         const Divider(),
+        // Vehicles Section
+        _buildVehiclesSection(context, l10n),
+        const Divider(),
         // Appearance Section
         ListTile(
           leading: const Icon(Icons.palette_outlined),
@@ -53,7 +100,7 @@ class SettingsTab extends StatelessWidget {
           leading: const Icon(Icons.brightness_6_outlined),
           title: Text(l10n.theme),
           trailing: DropdownButton<ThemeMode>(
-            value: settings.themeMode,
+            value: widget.settings.themeMode,
             items: [
               DropdownMenuItem(value: ThemeMode.system, child: Text(l10n.themeSystem)),
               DropdownMenuItem(value: ThemeMode.light, child: Text(l10n.themeLight)),
@@ -61,8 +108,22 @@ class SettingsTab extends StatelessWidget {
             ],
             onChanged: (value) {
               if (value != null) {
-                settings.setThemeMode(value);
+                widget.settings.setThemeMode(value);
               }
+            },
+          ),
+        ),
+        const Divider(),
+        // Save Path Toggle (NEW for #29)
+        ListTile(
+          leading: const Icon(Icons.folder_open),
+          title: Text(l10n.settingsAskWhereToSave),
+          subtitle: const Text('PDF, CSV, Backup'),
+          trailing: Switch(
+            key: const Key('settings.askWhereToSave.switch'),
+            value: _askWhereToSave,
+            onChanged: (value) {
+              _setAskWhereToSave(value);
             },
           ),
         ),
@@ -73,9 +134,9 @@ class SettingsTab extends StatelessWidget {
           title: Text(l10n.useSnapshotCache),
           subtitle: Text(l10n.useSnapshotCacheDesc),
           trailing: Switch(
-            value: settings.useSnapshotCache,
+            value: widget.settings.useSnapshotCache,
             onChanged: (value) {
-              settings.setUseSnapshotCache(value);
+              widget.settings.setUseSnapshotCache(value);
             },
           ),
         ),
@@ -92,7 +153,7 @@ class SettingsTab extends StatelessWidget {
           leading: const Icon(Icons.payments),
           title: Text(l10n.currency),
           trailing: DropdownButton<String>(
-            value: settings.currencyCode,
+            value: widget.settings.currencyCode,
             items: [
               DropdownMenuItem(value: 'EUR', child: Text(l10n.currencyEUR)),
               DropdownMenuItem(value: 'USD', child: Text(l10n.currencyUSD)),
@@ -100,7 +161,7 @@ class SettingsTab extends StatelessWidget {
             ],
             onChanged: (value) {
               if (value != null) {
-                settings.setCurrency(value);
+                widget.settings.setCurrency(value);
               }
             },
           ),
@@ -110,14 +171,14 @@ class SettingsTab extends StatelessWidget {
           leading: const Icon(Icons.language),
           title: Text(l10n.language),
           trailing: DropdownButton<String>(
-            value: settings.currentLocale.languageCode,
+            value: widget.settings.currentLocale.languageCode,
             items: [
               DropdownMenuItem(value: 'en', child: Text(l10n.languageEnglish)),
               DropdownMenuItem(value: 'el', child: Text(l10n.languageGreek)),
             ],
             onChanged: (value) {
               if (value != null) {
-                settings.setLocale(Locale(value));
+                widget.settings.setLocale(Locale(value));
               }
             },
           ),
@@ -346,7 +407,7 @@ class SettingsTab extends StatelessWidget {
                 service: service,
                 kpis: kpis,
                 l10n: l10n,
-                currencyCode: settings.currencyCode,
+                currencyCode: widget.settings.currencyCode,
               );
               Directory? downloads;
               try { downloads = await getDownloadsDirectory(); } catch (_) {}
@@ -452,6 +513,128 @@ class SettingsTab extends StatelessWidget {
 
   static void _showSnack(BuildContext context, String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  /// Build the Vehicles CRUD section
+  Widget _buildVehiclesSection(BuildContext context, AppLocalizations l10n) {
+    final vehicleRepo = VehicleRepo();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ListTile(
+          leading: const Icon(Icons.directions_car),
+          title: Text(l10n.settings_vehicles),
+          subtitle: Text(l10n.vehicle_add),
+          trailing: IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () => _showVehicleDialog(context, vehicleRepo, null),
+          ),
+        ),
+        StreamBuilder<List<Vehicle>>(
+          stream: vehicleRepo.watchAll(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final vehicles = snapshot.data!;
+            if (vehicles.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text(
+                  l10n.vehicle_add,
+                  style: TextStyle(color: Theme.of(context).colorScheme.outline),
+                ),
+              );
+            }
+            return ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: vehicles.length,
+              itemBuilder: (context, index) {
+                final vehicle = vehicles[index];
+                return ListTile(
+                  title: Text(vehicle.title),
+                  subtitle: Text(
+                    '${vehicle.plate ?? '-'} • ${vehicle.currencyCode ?? '-'}',
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () => _showVehicleDialog(context, vehicleRepo, vehicle),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () => _deleteVehicle(context, vehicleRepo, vehicle, l10n),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Future<void> _showVehicleDialog(BuildContext context, VehicleRepo repo, Vehicle? vehicle) async {
+    final result = await showDialog<Vehicle>(
+      context: context,
+      builder: (context) => VehicleFormDialog(vehicle: vehicle),
+    );
+    
+    if (result != null) {
+      if (vehicle == null) {
+        // Add new vehicle
+        await repo.add(result);
+      } else {
+        // Update existing vehicle
+        await repo.update(result);
+      }
+    }
+  }
+
+  Future<void> _deleteVehicle(BuildContext context, VehicleRepo repo, Vehicle vehicle, AppLocalizations l10n) async {
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.vehicle_delete),
+        content: Text('${l10n.vehicle_delete_confirm}\n\n${vehicle.title}'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.vehicle_cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.vehicle_delete),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      await repo.delete(vehicle.id);
+      
+      // Show SnackBar with Undo
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${vehicle.title} ${l10n.vehicle_deleted_undo}'),
+          action: SnackBarAction(
+            label: l10n.actionUndo,
+            onPressed: () async {
+              await repo.add(vehicle);
+            },
+          ),
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
   }
 }
 

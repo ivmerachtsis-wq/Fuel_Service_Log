@@ -372,4 +372,49 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get stats_noDataInSelectedFilters => 'Δεν υπάρχουν δεδομένα για τα επιλεγμένα φίλτρα';
+
+  @override
+  String get settingsAskWhereToSave => 'Ρώτα πού να αποθηκεύσω (PDF/CSV/Backup)';
+
+  @override
+  String get settings_vehicles => 'Οχήματα';
+
+  @override
+  String get vehicle_add => 'Προσθήκη οχήματος';
+
+  @override
+  String get vehicle_edit => 'Επεξεργασία οχήματος';
+
+  @override
+  String get vehicle_delete => 'Διαγραφή οχήματος';
+
+  @override
+  String get vehicle_name => 'Όνομα';
+
+  @override
+  String get vehicle_plate => 'Πινακίδα';
+
+  @override
+  String get vehicle_currency => 'Νόμισμα';
+
+  @override
+  String get vehicle_save => 'Αποθήκευση';
+
+  @override
+  String get vehicle_cancel => 'Άκυρο';
+
+  @override
+  String get vehicle_delete_confirm => 'Να διαγραφεί αυτό το όχημα;';
+
+  @override
+  String get vehicle_deleted_undo => 'Το όχημα διαγράφηκε — Αναίρεση;';
+
+  @override
+  String get error_required => 'Υποχρεωτικό πεδίο';
+
+  @override
+  String get error_currency3 => 'Χρησιμοποίησε 3-γράμματα κωδικό νομίσματος (π.χ. EUR)';
+
+  @override
+  String get optional => 'προαιρετικό';
 }

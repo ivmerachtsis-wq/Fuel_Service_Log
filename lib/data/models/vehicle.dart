@@ -16,10 +16,14 @@ class Vehicle extends HiveObject {
   @HiveField(3)
   bool active;
 
+  @HiveField(4)
+  String? currencyCode;
+
   Vehicle({
     required this.id,
     required this.title,
     this.plate,
     this.active = true,
+    this.currencyCode,
   });
 }

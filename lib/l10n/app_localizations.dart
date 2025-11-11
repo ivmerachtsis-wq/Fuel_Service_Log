@@ -820,6 +820,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No data in selected filters'**
   String get stats_noDataInSelectedFilters;
+
+  /// Settings toggle to enable platform file/folder pickers before saving exports and backups.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask where to save (PDF/CSV/Backup)'**
+  String get settingsAskWhereToSave;
+
+  /// No description provided for @settings_vehicles.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicles'**
+  String get settings_vehicles;
+
+  /// No description provided for @vehicle_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add vehicle'**
+  String get vehicle_add;
+
+  /// No description provided for @vehicle_edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit vehicle'**
+  String get vehicle_edit;
+
+  /// No description provided for @vehicle_delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete vehicle'**
+  String get vehicle_delete;
+
+  /// No description provided for @vehicle_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get vehicle_name;
+
+  /// No description provided for @vehicle_plate.
+  ///
+  /// In en, this message translates to:
+  /// **'License plate'**
+  String get vehicle_plate;
+
+  /// No description provided for @vehicle_currency.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get vehicle_currency;
+
+  /// No description provided for @vehicle_save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get vehicle_save;
+
+  /// No description provided for @vehicle_cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get vehicle_cancel;
+
+  /// No description provided for @vehicle_delete_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this vehicle?'**
+  String get vehicle_delete_confirm;
+
+  /// No description provided for @vehicle_deleted_undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle deleted — Undo?'**
+  String get vehicle_deleted_undo;
+
+  /// No description provided for @error_required.
+  ///
+  /// In en, this message translates to:
+  /// **'This field is required'**
+  String get error_required;
+
+  /// No description provided for @error_currency3.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a 3-letter currency code (e.g., EUR)'**
+  String get error_currency3;
+
+  /// No description provided for @optional.
+  ///
+  /// In en, this message translates to:
+  /// **'optional'**
+  String get optional;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -124,4 +124,22 @@
 	,"@stats_noDataInSelectedFilters": {
 		"description": "Shown when the active stats filter yields no entries in PDF/UI."
 	}
+	,"settingsAskWhereToSave": "Ask where to save (PDF/CSV/Backup)"
+	,"@settingsAskWhereToSave": {
+		"description": "Settings toggle to enable platform file/folder pickers before saving exports and backups."
+	}
+	,"settings_vehicles": "Vehicles"
+	,"vehicle_add": "Add vehicle"
+	,"vehicle_edit": "Edit vehicle"
+	,"vehicle_delete": "Delete vehicle"
+	,"vehicle_name": "Name"
+	,"vehicle_plate": "License plate"
+	,"vehicle_currency": "Currency"
+	,"vehicle_save": "Save"
+	,"vehicle_cancel": "Cancel"
+	,"vehicle_delete_confirm": "Delete this vehicle?"
+	,"vehicle_deleted_undo": "Vehicle deleted — Undo?"
+	,"error_required": "This field is required"
+	,"error_currency3": "Use a 3-letter currency code (e.g., EUR)"
+	,"optional": "optional"
 }
