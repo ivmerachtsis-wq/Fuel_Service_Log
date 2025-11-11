@@ -3,6 +3,28 @@
 Όλες οι σημαντικές αλλαγές σε αυτό το project θα τεκμηριώνονται εδώ, ακολουθώντας το
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) και [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.1.1] – 2025-11-11
+### Added
+- Settings: επιλογή "Ask where to save" με DI (SaveTargetResolver + provider) (#29)
+- i18n: no-data key/labels για καθαρότερα empty states (#30)
+- Stats: φίλτρο & μετρική persistent μεταξύ tabs (#27)
+
+### Changed
+- CSV exports: UTF-8 BOM για συμβατότητα με Excel (#25)
+- Fonts: πλήρης κάλυψη ελληνικών γλυφών με NotoSans (#24)
+
+### Fixed
+- Data integrity: guards για RangeError σε short IDs (#26)
+- Stats filter: επιμονή επιλογής φίλτρου (#27)
+- PDF: Greek text rendering με font fallback (#24)
+
+### Quality
+- flutter analyze: 0 new warnings / 0 errors (2 pre-existing deprecations)
+- Tests: PASS (99 tests: 98 + 1 skipped)
+- Deterministic widget tests με DI + fakes
+
+[Compare v1.1.0...v1.1.1](https://github.com/ivmerachtsis-wq/Fuel_Service_Log/compare/v1.1.0...v1.1.1)
+
 ## v1.1.0 — 2025-11-11
 ### Highlights
 - Filtered-Stats PDF export (Active Vehicle)
