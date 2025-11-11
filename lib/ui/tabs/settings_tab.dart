@@ -11,6 +11,7 @@ import '../../services/data_integrity_service.dart';
 import '../../services/ui_prefs_service.dart';
 import '../../data/repo/fuel_repo.dart';
 import '../../data/repo/service_repo.dart';
+import '../../data/repo/vehicle_repo.dart';
 import '../../state/active_vehicle_controller.dart';
 import '../../state/settings_controller.dart';
 import '../../l10n/app_localizations.dart';
@@ -23,6 +24,7 @@ import '../../features/exports/pdf/active_vehicle_report.dart';
 import '../../state/stats_cache_provider.dart';
 import '../../features/stats/stats_cache.dart';
 import 'package:open_filex/open_filex.dart';
+import '../widgets/vehicle_form_dialog.dart';
 
 class SettingsTab extends StatefulWidget {
   final SettingsController settings;
@@ -84,6 +86,9 @@ class _SettingsTabState extends State<SettingsTab> {
           title: Text(l10n.settingsTitle),
           subtitle: Text(l10n.settingsGeneral),
         ),
+        const Divider(),
+        // Vehicles Section
+        _buildVehiclesSection(context, l10n),
         const Divider(),
         // Appearance Section
         ListTile(
@@ -508,6 +513,128 @@ class _SettingsTabState extends State<SettingsTab> {
 
   static void _showSnack(BuildContext context, String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  /// Build the Vehicles CRUD section
+  Widget _buildVehiclesSection(BuildContext context, AppLocalizations l10n) {
+    final vehicleRepo = VehicleRepo();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ListTile(
+          leading: const Icon(Icons.directions_car),
+          title: Text(l10n.settings_vehicles),
+          subtitle: Text(l10n.vehicle_add),
+          trailing: IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () => _showVehicleDialog(context, vehicleRepo, null),
+          ),
+        ),
+        StreamBuilder<List<Vehicle>>(
+          stream: vehicleRepo.watchAll(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final vehicles = snapshot.data!;
+            if (vehicles.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text(
+                  l10n.vehicle_add,
+                  style: TextStyle(color: Theme.of(context).colorScheme.outline),
+                ),
+              );
+            }
+            return ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: vehicles.length,
+              itemBuilder: (context, index) {
+                final vehicle = vehicles[index];
+                return ListTile(
+                  title: Text(vehicle.title),
+                  subtitle: Text(
+                    '${vehicle.plate ?? '-'} • ${vehicle.currencyCode ?? '-'}',
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () => _showVehicleDialog(context, vehicleRepo, vehicle),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () => _deleteVehicle(context, vehicleRepo, vehicle, l10n),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Future<void> _showVehicleDialog(BuildContext context, VehicleRepo repo, Vehicle? vehicle) async {
+    final result = await showDialog<Vehicle>(
+      context: context,
+      builder: (context) => VehicleFormDialog(vehicle: vehicle),
+    );
+    
+    if (result != null) {
+      if (vehicle == null) {
+        // Add new vehicle
+        await repo.add(result);
+      } else {
+        // Update existing vehicle
+        await repo.update(result);
+      }
+    }
+  }
+
+  Future<void> _deleteVehicle(BuildContext context, VehicleRepo repo, Vehicle vehicle, AppLocalizations l10n) async {
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.vehicle_delete),
+        content: Text('${l10n.vehicle_delete_confirm}\n\n${vehicle.title}'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.vehicle_cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.vehicle_delete),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      await repo.delete(vehicle.id);
+      
+      // Show SnackBar with Undo
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${vehicle.title} ${l10n.vehicle_deleted_undo}'),
+          action: SnackBarAction(
+            label: l10n.actionUndo,
+            onPressed: () async {
+              await repo.add(vehicle);
+            },
+          ),
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
   }
 }
 

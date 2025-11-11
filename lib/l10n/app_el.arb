@@ -128,4 +128,18 @@
 	,"@settingsAskWhereToSave": {
 		"description": "Εναλλαγή ρύθμισης για επιλογή διαδρομής αποθήκευσης πριν τις εξαγωγές και τα αντίγραφα ασφαλείας."
 	}
+	,"settings_vehicles": "Οχήματα"
+	,"vehicle_add": "Προσθήκη οχήματος"
+	,"vehicle_edit": "Επεξεργασία οχήματος"
+	,"vehicle_delete": "Διαγραφή οχήματος"
+	,"vehicle_name": "Όνομα"
+	,"vehicle_plate": "Πινακίδα"
+	,"vehicle_currency": "Νόμισμα"
+	,"vehicle_save": "Αποθήκευση"
+	,"vehicle_cancel": "Άκυρο"
+	,"vehicle_delete_confirm": "Να διαγραφεί αυτό το όχημα;"
+	,"vehicle_deleted_undo": "Το όχημα διαγράφηκε — Αναίρεση;"
+	,"error_required": "Υποχρεωτικό πεδίο"
+	,"error_currency3": "Χρησιμοποίησε 3-γράμματα κωδικό νομίσματος (π.χ. EUR)"
+	,"optional": "προαιρετικό"
 }

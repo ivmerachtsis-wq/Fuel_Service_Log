@@ -21,13 +21,14 @@ class VehicleAdapter extends TypeAdapter<Vehicle> {
       title: fields[1] as String,
       plate: fields[2] as String?,
       active: fields[3] as bool,
+      currencyCode: fields[4] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Vehicle obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -35,7 +36,9 @@ class VehicleAdapter extends TypeAdapter<Vehicle> {
       ..writeByte(2)
       ..write(obj.plate)
       ..writeByte(3)
-      ..write(obj.active);
+      ..write(obj.active)
+      ..writeByte(4)
+      ..write(obj.currencyCode);
   }
 
   @override

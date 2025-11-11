@@ -375,4 +375,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsAskWhereToSave => 'Ask where to save (PDF/CSV/Backup)';
+
+  @override
+  String get settings_vehicles => 'Vehicles';
+
+  @override
+  String get vehicle_add => 'Add vehicle';
+
+  @override
+  String get vehicle_edit => 'Edit vehicle';
+
+  @override
+  String get vehicle_delete => 'Delete vehicle';
+
+  @override
+  String get vehicle_name => 'Name';
+
+  @override
+  String get vehicle_plate => 'License plate';
+
+  @override
+  String get vehicle_currency => 'Currency';
+
+  @override
+  String get vehicle_save => 'Save';
+
+  @override
+  String get vehicle_cancel => 'Cancel';
+
+  @override
+  String get vehicle_delete_confirm => 'Delete this vehicle?';
+
+  @override
+  String get vehicle_deleted_undo => 'Vehicle deleted — Undo?';
+
+  @override
+  String get error_required => 'This field is required';
+
+  @override
+  String get error_currency3 => 'Use a 3-letter currency code (e.g., EUR)';
+
+  @override
+  String get optional => 'optional';
 }
