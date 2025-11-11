@@ -517,6 +517,32 @@ class _SettingsTabState extends State<SettingsTab> {
 
   /// Build the Vehicles CRUD section
   Widget _buildVehiclesSection(BuildContext context, AppLocalizations l10n) {
+    // In widget tests or early startup, Hive boxes may not be open yet.
+    // Guard to avoid throwing when vehicles box isn't initialized.
+    if (!Hive.isBoxOpen('vehicles')) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.directions_car),
+            title: Text(l10n.settings_vehicles),
+            subtitle: Text(l10n.vehicle_add),
+            trailing: IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: null, // disabled until box is available
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(
+              l10n.vehicle_add,
+              style: TextStyle(color: Theme.of(context).colorScheme.outline),
+            ),
+          ),
+        ],
+      );
+    }
+
     final vehicleRepo = VehicleRepo();
 
     return Column(

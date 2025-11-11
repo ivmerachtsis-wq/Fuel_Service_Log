@@ -28,11 +28,17 @@ class FakeSaveTargetResolver implements SaveTargetResolver {
     lastDefaultDir = defaultDir;
     lastAsk = ask;
     lastKind = kind;
-    
-    if (simulateCancel && ask) {
+
+    // If not asking, mimic production behavior: prefer provided defaultDir
+    if (!ask) {
+      return defaultDir ?? fixed;
+    }
+
+    // When asking, optionally simulate cancel, else return a fixed directory
+    if (simulateCancel) {
       return null; // Simulate user cancelling picker
     }
-    
+
     return fixed;
   }
 

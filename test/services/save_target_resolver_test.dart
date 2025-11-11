@@ -1,55 +1,46 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:fuel_service_log/services/save_target_resolver.dart';
-import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
-import 'package:plugin_platform_interface/plugin_platform_interface.dart';
-
-// Mock path provider for testing
-class MockPathProviderPlatform extends Fake
-    with MockPlatformInterfaceMixin
-    implements PathProviderPlatform {
-  @override
-  Future<String?> getApplicationDocumentsPath() async {
-    return '/mock/app/documents';
-  }
-}
+import '../fakes/fake_save_target_resolver.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('SaveTargetResolver', () {
-    late SaveTargetResolver resolver;
+  group('SaveTargetResolver (Fake)', () {
+    late FakeSaveTargetResolver fake;
 
     setUp(() {
-      resolver = SaveTargetResolverImpl();
-      // Register mock path provider
-      PathProviderPlatform.instance = MockPathProviderPlatform();
+      fake = FakeSaveTargetResolver();
+      SaveTargetResolverProvider.instance = fake;
+      fake.reset();
     });
 
     test('resolveDirectory with ask=false returns default dir', () async {
       final defaultDir = Directory('/test/default');
-      final result = await resolver.resolveDirectory(
+      final result = await SaveTargetResolverProvider.instance.resolveDirectory(
         SaveKind.pdf,
         ask: false,
         defaultDir: defaultDir,
       );
-
       expect(result, equals(defaultDir));
+      expect(fake.calls, 1);
     });
 
     test('resolveDirectory with ask=false and no defaultDir returns app documents', () async {
-      final result = await resolver.resolveDirectory(
+      final result = await SaveTargetResolverProvider.instance.resolveDirectory(
         SaveKind.csv,
         ask: false,
       );
-
       expect(result, isNotNull);
-      expect(result!.path, equals('/mock/app/documents'));
+      // Fake returns systemTemp by default
+      expect(result!.path, equals(Directory.systemTemp.path));
+      expect(fake.calls, 1);
     });
 
     test('resolveFilePath with ask=false combines directory and filename', () async {
       final defaultDir = Directory('/test/export');
-      final result = await resolver.resolveFilePath(
+      final result = await SaveTargetResolverProvider.instance.resolveFilePath(
         SaveKind.backup,
         'backup_2024.json',
         ask: false,
@@ -57,13 +48,13 @@ void main() {
       );
 
       expect(result, isNotNull);
-      expect(result, contains('/test/export'));
-      expect(result, contains('backup_2024.json'));
+      final expected = p.join(defaultDir.path, 'backup_2024.json');
+      expect(result, equals(expected));
     });
 
     test('resolveFilePath uses platform path separator', () async {
       final defaultDir = Directory('/test');
-      final result = await resolver.resolveFilePath(
+      final result = await SaveTargetResolverProvider.instance.resolveFilePath(
         SaveKind.pdf,
         'report.pdf',
         ask: false,
@@ -71,15 +62,15 @@ void main() {
       );
 
       expect(result, isNotNull);
-      // Should use platform-specific separator
-      expect(result, matches(RegExp(r'/test[/\\]report\.pdf')));
+      final expected = p.join(defaultDir.path, 'report.pdf');
+      expect(result, equals(expected));
     });
 
     test('Different SaveKind values work correctly', () async {
       final dir = Directory('/test');
       
       for (final kind in SaveKind.values) {
-        final result = await resolver.resolveDirectory(
+        final result = await SaveTargetResolverProvider.instance.resolveDirectory(
           kind,
           ask: false,
           defaultDir: dir,
@@ -89,11 +80,26 @@ void main() {
       }
     });
 
-    // Note: Testing with ask=true requires mocking file_selector 
-    // which shows native dialogs. For MVP, we skip interactive tests.
-    test('TODO: Test with ask=true requires file_selector mock', () {
-      // This is a placeholder for future integration with file_selector mocks
-      // For now, manual testing on Windows/Android is required
+    test('resolveDirectory ask=true still returns fake directory (simulating selection)', () async {
+      final result = await SaveTargetResolverProvider.instance.resolveDirectory(
+        SaveKind.pdf,
+        ask: true,
+        defaultDir: Directory('/fallback'),
+      );
+      expect(result, isNotNull);
+      expect(result!.path, equals(Directory.systemTemp.path));
+      expect(fake.calls, 1);
+    });
+
+    test('resolveDirectory ask=true simulate cancel returns null', () async {
+      fake.simulateCancel = true;
+      final result = await SaveTargetResolverProvider.instance.resolveDirectory(
+        SaveKind.csv,
+        ask: true,
+        defaultDir: Directory('/fallback'),
+      );
+      expect(result, isNull);
+      expect(fake.calls, 1);
     });
   });
 }
