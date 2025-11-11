@@ -4,6 +4,8 @@ import 'ui/shell.dart';
 import 'state/navigation_controller.dart';
 import 'state/settings_controller.dart';
 import 'state/stats_cache_provider.dart';
+import 'state/stats_filter_controller.dart';
+import 'services/ui_prefs_service.dart';
 import 'bootstrap/app_bootstrap.dart';
 import 'core/diagnostics/app_start_metrics.dart';
 import 'l10n/app_localizations.dart';
@@ -129,17 +131,23 @@ void main() async {
   // Initialize StatsCache (after caches ready)
   StatsCacheProvider().init();
 
+  // Initialize UI preferences and stats filter controller
+  final uiPrefs = UiPrefsService();
+  final statsFilterController = StatsFilterController(uiPrefs);
+  statsFilterController.load();
+
   final nav = NavigationController(0);
-  runApp(MyApp(controller: nav, settings: settings));
+  runApp(MyApp(controller: nav, settings: settings, statsFilterController: statsFilterController));
 
   debugPrint('[AppStart] ${AppStartMetrics.summary()}');
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key, required this.controller, required this.settings});
+  const MyApp({super.key, required this.controller, required this.settings, required this.statsFilterController});
 
   final NavigationController controller;
   final SettingsController settings;
+  final StatsFilterController statsFilterController;
 
   @override
   Widget build(BuildContext context) {
@@ -169,7 +177,7 @@ class MyApp extends StatelessWidget {
             Locale('en'),
             Locale('el'),
           ],
-          home: Shell(controller: controller, settings: settings),
+          home: Shell(controller: controller, settings: settings, statsFilterController: statsFilterController),
         );
       },
     );
