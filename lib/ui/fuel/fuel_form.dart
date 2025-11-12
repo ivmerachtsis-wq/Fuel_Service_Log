@@ -174,7 +174,7 @@ class _FuelFormState extends State<FuelForm> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: _currencyCode,
+              initialValue: _currencyCode,
               decoration: InputDecoration(labelText: l10n.currency),
               items: const [
                 DropdownMenuItem(value: 'EUR', child: Text('€ EUR')),
