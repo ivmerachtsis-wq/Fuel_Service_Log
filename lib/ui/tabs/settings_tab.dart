@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:path/path.dart' as p;
 import 'package:hive/hive.dart';
+import '../about_page.dart';
 import '../../data/models/vehicle.dart';
 import '../../data/models/driver.dart';
 import '../../services/export_csv.dart';
@@ -426,6 +427,15 @@ class _SettingsTabState extends State<SettingsTab> {
             } catch (e) {
               if (context.mounted) _showSnack(context, 'Error: $e');
             }
+          },
+        ),
+        const Divider(),
+        ListTile(
+          leading: const Icon(Icons.info_outline),
+          title: const Text('About'),
+          subtitle: const Text('Version & release notes'),
+          onTap: () {
+            Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AboutPage()));
           },
         ),
       ],
