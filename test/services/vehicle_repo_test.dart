@@ -138,25 +138,26 @@ void main() {
       final subscription = stream.listen(events.add);
 
       // Wait for initial emission
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 200));
       
       // Add vehicle
       final v1 = Vehicle(id: 'v10', title: 'Stream Test', currencyCode: 'EUR');
       await repo.add(v1);
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 200));
       
       // Update vehicle
       v1.title = 'Stream Test Updated';
       await repo.update(v1);
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 200));
       
       await subscription.cancel();
       
-      expect(events.length, greaterThan(0));
+      // Verify we got at least initial + add + update = 3 events
+      expect(events.length, greaterThanOrEqualTo(3));
       final lastEvent = events.last;
       final found = lastEvent.firstWhere((v) => v.id == 'v10', orElse: () => Vehicle(id: '', title: ''));
       expect(found.title, 'Stream Test Updated');
       expect(found.currencyCode, 'EUR');
-    });
+    }, timeout: const Timeout(Duration(seconds: 5)));
   });
 }

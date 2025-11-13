@@ -12,6 +12,10 @@ abstract class UiPrefs {
   
   bool loadAskWhereToSave();
   Future<void> saveAskWhereToSave(bool value);
+
+  /// Active vehicle id persistence
+  String? loadActiveVehicleId();
+  Future<void> saveActiveVehicleId(String id);
 }
 
 /// In-memory implementation for tests (no IO)
@@ -95,6 +99,16 @@ class UiPrefsMemory implements UiPrefs {
   Future<void> saveAskWhereToSave(bool value) async {
     storage['settings.askWhereToSave'] = value;
   }
+
+  @override
+  String? loadActiveVehicleId() {
+    return storage['active.vehicleId'] as String?;
+  }
+
+  @override
+  Future<void> saveActiveVehicleId(String id) async {
+    storage['active.vehicleId'] = id;
+  }
   
   StatsPreset? _parseStatsPreset(String str) {
     try {
@@ -121,6 +135,7 @@ class UiPrefsService implements UiPrefs {
   static const String _statsFilterToKey = 'stats.filter.to';
   static const String _statsMetricKey = 'stats.metric';
   static const String _askWhereToSaveKey = 'settings.askWhereToSave';
+  static const String _activeVehicleIdKey = 'active.vehicleId';
 
   Box get _box => Hive.box(_boxName);
 
@@ -203,6 +218,16 @@ class UiPrefsService implements UiPrefs {
   @override
   Future<void> saveAskWhereToSave(bool value) async {
     await _box.put(_askWhereToSaveKey, value);
+  }
+
+  @override
+  String? loadActiveVehicleId() {
+    return _box.get(_activeVehicleIdKey) as String?;
+  }
+
+  @override
+  Future<void> saveActiveVehicleId(String id) async {
+    await _box.put(_activeVehicleIdKey, id);
   }
 
   /// Parse StatsPreset from string
