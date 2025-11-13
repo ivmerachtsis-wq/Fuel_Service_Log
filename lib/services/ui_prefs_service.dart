@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../state/stats_filter.dart';
 import '../state/stats_metric.dart';
+import '../ui/widgets/vehicle_filter_bar.dart';
 
 /// Abstract interface for UI preferences persistence
 abstract class UiPrefs {
@@ -16,6 +17,14 @@ abstract class UiPrefs {
   /// Active vehicle id persistence
   String? loadActiveVehicleId();
   Future<void> saveActiveVehicleId(String id);
+
+  /// Vehicle filter scope for Fuel tab
+  VehicleFilter loadFuelVehicleFilter();
+  Future<void> saveFuelVehicleFilter(VehicleFilterScope scope, String? vehicleId);
+
+  /// Vehicle filter scope for Service tab
+  VehicleFilter loadServiceVehicleFilter();
+  Future<void> saveServiceVehicleFilter(VehicleFilterScope scope, String? vehicleId);
 }
 
 /// In-memory implementation for tests (no IO)
@@ -109,6 +118,52 @@ class UiPrefsMemory implements UiPrefs {
   Future<void> saveActiveVehicleId(String id) async {
     storage['active.vehicleId'] = id;
   }
+
+  @override
+  VehicleFilter loadFuelVehicleFilter() {
+    final scope = storage['fuel.vehicle.filter.scope'] as String?;
+    final vehicleId = storage['fuel.vehicle.filter.vehicleId'] as String?;
+    
+    if (scope == 'all') {
+      return const VehicleFilter.all();
+    } else if (scope == 'specific' && vehicleId != null) {
+      return VehicleFilter.specific(vehicleId);
+    }
+    return const VehicleFilter.active();
+  }
+
+  @override
+  Future<void> saveFuelVehicleFilter(VehicleFilterScope scope, String? vehicleId) async {
+    storage['fuel.vehicle.filter.scope'] = scope.name;
+    if (vehicleId != null) {
+      storage['fuel.vehicle.filter.vehicleId'] = vehicleId;
+    } else {
+      storage.remove('fuel.vehicle.filter.vehicleId');
+    }
+  }
+
+  @override
+  VehicleFilter loadServiceVehicleFilter() {
+    final scope = storage['service.vehicle.filter.scope'] as String?;
+    final vehicleId = storage['service.vehicle.filter.vehicleId'] as String?;
+    
+    if (scope == 'all') {
+      return const VehicleFilter.all();
+    } else if (scope == 'specific' && vehicleId != null) {
+      return VehicleFilter.specific(vehicleId);
+    }
+    return const VehicleFilter.active();
+  }
+
+  @override
+  Future<void> saveServiceVehicleFilter(VehicleFilterScope scope, String? vehicleId) async {
+    storage['service.vehicle.filter.scope'] = scope.name;
+    if (vehicleId != null) {
+      storage['service.vehicle.filter.vehicleId'] = vehicleId;
+    } else {
+      storage.remove('service.vehicle.filter.vehicleId');
+    }
+  }
   
   StatsPreset? _parseStatsPreset(String str) {
     try {
@@ -136,6 +191,10 @@ class UiPrefsService implements UiPrefs {
   static const String _statsMetricKey = 'stats.metric';
   static const String _askWhereToSaveKey = 'settings.askWhereToSave';
   static const String _activeVehicleIdKey = 'active.vehicleId';
+  static const String _fuelVehicleFilterScopeKey = 'fuel.vehicle.filter.scope';
+  static const String _fuelVehicleFilterVehicleIdKey = 'fuel.vehicle.filter.vehicleId';
+  static const String _serviceVehicleFilterScopeKey = 'service.vehicle.filter.scope';
+  static const String _serviceVehicleFilterVehicleIdKey = 'service.vehicle.filter.vehicleId';
 
   Box get _box => Hive.box(_boxName);
 
@@ -228,6 +287,52 @@ class UiPrefsService implements UiPrefs {
   @override
   Future<void> saveActiveVehicleId(String id) async {
     await _box.put(_activeVehicleIdKey, id);
+  }
+
+  @override
+  VehicleFilter loadFuelVehicleFilter() {
+    final scope = _box.get(_fuelVehicleFilterScopeKey) as String?;
+    final vehicleId = _box.get(_fuelVehicleFilterVehicleIdKey) as String?;
+    
+    if (scope == 'all') {
+      return const VehicleFilter.all();
+    } else if (scope == 'specific' && vehicleId != null) {
+      return VehicleFilter.specific(vehicleId);
+    }
+    return const VehicleFilter.active();
+  }
+
+  @override
+  Future<void> saveFuelVehicleFilter(VehicleFilterScope scope, String? vehicleId) async {
+    await _box.put(_fuelVehicleFilterScopeKey, scope.name);
+    if (vehicleId != null) {
+      await _box.put(_fuelVehicleFilterVehicleIdKey, vehicleId);
+    } else {
+      await _box.delete(_fuelVehicleFilterVehicleIdKey);
+    }
+  }
+
+  @override
+  VehicleFilter loadServiceVehicleFilter() {
+    final scope = _box.get(_serviceVehicleFilterScopeKey) as String?;
+    final vehicleId = _box.get(_serviceVehicleFilterVehicleIdKey) as String?;
+    
+    if (scope == 'all') {
+      return const VehicleFilter.all();
+    } else if (scope == 'specific' && vehicleId != null) {
+      return VehicleFilter.specific(vehicleId);
+    }
+    return const VehicleFilter.active();
+  }
+
+  @override
+  Future<void> saveServiceVehicleFilter(VehicleFilterScope scope, String? vehicleId) async {
+    await _box.put(_serviceVehicleFilterScopeKey, scope.name);
+    if (vehicleId != null) {
+      await _box.put(_serviceVehicleFilterVehicleIdKey, vehicleId);
+    } else {
+      await _box.delete(_serviceVehicleFilterVehicleIdKey);
+    }
   }
 
   /// Parse StatsPreset from string

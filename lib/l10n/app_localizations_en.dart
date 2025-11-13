@@ -287,6 +287,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filterDateRange => 'Date range';
 
   @override
+  String get filtersVehicleActive => 'Active vehicle';
+
+  @override
+  String get filtersVehicleAll => 'All vehicles';
+
+  @override
+  String get filtersAllEntries => 'All entries';
+
+  @override
   String get range3m => 'Last 3 months';
 
   @override

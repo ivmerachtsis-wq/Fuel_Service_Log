@@ -647,6 +647,24 @@ abstract class AppLocalizations {
   /// **'Date range'**
   String get filterDateRange;
 
+  /// No description provided for @filtersVehicleActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active vehicle'**
+  String get filtersVehicleActive;
+
+  /// No description provided for @filtersVehicleAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All vehicles'**
+  String get filtersVehicleAll;
+
+  /// No description provided for @filtersAllEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'All entries'**
+  String get filtersAllEntries;
+
   /// No description provided for @range3m.
   ///
   /// In en, this message translates to:

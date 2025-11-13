@@ -3,16 +3,20 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/settings_controller.dart';
+import '../../services/ui_prefs_service.dart';
 import '../../utils/currency_formatter.dart';
 import '../fuel/fuel_form.dart';
 import '../widgets/app_dialogs.dart';
+import '../widgets/vehicle_filter_bar.dart';
 import '../../data/models/fuel_entry.dart';
+import '../../data/models/vehicle.dart';
 import '../../data/repo/fuel_repo.dart';
 import '../../state/active_vehicle_controller.dart';
 
 class FuelTab extends StatefulWidget {
   final SettingsController settings;
-  const FuelTab({required this.settings, super.key});
+  final UiPrefs? uiPrefs; // Optional DI for tests
+  const FuelTab({required this.settings, this.uiPrefs, super.key});
 
   @override
   State<FuelTab> createState() => _FuelTabState();
@@ -20,23 +24,55 @@ class FuelTab extends StatefulWidget {
 
 class _FuelTabState extends State<FuelTab> {
   final _repo = FuelRepo();
-  String? _vehicleId;
+  late final UiPrefs _uiPrefs;
+  String? _activeVehicleId;
+  VehicleFilter _vehicleFilter = const VehicleFilter.active();
   bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadActiveVehicle();
+    _uiPrefs = widget.uiPrefs ?? UiPrefsService();
+    _loadState();
   }
 
-  Future<void> _loadActiveVehicle() async {
-    final id = await ActiveVehicleController().getActiveVehicleId();
+  Future<void> _loadState() async {
+    final activeId = await ActiveVehicleController().getActiveVehicleId();
+    final filter = _uiPrefs.loadFuelVehicleFilter();
+
     if (mounted) {
       setState(() {
-        _vehicleId = id;
+        _activeVehicleId = activeId;
+        _vehicleFilter = filter;
         _loading = false;
       });
     }
+  }
+
+  Future<void> _handleFilterChanged(VehicleFilter newFilter) async {
+    setState(() => _vehicleFilter = newFilter);
+    
+    // Persist filter
+    await _uiPrefs.saveFuelVehicleFilter(newFilter.scope, newFilter.specificVehicleId);
+  }
+
+  List<FuelEntry> _applyFilter(Box<FuelEntry> box) {
+    List<FuelEntry> items;
+    
+    if (_vehicleFilter.scope == VehicleFilterScope.active) {
+      if (_activeVehicleId == null) return [];
+      items = box.values.where((e) => e.vehicleId == _activeVehicleId).toList();
+    } else if (_vehicleFilter.scope == VehicleFilterScope.all) {
+      items = box.values.toList();
+    } else {
+      // Specific vehicle
+      final vehicleId = _vehicleFilter.specificVehicleId;
+      if (vehicleId == null) return [];
+      items = box.values.where((e) => e.vehicleId == vehicleId).toList();
+    }
+    
+    items.sort((a, b) => b.date.compareTo(a.date));
+    return items;
   }
 
   @override
@@ -47,92 +83,114 @@ class _FuelTabState extends State<FuelTab> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (_vehicleId == null) {
-      return Center(child: Text(l10n.noActiveVehicle));
-    }
-
     return Stack(
       children: [
-        ValueListenableBuilder(
-          valueListenable: Hive.box<FuelEntry>('fuel_entries').listenable(),
-          builder: (context, Box<FuelEntry> box, _) {
-            // Φιλτράρισμα και ταξινόμηση
-            final items = box.values
-                .where((e) => e.vehicleId == _vehicleId)
-                .toList()
-              ..sort((a, b) => b.date.compareTo(a.date));
-            
-            if (items.isEmpty) {
-              return Center(child: Text(l10n.noFuelEntries));
-            }
-            
-            return ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-              itemCount: items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (_, i) {
-                final e = items[i];
-                final currency = e.currencyCode ?? widget.settings.currencyCode;
-                return Dismissible(
-                  key: ValueKey(e.id),
-                  background: Container(
-                    color: Colors.redAccent.withValues(alpha: 0.2),
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: 16),
-                    child: Icon(Icons.delete, color: Colors.red[900]),
-                  ),
-                  direction: DismissDirection.endToStart,
-                  onDismissed: (_) async {
-                    final deleted = e;
-                    await _repo.delete(e.id);
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(l10n.deleted),
-                        action: SnackBarAction(
-                          label: l10n.actionUndo,
-                          onPressed: () async {
-                            await _repo.add(deleted);
-                          },
-                        ),
-                      ),
-                    );
-                  },
-                  child: Card(
-                    child: ListTile(
-                      key: ValueKey(e.id),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-                      title: Text(
-                        '${e.liters.toStringAsFixed(2)} ${l10n.liters}  @  ${formatCurrency(e.pricePerLiter, currencyCode: currency, context: context)} / L',
-                      ),
-                      subtitle: Text(
-                        '${DateFormat.yMMMd(Localizations.localeOf(context).toString()).format(e.date)}  •  ${e.odometerKm.toStringAsFixed(1)} km',
-                      ),
-                      trailing: Text(
-                        formatCurrency(e.amount, currencyCode: currency, context: context),
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
-                      onTap: () async {
-                        await showFormSheet(context, FuelForm.edit(initial: e, settings: widget.settings));
-                      },
-                    ),
-                  ),
+        Column(
+          children: [
+            // Vehicle filter bar
+            ValueListenableBuilder(
+              valueListenable: Hive.box<Vehicle>('vehicles').listenable(),
+              builder: (context, Box<Vehicle> vehiclesBox, _) {
+                final vehicles = vehiclesBox.values.toList()
+                  ..sort((a, b) => a.title.compareTo(b.title));
+                
+                return VehicleFilterBar(
+                  currentFilter: _vehicleFilter,
+                  activeVehicleId: _activeVehicleId,
+                  vehicles: vehicles,
+                  onFilterChanged: _handleFilterChanged,
                 );
               },
-            );
-          },
+            ),
+            const Divider(height: 1),
+            // Entries list
+            Expanded(
+              child: ValueListenableBuilder(
+                valueListenable: Hive.box<FuelEntry>('fuel_entries').listenable(),
+                builder: (context, Box<FuelEntry> box, _) {
+                  final items = _applyFilter(box);
+                  
+                  if (items.isEmpty) {
+                    return Center(child: Text(l10n.noFuelEntries));
+                  }
+                  
+                  return ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+                    itemCount: items.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (_, i) {
+                      final e = items[i];
+                      final currency = e.currencyCode ?? widget.settings.currencyCode;
+                      return Dismissible(
+                        key: ValueKey(e.id),
+                        background: Container(
+                          color: Colors.redAccent.withValues(alpha: 0.2),
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 16),
+                          child: Icon(Icons.delete, color: Colors.red[900]),
+                        ),
+                        direction: DismissDirection.endToStart,
+                        onDismissed: (_) async {
+                          final deleted = e;
+                          await _repo.delete(e.id);
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(l10n.deleted),
+                              action: SnackBarAction(
+                                label: l10n.actionUndo,
+                                onPressed: () async {
+                                  await _repo.add(deleted);
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                        child: Card(
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              child: Text('${e.liters.toStringAsFixed(0)}L'),
+                            ),
+                            title: Text(DateFormat.yMd().format(e.date)),
+                            subtitle: Text(
+                              '${e.odometerKm.toStringAsFixed(0)} km • ${formatCurrency(e.amount, currencyCode: currency, context: context)}',
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () => _showForm(context, entry: e),
+                            ),
+                            onTap: () => _showForm(context, entry: e),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
         ),
         Positioned(
-          right: 24,
-          bottom: 24,
+          right: 16,
+          bottom: 16,
           child: FloatingActionButton(
-            onPressed: () async {
-              await showFormSheet(context, FuelForm.add(vehicleId: _vehicleId!, settings: widget.settings));
-            },
+            onPressed: () => _showForm(context),
             child: const Icon(Icons.add),
           ),
         ),
       ],
+    );
+  }
+
+  Future<void> _showForm(BuildContext context, {FuelEntry? entry}) async {
+    final vehicleId = _activeVehicleId;
+    if (vehicleId == null) return;
+
+    await showFormSheet(
+      context,
+      entry == null
+          ? FuelForm.add(vehicleId: vehicleId, settings: widget.settings)
+          : FuelForm.edit(initial: entry, settings: widget.settings),
     );
   }
 }

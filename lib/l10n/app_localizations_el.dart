@@ -287,6 +287,15 @@ class AppLocalizationsEl extends AppLocalizations {
   String get filterDateRange => 'Χρονικό εύρος';
 
   @override
+  String get filtersVehicleActive => 'Ενεργό όχημα';
+
+  @override
+  String get filtersVehicleAll => 'Όλα τα οχήματα';
+
+  @override
+  String get filtersAllEntries => 'Όλες οι εγγραφές';
+
+  @override
   String get range3m => 'Τελευταίοι 3 μήνες';
 
   @override
