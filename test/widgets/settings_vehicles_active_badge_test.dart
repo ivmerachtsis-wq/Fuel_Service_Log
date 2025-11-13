@@ -41,7 +41,7 @@ void main() {
       await uiPrefs.saveActiveVehicleId('v1');
     });
 
-    tearDown() async {
+    tearDown(() async {
       // Dispose settings controller
       settingsController.dispose();
       
@@ -59,7 +59,7 @@ void main() {
       if (await tempDir.exists()) {
         await tempDir.delete(recursive: true);
       }
-    }
+    });
 
     testWidgets('shows Active badge for the selected vehicle', (tester) async {
       await tester.pumpWidget(

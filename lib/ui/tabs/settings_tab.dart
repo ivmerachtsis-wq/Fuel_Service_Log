@@ -10,6 +10,7 @@ import '../../services/backup_restore.dart';
 import '../../services/export_pdf.dart';
 import '../../services/data_integrity_service.dart';
 import '../../services/ui_prefs_service.dart';
+import '../../services/save_target_resolver.dart';
 import '../../data/repo/fuel_repo.dart';
 import '../../data/repo/service_repo.dart';
 import '../../data/repo/vehicle_repo.dart';
@@ -223,7 +224,15 @@ class _SettingsTabState extends State<SettingsTab> {
             try {
               final vehicleId = await active.getActiveVehicleId();
               final fuelFile = await exportSvc.exportFuelToCsv(vehicleId);
-              await exportSvc.exportServiceToCsv(vehicleId);
+              if (fuelFile == null) {
+                // User cancelled
+                return;
+              }
+              final serviceFile = await exportSvc.exportServiceToCsv(vehicleId);
+              if (serviceFile == null) {
+                // User cancelled
+                return;
+              }
               
               if (context.mounted) {
                 final fuelName = p.basename(fuelFile.path);
@@ -263,12 +272,17 @@ class _SettingsTabState extends State<SettingsTab> {
               // Επιλογή πρώτου οδηγού (placeholder) – μελλοντική σύνδεση active driver.
               final driver = driverBox.values.isNotEmpty ? driverBox.values.first : null;
               final entries = fuelRepo.listByVehicle(vehicleId).toList()..sort((a,b)=>a.date.compareTo(b.date));
-              final file = await ExportPdfService.exportFuelToPdf(
+              final pdfSvc = ExportPdfService();
+              final file = await pdfSvc.exportFuelToPdf(
                 vehicleId: vehicleId,
                 entries: entries,
                 vehicle: vehicle,
                 driver: driver,
               );
+              if (file == null) {
+                // User cancelled
+                return;
+              }
               if (context.mounted) {
                 final name = p.basename(file.path);
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -295,12 +309,17 @@ class _SettingsTabState extends State<SettingsTab> {
               final vehicle = vehicleBox.get(vehicleId);
               final driver = driverBox.values.isNotEmpty ? driverBox.values.first : null;
               final entries = serviceRepo.listByVehicle(vehicleId).toList()..sort((a,b)=>a.date.compareTo(b.date));
-              final file = await ExportPdfService.exportServiceToPdf(
+              final pdfSvc = ExportPdfService();
+              final file = await pdfSvc.exportServiceToPdf(
                 vehicleId: vehicleId,
                 entries: entries,
                 vehicle: vehicle,
                 driver: driver,
               );
+              if (file == null) {
+                // User cancelled
+                return;
+              }
               if (context.mounted) {
                 final name = p.basename(file.path);
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -423,12 +442,28 @@ class _SettingsTabState extends State<SettingsTab> {
                 l10n: l10n,
                 currencyCode: widget.settings.currencyCode,
               );
-              Directory? downloads;
-              try { downloads = await getDownloadsDirectory(); } catch (_) {}
-              downloads ??= await getApplicationDocumentsDirectory();
+
+              // Use SaveTargetResolver for directory selection
+              final prefs = UiPrefsService();
+              final resolver = SaveTargetResolverProvider.instance;
+              final ask = prefs.loadAskWhereToSave();
+              Directory? defaultDir;
+              try { defaultDir = await getDownloadsDirectory(); } catch (_) {}
+              defaultDir ??= await getApplicationDocumentsDirectory();
+              
+              final dir = await resolver.resolveDirectory(
+                SaveKind.pdf,
+                ask: ask,
+                defaultDir: defaultDir,
+              );
+              if (dir == null) {
+                // User cancelled
+                return;
+              }
+
               final datePart = DateTime.now().toIso8601String().split('T').first;
               final platePart = (vehicle.plate ?? vehicle.title).replaceAll(RegExp(r'[^A-Za-z0-9_-]+'), '_');
-              final filePath = '${downloads.path}/ActiveVehicle_${platePart}_$datePart.pdf';
+              final filePath = '${dir.path}/ActiveVehicle_${platePart}_$datePart.pdf';
               final file = File(filePath);
               await file.writeAsBytes(bytes, flush: true);
               debugPrint('[PDF] Saved active vehicle report to $filePath');

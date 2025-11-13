@@ -38,6 +38,7 @@ void main() {
       // Open the boxes that repos expect
       await Hive.openBox<FuelEntry>('fuel_entries');
       await Hive.openBox<ServiceEntry>('service_entries');
+      await Hive.openBox('ui_prefs'); // For UiPrefsService
     });
 
     setUp(() async {
@@ -71,6 +72,9 @@ void main() {
 
       // Export to CSV
       final file = await exportService.exportFuelToCsv('v1');
+      if (file == null) {
+        fail('Export returned null');
+      }
       final bytes = await file.readAsBytes();
 
       // Assert BOM (UTF-8 BOM: EF BB BF)
@@ -119,6 +123,9 @@ void main() {
 
       // Export to CSV
       final file = await exportService.exportServiceToCsv('v1');
+      if (file == null) {
+        fail('Export returned null');
+      }
       final bytes = await file.readAsBytes();
 
       // Assert BOM
@@ -165,6 +172,9 @@ void main() {
       await fuelRepo.add(mixedEntry);
 
       final file = await exportService.exportFuelToCsv('v1');
+      if (file == null) {
+        fail('Export returned null');
+      }
       final bytes = await file.readAsBytes();
 
       // BOM check
