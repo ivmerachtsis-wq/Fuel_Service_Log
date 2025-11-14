@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/settings_controller.dart';
 import '../../data/models/service_entry.dart';
+import '../../data/models/vehicle.dart';
 import '../../data/repo/service_repo.dart';
+import '../../state/active_vehicle_controller.dart';
 import 'service_form_controller.dart';
 
 class ServiceForm extends StatefulWidget {
@@ -23,6 +26,7 @@ class _ServiceFormState extends State<ServiceForm> {
   late String _currencyCode;
   late DateTime _date;
   final _formKey = GlobalKey<FormState>();
+  String? _selectedVehicleId;
 
   @override
   void initState() {
@@ -30,6 +34,13 @@ class _ServiceFormState extends State<ServiceForm> {
     c = ServiceFormController();
     _currencyCode = widget.initial?.currencyCode ?? widget.settings.currencyCode;
     _date = widget.initial?.date ?? DateTime.now();
+
+    // Initialize selected vehicle
+    if (widget.initial != null) {
+      _selectedVehicleId = widget.initial!.vehicleId;
+    } else {
+      _selectedVehicleId = widget.vehicleId;
+    }
 
     if (widget.initial != null) {
       final e = widget.initial!;
@@ -155,9 +166,13 @@ class _ServiceFormState extends State<ServiceForm> {
     }
 
     final repo = ServiceRepo();
+    
+    // Use selected vehicle, fallback to widget vehicleId, then active vehicle
+    final vehicleId = _selectedVehicleId ?? widget.initial?.vehicleId ?? widget.vehicleId ?? await ActiveVehicleController().getActiveVehicleId();
+    
     final entry = ServiceEntry(
       id: widget.initial?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
-      vehicleId: widget.initial?.vehicleId ?? widget.vehicleId!,
+      vehicleId: vehicleId,
       date: _date,
       odometerKm: c.odometerKm!,
       description: c.description!,
@@ -182,6 +197,8 @@ class _ServiceFormState extends State<ServiceForm> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isEdit = widget.initial != null;
+    final vehiclesBox = Hive.box<Vehicle>('vehicles');
+    final vehicles = vehiclesBox.values.where((v) => v.active).toList();
 
     return Padding(
       padding: EdgeInsets.only(
@@ -202,6 +219,28 @@ class _ServiceFormState extends State<ServiceForm> {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 16),
+              
+              // Vehicle selector
+              if (vehicles.isNotEmpty)
+                DropdownButtonFormField<String>(
+                  value: _selectedVehicleId,
+                  decoration: InputDecoration(
+                    labelText: l10n.filterVehicle,
+                    border: const OutlineInputBorder(),
+                  ),
+                  items: vehicles.map((vehicle) {
+                    return DropdownMenuItem<String>(
+                      value: vehicle.id,
+                      child: Text(vehicle.title),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _selectedVehicleId = value);
+                    }
+                  },
+                ),
+              if (vehicles.isNotEmpty) const SizedBox(height: 12),
               
               // Date picker
               InkWell(

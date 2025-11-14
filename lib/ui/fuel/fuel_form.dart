@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/settings_controller.dart';
 
 import '../../data/models/fuel_entry.dart';
+import '../../data/models/vehicle.dart';
 import '../../data/repo/fuel_repo.dart';
 import '../../state/active_vehicle_controller.dart';
 import 'fuel_form_controller.dart';
@@ -24,6 +26,7 @@ class _FuelFormState extends State<FuelForm> {
   late final FuelFormController c;
   late String _currencyCode;
   late DateTime _date;
+  String? _selectedVehicleId;
 
   @override
   void initState() {
@@ -31,6 +34,13 @@ class _FuelFormState extends State<FuelForm> {
     c = FuelFormController();
     _currencyCode = widget.initial?.currencyCode ?? widget.settings.currencyCode;
     _date = widget.initial?.date ?? DateTime.now();
+    
+    // Initialize selected vehicle
+    if (widget.initial != null) {
+      _selectedVehicleId = widget.initial!.vehicleId;
+    } else {
+      _selectedVehicleId = widget.vehicleId;
+    }
     
     if (widget.initial != null) {
       final e = widget.initial!;
@@ -117,6 +127,9 @@ class _FuelFormState extends State<FuelForm> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final vehiclesBox = Hive.box<Vehicle>('vehicles');
+    final vehicles = vehiclesBox.values.where((v) => v.active).toList();
+    
     return Padding(
       padding: const EdgeInsets.all(16),
       child: SingleChildScrollView(
@@ -126,6 +139,27 @@ class _FuelFormState extends State<FuelForm> {
           children: [
             Text(widget.initial == null ? l10n.addFuelTitle : l10n.editFuelTitle, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
+            // Vehicle selector
+            if (vehicles.isNotEmpty)
+              DropdownButtonFormField<String>(
+                value: _selectedVehicleId,
+                decoration: InputDecoration(
+                  labelText: l10n.filterVehicle,
+                  border: const OutlineInputBorder(),
+                ),
+                items: vehicles.map((vehicle) {
+                  return DropdownMenuItem<String>(
+                    value: vehicle.id,
+                    child: Text(vehicle.title),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() => _selectedVehicleId = value);
+                  }
+                },
+              ),
+            if (vehicles.isNotEmpty) const SizedBox(height: 16),
             Row(children: [
               Expanded(
                 child: TextField(
@@ -266,7 +300,8 @@ class _FuelFormState extends State<FuelForm> {
     final repo = FuelRepo();
     final id = widget.initial?.id ?? DateTime.now().microsecondsSinceEpoch.toString();
 
-    final vehicleId = widget.initial?.vehicleId ?? widget.vehicleId ?? await ActiveVehicleController().getActiveVehicleId();
+    // Use selected vehicle, fallback to widget vehicleId, then active vehicle
+    final vehicleId = _selectedVehicleId ?? widget.initial?.vehicleId ?? widget.vehicleId ?? await ActiveVehicleController().getActiveVehicleId();
 
     final entry = FuelEntry(
       id: id,
