@@ -114,16 +114,20 @@ class _SettingsTabState extends State<SettingsTab> {
         ListTile(
           leading: const Icon(Icons.brightness_6_outlined),
           title: Text(l10n.theme),
-          trailing: DropdownButton<ThemeMode>(
-            value: widget.settings.themeMode,
-            items: [
-              DropdownMenuItem(value: ThemeMode.system, child: Text(l10n.themeSystem)),
-              DropdownMenuItem(value: ThemeMode.light, child: Text(l10n.themeLight)),
-              DropdownMenuItem(value: ThemeMode.dark, child: Text(l10n.themeDark)),
+          trailing: DropdownButton<AppTheme>(
+            value: widget.settings.appTheme,
+            items: const [
+              DropdownMenuItem(value: AppTheme.system, child: Text('System')),
+              DropdownMenuItem(value: AppTheme.light, child: Text('Light')),
+              DropdownMenuItem(value: AppTheme.dark, child: Text('Dark')),
+              DropdownMenuItem(value: AppTheme.comfortLight, child: Text('Comfort Light')),
+              DropdownMenuItem(value: AppTheme.midnight, child: Text('Midnight')),
             ],
-            onChanged: (value) {
+            onChanged: (value) async {
               if (value != null) {
-                widget.settings.setThemeMode(value);
+                await widget.settings.setAppTheme(value);
+                // Persist in UiPrefs as requested
+                await _uiPrefs.saveAppTheme(value.name);
               }
             },
           ),

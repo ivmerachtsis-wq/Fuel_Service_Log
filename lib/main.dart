@@ -154,19 +154,80 @@ class MyApp extends StatelessWidget {
     return ListenableBuilder(
       listenable: settings,
       builder: (context, _) {
+        // Build theme variants
+        final lightBase = ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF2E7D32), // softer green
+            brightness: Brightness.light,
+          ),
+        );
+        final comfortLight = ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF1565C0), // calm blue
+            brightness: Brightness.light,
+            // Softer contrast by slightly raising surface and lowering primary container contrast
+          ),
+          // Soften surfaces
+          scaffoldBackgroundColor: const Color(0xFFF7F8FA),
+          cardColor: const Color(0xFFF9FAFB),
+        );
+        final darkBase = ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF90CAF9),
+            brightness: Brightness.dark,
+          ),
+        );
+        final midnight = ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF80CBC4), // teal-ish, softer
+            brightness: Brightness.dark,
+          ).copyWith(
+            surface: const Color(0xFF121418),
+            surfaceContainer: const Color(0xFF161A1F),
+            surfaceContainerHigh: const Color(0xFF1B2026),
+            onSurface: const Color(0xFFE6E8EA),
+          ),
+          scaffoldBackgroundColor: const Color(0xFF0E1116),
+          cardColor: const Color(0xFF131820),
+        );
+
+        ThemeData theme;
+        ThemeData darkTheme;
+        ThemeMode mode;
+        switch (settings.appTheme) {
+          case AppTheme.system:
+            theme = lightBase;
+            darkTheme = darkBase;
+            mode = ThemeMode.system;
+          case AppTheme.light:
+            theme = lightBase;
+            darkTheme = darkBase;
+            mode = ThemeMode.light;
+          case AppTheme.dark:
+            theme = lightBase;
+            darkTheme = darkBase;
+            mode = ThemeMode.dark;
+          case AppTheme.comfortLight:
+            theme = comfortLight;
+            darkTheme = darkBase;
+            mode = ThemeMode.light;
+          case AppTheme.midnight:
+            theme = lightBase;
+            darkTheme = midnight;
+            mode = ThemeMode.dark;
+        }
+
         return MaterialApp(
           title: 'Fuel & Service Log',
           debugShowCheckedModeBanner: false,
           locale: settings.currentLocale,
-          themeMode: settings.themeMode,
-          theme: ThemeData(
-            useMaterial3: true,
-            brightness: Brightness.light,
-          ),
-          darkTheme: ThemeData(
-            useMaterial3: true,
-            brightness: Brightness.dark,
-          ),
+          themeMode: mode,
+          theme: theme,
+          darkTheme: darkTheme,
           localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,

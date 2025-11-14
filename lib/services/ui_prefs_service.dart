@@ -10,6 +10,9 @@ abstract class UiPrefs {
   StatsMetric loadStatsMetric();
   Future<void> saveStatsFilter(StatsFilter filter);
   Future<void> saveStatsMetric(StatsMetric metric);
+  // App theme persistence (for settings)
+  String? loadAppTheme();
+  Future<void> saveAppTheme(String theme);
   
   bool loadAskWhereToSave();
   Future<void> saveAskWhereToSave(bool value);
@@ -97,6 +100,16 @@ class UiPrefsMemory implements UiPrefs {
   @override
   Future<void> saveStatsMetric(StatsMetric metric) async {
     storage['stats.metric'] = metric.name;
+  }
+
+  @override
+  String? loadAppTheme() {
+    return storage['app.theme'] as String?;
+  }
+
+  @override
+  Future<void> saveAppTheme(String theme) async {
+    storage['app.theme'] = theme;
   }
   
   @override
@@ -195,6 +208,7 @@ class UiPrefsService implements UiPrefs {
   static const String _fuelVehicleFilterVehicleIdKey = 'fuel.vehicle.filter.vehicleId';
   static const String _serviceVehicleFilterScopeKey = 'service.vehicle.filter.scope';
   static const String _serviceVehicleFilterVehicleIdKey = 'service.vehicle.filter.vehicleId';
+  static const String _appThemeKey = 'app.theme';
 
   Box get _box => Hive.box(_boxName);
 
@@ -277,6 +291,16 @@ class UiPrefsService implements UiPrefs {
   @override
   Future<void> saveAskWhereToSave(bool value) async {
     await _box.put(_askWhereToSaveKey, value);
+  }
+
+  @override
+  String? loadAppTheme() {
+    return _box.get(_appThemeKey) as String?;
+  }
+
+  @override
+  Future<void> saveAppTheme(String theme) async {
+    await _box.put(_appThemeKey, theme);
   }
 
   @override
