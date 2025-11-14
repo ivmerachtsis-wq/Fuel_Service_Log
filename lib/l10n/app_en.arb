@@ -4,6 +4,7 @@
 	"tabFuel": "Fuel",
 	"tabService": "Service",
 	"tabStats": "Stats",
+	"tabVehicles": "Vehicles",
 	"tabSettings": "Settings",
 	"emptyFuel": "No fuel entries yet",
 	"emptyService": "No service entries yet",

@@ -21,6 +21,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabStats => 'Stats';
 
   @override
+  String get tabVehicles => 'Vehicles';
+
+  @override
   String get tabSettings => 'Settings';
 
   @override
