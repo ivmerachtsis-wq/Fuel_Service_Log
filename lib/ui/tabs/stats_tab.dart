@@ -32,6 +32,7 @@ class _StatsTabState extends State<StatsTab> {
   String? _selectedVehicleId;
   String? _selectedDriverId; // null ή '' => All
   final int _rangeMonths = 6; // 3 / 6 / 12 (legacy, kept for PDF export compatibility)
+  int? _selectedMonthIndex; // For table-to-chart interaction
 
   // Legacy export (pre Day 12) kept for compatibility
   Future<void> _exportPdf(BuildContext context) async {
@@ -488,6 +489,12 @@ class _StatsTabState extends State<StatsTab> {
                               windowService: windowService,
                               metric: widget.statsFilterController.metric,
                               currencyCode: widget.settings.currencyCode,
+                              selectedMonthIndex: _selectedMonthIndex,
+                              onMonthTap: (index) {
+                                setState(() {
+                                  _selectedMonthIndex = index;
+                                });
+                              },
                             ),
                           ),
                         ),
@@ -670,12 +677,16 @@ class _MonthlyCostBarChart extends StatelessWidget {
   final List<ServiceEntry> windowService;
   final StatsMetric metric;
   final String currencyCode;
+  final int? selectedMonthIndex;
+  final ValueChanged<int>? onMonthTap;
 
   const _MonthlyCostBarChart({
     required this.windowFuel,
     required this.windowService,
     required this.metric,
     required this.currencyCode,
+    this.selectedMonthIndex,
+    this.onMonthTap,
   });
 
   @override
@@ -751,18 +762,20 @@ class _MonthlyCostBarChart extends StatelessWidget {
     }
 
     final barColor = cs.primary.withValues(alpha: 0.90);
+    final selectedBarColor = cs.secondary;
     final groups = <BarChartGroupData>[];
     
     for (int i = 0; i < values.length; i++) {
+      final isSelected = selectedMonthIndex == i;
       groups.add(
         BarChartGroupData(
           x: i,
           barRods: [
             BarChartRodData(
               toY: values[i],
-              width: 16,
+              width: isSelected ? 20 : 16,
               borderRadius: BorderRadius.circular(6),
-              color: barColor,
+              color: isSelected ? selectedBarColor : barColor,
             ),
           ],
         ),
@@ -806,6 +819,15 @@ class _MonthlyCostBarChart extends StatelessWidget {
               ),
               barGroups: groups,
               barTouchData: BarTouchData(
+                touchCallback: (FlTouchEvent event, barTouchResponse) {
+                  if (event is FlTapUpEvent && barTouchResponse != null) {
+                    final touchedSpot = barTouchResponse.spot;
+                    if (touchedSpot != null && onMonthTap != null) {
+                      final touchedIndex = touchedSpot.touchedBarGroupIndex;
+                      onMonthTap!(touchedIndex);
+                    }
+                  }
+                },
                 touchTooltipData: BarTouchTooltipData(
                   getTooltipItem: (group, groupIndex, rod, rodIndex) {
                     final idx = group.x.toInt();
@@ -890,8 +912,93 @@ class _MonthlyCostBarChart extends StatelessWidget {
             color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.85),
           ),
         ),
+        const SizedBox(height: 16),
+        // Monthly breakdown table
+        Flexible(
+          child: SingleChildScrollView(
+            child: _buildMonthlyTable(
+              labels: labels,
+              values: values,
+              series: series,
+              context: context,
+              l10n: l10n,
+              locale: locale,
+            ),
+          ),
+        ),
       ],
     );
+  }
+
+  Widget _buildMonthlyTable({
+    required List<String> labels,
+    required List<double> values,
+    required List<MonthlyBucket> series,
+    required BuildContext context,
+    required AppLocalizations l10n,
+    required String locale,
+  }) {
+    final cs = Theme.of(context).colorScheme;
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (int i = 0; i < labels.length; i++)
+          InkWell(
+            onTap: onMonthTap != null ? () => onMonthTap!(i) : null,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: selectedMonthIndex == i 
+                  ? cs.secondaryContainer.withValues(alpha: 0.3)
+                  : null,
+                border: Border(
+                  bottom: BorderSide(
+                    color: cs.outlineVariant.withValues(alpha: 0.3),
+                    width: 0.5,
+                  ),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    labels[i],
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: selectedMonthIndex == i ? FontWeight.w600 : FontWeight.w400,
+                      color: selectedMonthIndex == i ? cs.secondary : cs.onSurface,
+                    ),
+                  ),
+                  Text(
+                    metric == StatsMetric.cost
+                      ? formatCurrency(values[i], currencyCode: currencyCode, context: context)
+                      : '${values[i].toStringAsFixed(metric == StatsMetric.distance ? 0 : 1)} ${_getUnitLabel()}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: selectedMonthIndex == i ? FontWeight.w600 : FontWeight.w400,
+                      color: selectedMonthIndex == i ? cs.secondary : cs.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  String _getUnitLabel() {
+    switch (metric) {
+      case StatsMetric.cost:
+        return '€';
+      case StatsMetric.liters:
+        return 'L';
+      case StatsMetric.distance:
+        return 'km';
+      case StatsMetric.litersPer100km:
+        return 'L/100km';
+    }
   }
 }
 

@@ -5,10 +5,24 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:fuel_service_log/data/models/vehicle.dart';
 import 'package:fuel_service_log/ui/widgets/vehicle_form_dialog.dart';
 import 'package:fuel_service_log/l10n/app_localizations.dart';
+import 'package:fuel_service_log/state/settings_controller.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+
+/// Simple mock SettingsController for testing
+class MockSettingsController extends SettingsController {
+  MockSettingsController() {
+    currencyCode = 'EUR';
+  }
+
+  @override
+  Future<void> init() async {
+    // No-op for tests
+  }
+}
 
 void main() {
   late Directory tempDir;
+  late SettingsController mockSettings;
 
   setUp(() async {
     // Initialize Hive in temp directory for testing
@@ -20,6 +34,7 @@ void main() {
     }
     
     await Hive.openBox<Vehicle>('vehicles');
+    mockSettings = MockSettingsController();
   });
 
   tearDown(() async {
@@ -52,7 +67,7 @@ void main() {
           builder: (context) => ElevatedButton(
             onPressed: () => showDialog(
               context: context,
-              builder: (_) => const VehicleFormDialog(),
+              builder: (_) => VehicleFormDialog(settings: mockSettings),
             ),
             child: const Text('Show Dialog'),
           ),
@@ -63,7 +78,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Add vehicle'), findsOneWidget);
-      expect(find.byType(TextFormField), findsNWidgets(3));
+      // Changed from 3 to 2 TextFormFields since currency is now a CurrencyPickerField
+      expect(find.byType(TextFormField), findsNWidgets(2));
     });
 
     testWidgets('Add vehicle with valid data returns vehicle', (tester) async {
@@ -75,7 +91,7 @@ void main() {
             onPressed: () async {
               result = await showDialog<Vehicle>(
                 context: context,
-                builder: (_) => const VehicleFormDialog(),
+                builder: (_) => VehicleFormDialog(settings: mockSettings),
               );
             },
             child: const Text('Show Dialog'),
@@ -86,10 +102,11 @@ void main() {
       await tester.tap(find.text('Show Dialog'));
       await tester.pumpAndSettle();
 
-      // Fill in the form
+      // Fill in the form - name and plate
       await tester.enterText(find.byType(TextFormField).at(0), 'Test Car');
       await tester.enterText(find.byType(TextFormField).at(1), 'ABC-1234');
-      await tester.enterText(find.byType(TextFormField).at(2), 'EUR');
+      
+      // Currency is now selected via CurrencyPickerField, which defaults to mockSettings.currencyCode (EUR)
 
       // Tap Save button
       await tester.tap(find.text('Save'));
@@ -98,7 +115,7 @@ void main() {
       expect(result, isNotNull);
       expect(result!.title, 'Test Car');
       expect(result!.plate, 'ABC-1234');
-      expect(result!.currencyCode, 'EUR');
+      expect(result!.currencyCode, 'EUR'); // Defaults to mockSettings currency
     });
 
     testWidgets('Validation fails when name is empty', (tester) async {
@@ -107,7 +124,7 @@ void main() {
           builder: (context) => ElevatedButton(
             onPressed: () => showDialog(
               context: context,
-              builder: (_) => const VehicleFormDialog(),
+              builder: (_) => VehicleFormDialog(settings: mockSettings),
             ),
             child: const Text('Show Dialog'),
           ),
@@ -118,7 +135,6 @@ void main() {
       await tester.pumpAndSettle();
 
       // Try to save without entering name
-      await tester.enterText(find.byType(TextFormField).at(2), 'EUR');
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
@@ -126,13 +142,13 @@ void main() {
       expect(find.text('This field is required'), findsWidgets);
     });
 
-    testWidgets('Validation fails when currency is not 3 letters', (tester) async {
+    testWidgets('Currency picker works correctly', (tester) async {
       await tester.pumpWidget(
         buildTestApp(Builder(
           builder: (context) => ElevatedButton(
             onPressed: () => showDialog(
               context: context,
-              builder: (_) => const VehicleFormDialog(),
+              builder: (_) => VehicleFormDialog(settings: mockSettings),
             ),
             child: const Text('Show Dialog'),
           ),
@@ -143,12 +159,15 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextFormField).at(0), 'Test Car');
-      await tester.enterText(find.byType(TextFormField).at(2), 'EU'); // Only 2 letters
+
+      // Currency picker shows default EUR
+      expect(find.text('EUR'), findsWidgets);
+      
+      // Note: Full currency picker interaction would require tapping and selecting
+      // This is tested in the separate vehicle_currency_picker_test.dart
 
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
-
-      expect(find.textContaining('3-letter currency code'), findsOneWidget);
     });
 
     testWidgets('Edit vehicle dialog shows prefilled form', (tester) async {
@@ -164,7 +183,7 @@ void main() {
           builder: (context) => ElevatedButton(
             onPressed: () => showDialog(
               context: context,
-              builder: (_) => VehicleFormDialog(vehicle: existingVehicle),
+              builder: (_) => VehicleFormDialog(vehicle: existingVehicle, settings: mockSettings),
             ),
             child: const Text('Show Dialog'),
           ),
@@ -177,10 +196,10 @@ void main() {
       expect(find.text('Edit vehicle'), findsOneWidget);
       expect(find.text('Existing Car'), findsOneWidget);
       expect(find.text('XYZ-9999'), findsOneWidget);
-      expect(find.text('USD'), findsOneWidget);
+      expect(find.text('USD'), findsWidgets); // Currency shown in picker
     });
 
-    testWidgets('Currency code is uppercased', (tester) async {
+    testWidgets('Currency defaults to app settings', (tester) async {
       Vehicle? result;
 
       await tester.pumpWidget(
@@ -189,7 +208,7 @@ void main() {
             onPressed: () async {
               result = await showDialog<Vehicle>(
                 context: context,
-                builder: (_) => const VehicleFormDialog(),
+                builder: (_) => VehicleFormDialog(settings: mockSettings),
               );
             },
             child: const Text('Show Dialog'),
@@ -201,12 +220,11 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(TextFormField).at(0), 'Test Car');
-      await tester.enterText(find.byType(TextFormField).at(2), 'eur'); // lowercase
 
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
-      expect(result!.currencyCode, 'EUR'); // Should be uppercased
+      expect(result!.currencyCode, 'EUR'); // Should default to mockSettings.currencyCode
     });
 
     testWidgets('Cancel button closes dialog without returning data', (tester) async {
@@ -218,7 +236,7 @@ void main() {
             onPressed: () async {
               result = await showDialog<Vehicle>(
                 context: context,
-                builder: (_) => const VehicleFormDialog(),
+                builder: (_) => VehicleFormDialog(settings: mockSettings),
               );
             },
             child: const Text('Show Dialog'),
@@ -254,7 +272,7 @@ void main() {
               builder: (context) => ElevatedButton(
                 onPressed: () => showDialog(
                   context: context,
-                  builder: (_) => const VehicleFormDialog(),
+                  builder: (_) => VehicleFormDialog(settings: mockSettings),
                 ),
                 child: const Text('Show Dialog'),
               ),

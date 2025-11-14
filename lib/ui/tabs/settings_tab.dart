@@ -725,7 +725,7 @@ class _SettingsTabState extends State<SettingsTab> {
   Future<void> _showVehicleDialog(BuildContext context, VehicleRepo repo, Vehicle? vehicle) async {
     final result = await showDialog<Vehicle>(
       context: context,
-      builder: (context) => VehicleFormDialog(vehicle: vehicle),
+      builder: (context) => VehicleFormDialog(vehicle: vehicle, settings: widget.settings),
     );
     
     if (result != null) {
