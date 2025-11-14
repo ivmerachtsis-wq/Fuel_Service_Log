@@ -5,6 +5,7 @@ import '../state/stats_filter_controller.dart';
 import 'tabs/fuel_tab.dart';
 import 'tabs/service_tab.dart';
 import 'tabs/stats_tab.dart';
+import 'tabs/vehicles_tab.dart';
 import 'tabs/settings_tab.dart';
 import '../l10n/app_localizations.dart';
 
@@ -36,10 +37,10 @@ class Shell extends StatelessWidget {
                     selectedIndex: index,
                     onDestinationSelected: (i) => controller.index = i,
                     destinations: [
-                      NavigationRailDestination(
-                          icon: const Icon(Icons.local_gas_station), label: Text(l10n.tabFuel)),
+                      NavigationRailDestination(icon: const Icon(Icons.local_gas_station), label: Text(l10n.tabFuel)),
                       NavigationRailDestination(icon: const Icon(Icons.build), label: Text(l10n.tabService)),
                       NavigationRailDestination(icon: const Icon(Icons.insights), label: Text(l10n.tabStats)),
+                      NavigationRailDestination(icon: const Icon(Icons.directions_car), label: Text(l10n.tabVehicles)),
                       NavigationRailDestination(icon: const Icon(Icons.settings), label: Text(l10n.tabSettings)),
                     ],
                   ),
@@ -58,6 +59,7 @@ class Shell extends StatelessWidget {
                   BottomNavigationBarItem(icon: const Icon(Icons.local_gas_station), label: l10n.tabFuel),
                   BottomNavigationBarItem(icon: const Icon(Icons.build), label: l10n.tabService),
                   BottomNavigationBarItem(icon: const Icon(Icons.insights), label: l10n.tabStats),
+                  BottomNavigationBarItem(icon: const Icon(Icons.directions_car), label: l10n.tabVehicles),
                   BottomNavigationBarItem(icon: const Icon(Icons.settings), label: l10n.tabSettings),
                 ],
               ),
@@ -77,6 +79,8 @@ class Shell extends StatelessWidget {
       case 2:
         return StatsTab(settings: settings, statsFilterController: statsFilterController);
       case 3:
+        return VehiclesTab();
+      case 4:
         return SettingsTab(settings: settings);
       default:
         return const SizedBox.shrink();

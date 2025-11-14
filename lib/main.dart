@@ -28,6 +28,15 @@ const bool kLoadTestData = bool.fromEnvironment('TEST_DATA');
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   AppStartMetrics.markT0();
+  // TODO(copilot): Step 1 parity scan
+  // Current situation:
+  // - This root lib/main.dart already boots the multi-tab Shell (Fuel / Service / Stats / Settings) for desktop.
+  // - Android CI & release workflows call `flutter build apk` with default entrypoint, so Android also uses this Shell.
+  // - A legacy template entrypoint still exists at fuel_service_log/lib/main.dart (counter demo) and appears unused.
+  // Planned next steps:
+  // - Remove/deprecate the legacy duplicate main.
+  // - Confirm bottom navigation on mobile matches parity requirements.
+  // - Proceed to unify shell explicitly and then hide manual ID fields.
 
   // Open Hive boxes (register adapters + open) - MUST be first!
   await initHive();

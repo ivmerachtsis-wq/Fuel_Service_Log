@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import '../widgets/currency_picker_field.dart';
+import '../widgets/date_picker_field.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/settings_controller.dart';
 
 import '../../data/models/fuel_entry.dart';
+import '../../utils/id_generator.dart';
 import '../../data/models/vehicle.dart';
 import '../../data/repo/fuel_repo.dart';
 import '../../state/active_vehicle_controller.dart';
@@ -104,31 +107,12 @@ class _FuelFormState extends State<FuelForm> {
     return v;
   }
 
-  Future<void> _pickDate() async {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final initialDate = _date.isAfter(today) ? today : _date;
-    
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(2000, 1, 1),
-      lastDate: today,
-    );
-    
-    if (picked != null) {
-      setState(() {
-        _date = picked;
-        c.setDate(picked);
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final vehiclesBox = Hive.box<Vehicle>('vehicles');
-    final vehicles = vehiclesBox.values.where((v) => v.active).toList();
+  final vehiclesBox = Hive.box<Vehicle>('vehicles');
+  final vehicles = vehiclesBox.values.toList();
     
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -207,38 +191,30 @@ class _FuelFormState extends State<FuelForm> {
               decoration: InputDecoration(labelText: AppLocalizations.of(context)!.odometerKm),
             ),
             const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
+            CurrencyPickerField(
               value: _currencyCode,
-              decoration: InputDecoration(labelText: l10n.currency),
-              items: const [
-                DropdownMenuItem(value: 'EUR', child: Text('€ EUR')),
-                DropdownMenuItem(value: 'USD', child: Text('\$ USD')),
-                DropdownMenuItem(value: 'GBP', child: Text('£ GBP')),
-              ],
-              onChanged: (v) { if (v != null) setState(() => _currencyCode = v); },
+              onChanged: (v) => setState(() => _currencyCode = v),
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    icon: const Icon(Icons.date_range),
-                    label: Text(_date.toLocal().toString().split(' ').first),
-                    onPressed: _pickDate,
-                  ),
+            Row(children:[
+              Expanded(
+                child: DatePickerField(
+                  value: _date,
+                  onChanged: (d){ setState(() { _date = d; c.setDate(d); }); },
+                  label: l10n.serviceDate,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Row(
-                    children: [
-                      Text(l10n.fullTank),
-                      const SizedBox(width: 8),
-                      Switch(value: c.fullTank, onChanged: (v) => setState(() => c.setFullTank(v))),
-                    ],
-                  ),
+              ),
+              const SizedBox(width:12),
+              Expanded(
+                child: Row(
+                  children:[
+                    Text(l10n.fullTank),
+                    const SizedBox(width:8),
+                    Switch(value: c.fullTank, onChanged:(v)=> setState(()=> c.setFullTank(v))),
+                  ],
                 ),
-              ],
-            ),
+              )
+            ]),
             const SizedBox(height: 12),
             TextField(
               maxLines: 2,
@@ -298,7 +274,7 @@ class _FuelFormState extends State<FuelForm> {
     }
 
     final repo = FuelRepo();
-    final id = widget.initial?.id ?? DateTime.now().microsecondsSinceEpoch.toString();
+  final id = widget.initial?.id ?? generateId();
 
     // Use selected vehicle, fallback to widget vehicleId, then active vehicle
     final vehicleId = _selectedVehicleId ?? widget.initial?.vehicleId ?? widget.vehicleId ?? await ActiveVehicleController().getActiveVehicleId();

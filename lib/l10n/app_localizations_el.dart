@@ -21,6 +21,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get tabStats => 'Στατιστικά';
 
   @override
+  String get tabVehicles => 'Οχήματα';
+
+  @override
   String get tabSettings => 'Ρυθμίσεις';
 
   @override

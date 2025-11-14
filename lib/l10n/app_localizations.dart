@@ -124,6 +124,7 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings'**
   String get tabSettings;
+  String get tabVehicles;
 
   /// No description provided for @emptyFuel.
   ///
