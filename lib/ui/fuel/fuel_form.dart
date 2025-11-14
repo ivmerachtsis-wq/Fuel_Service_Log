@@ -107,25 +107,6 @@ class _FuelFormState extends State<FuelForm> {
     return v;
   }
 
-  Future<void> _pickDate() async {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final initialDate = _date.isAfter(today) ? today : _date;
-    
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(2000, 1, 1),
-      lastDate: today,
-    );
-    
-    if (picked != null) {
-      setState(() {
-        _date = picked;
-        c.setDate(picked);
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -219,7 +200,7 @@ class _FuelFormState extends State<FuelForm> {
               Expanded(
                 child: DatePickerField(
                   value: _date,
-                  onChanged: (d){ setState(()=> {_date=d; c.setDate(d);});},
+                  onChanged: (d){ setState(() { _date = d; c.setDate(d); }); },
                   label: l10n.serviceDate,
                 ),
               ),

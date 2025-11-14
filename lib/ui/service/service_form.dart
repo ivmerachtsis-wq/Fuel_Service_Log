@@ -97,25 +97,6 @@ class _ServiceFormState extends State<ServiceForm> {
     return v;
   }
 
-  Future<void> _pickDate() async {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final initialDate = _date.isAfter(today) ? today : _date;
-
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(2000, 1, 1),
-      lastDate: today,
-    );
-
-    if (picked != null) {
-      setState(() {
-        _date = picked;
-        c.setDate(picked);
-      });
-    }
-  }
 
   String? _validateDate(DateTime d) {
     final now = DateTime.now();
@@ -247,7 +228,7 @@ class _ServiceFormState extends State<ServiceForm> {
               
               DatePickerField(
                 value: _date,
-                onChanged: (d){ setState(()=> {_date=d; c.setDate(d);});},
+                onChanged: (d){ setState(() { _date = d; c.setDate(d); }); },
                 label: l10n.serviceDate,
               ),
               const SizedBox(height: 12),
