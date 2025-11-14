@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fuel_service_log/data/models/vehicle.dart';
+import 'package:fuel_service_log/utils/id_generator.dart';
 import 'package:fuel_service_log/l10n/app_localizations.dart';
 import 'package:fuel_service_log/state/settings_controller.dart';
 import 'package:fuel_service_log/ui/widgets/currency_picker_field.dart';
@@ -66,7 +67,7 @@ class _VehicleFormDialogState extends State<VehicleFormDialog> {
   void _save() {
     if (_formKey.currentState!.validate()) {
       final vehicle = Vehicle(
-        id: widget.vehicle?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        id: widget.vehicle?.id ?? generateId(),
         title: _nameController.text.trim(),
         plate: _plateController.text.trim().isEmpty ? null : _plateController.text.trim(),
         currencyCode: _selectedCurrency,

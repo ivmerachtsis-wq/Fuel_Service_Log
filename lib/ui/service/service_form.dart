@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/settings_controller.dart';
 import '../../data/models/service_entry.dart';
+import '../../utils/id_generator.dart';
 import '../../data/models/vehicle.dart';
 import '../../data/repo/service_repo.dart';
 import '../../state/active_vehicle_controller.dart';
@@ -171,7 +172,7 @@ class _ServiceFormState extends State<ServiceForm> {
     final vehicleId = _selectedVehicleId ?? widget.initial?.vehicleId ?? widget.vehicleId ?? await ActiveVehicleController().getActiveVehicleId();
     
     final entry = ServiceEntry(
-      id: widget.initial?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
+      id: widget.initial?.id ?? generateId(),
       vehicleId: vehicleId,
       date: _date,
       odometerKm: c.odometerKm!,

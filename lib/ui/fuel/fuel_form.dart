@@ -5,6 +5,7 @@ import '../../l10n/app_localizations.dart';
 import '../../state/settings_controller.dart';
 
 import '../../data/models/fuel_entry.dart';
+import '../../utils/id_generator.dart';
 import '../../data/models/vehicle.dart';
 import '../../data/repo/fuel_repo.dart';
 import '../../state/active_vehicle_controller.dart';
@@ -298,7 +299,7 @@ class _FuelFormState extends State<FuelForm> {
     }
 
     final repo = FuelRepo();
-    final id = widget.initial?.id ?? DateTime.now().microsecondsSinceEpoch.toString();
+  final id = widget.initial?.id ?? generateId();
 
     // Use selected vehicle, fallback to widget vehicleId, then active vehicle
     final vehicleId = _selectedVehicleId ?? widget.initial?.vehicleId ?? widget.vehicleId ?? await ActiveVehicleController().getActiveVehicleId();
