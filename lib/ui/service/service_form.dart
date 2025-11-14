@@ -199,8 +199,8 @@ class _ServiceFormState extends State<ServiceForm> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final isEdit = widget.initial != null;
-    final vehiclesBox = Hive.box<Vehicle>('vehicles');
-    final vehicles = vehiclesBox.values.where((v) => v.active).toList();
+  final vehiclesBox = Hive.box<Vehicle>('vehicles');
+  final vehicles = vehiclesBox.values.toList();
 
     return Padding(
       padding: EdgeInsets.only(

@@ -129,8 +129,8 @@ class _FuelFormState extends State<FuelForm> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final vehiclesBox = Hive.box<Vehicle>('vehicles');
-    final vehicles = vehiclesBox.values.where((v) => v.active).toList();
+  final vehiclesBox = Hive.box<Vehicle>('vehicles');
+  final vehicles = vehiclesBox.values.toList();
     
     return Padding(
       padding: const EdgeInsets.all(16),
