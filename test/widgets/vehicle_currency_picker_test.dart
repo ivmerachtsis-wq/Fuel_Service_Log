@@ -59,13 +59,11 @@ void main() {
 
   group('CurrencyPickerField Tests', () {
     testWidgets('Shows currency picker dialog on tap', (tester) async {
-      String? selectedCurrency;
-
       await tester.pumpWidget(
         buildTestApp(
           CurrencyPickerField(
             value: 'EUR',
-            onChanged: (value) => selectedCurrency = value,
+            onChanged: (_) {},
           ),
         ),
       );
