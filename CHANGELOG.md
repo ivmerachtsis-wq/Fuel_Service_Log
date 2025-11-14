@@ -1,4 +1,16 @@
-## v1.2.0 � 2025-11-11
+## v1.3.0 — 2025-11-14
+**Highlights**
+- UX polish in Settings > Vehicles (no endless loader, active vehicle badge)
+- Vehicle filters in Fuel & Service (Active, All vehicles, Specific vehicle)
+- "Ask Where To Save" respected in PDF / CSV / Backup exports
+- Stats UI layout fixes (no clipped Date / € labels, better spacing)
+- New themes: Comfort Light & Midnight + softer default Light
+- New metric: L/100km with localized metric buttons
+- Table ↔ Chart interaction in Stats (row ↔ bar highlight)
+- Currency picker in Vehicle form (searchable, ISO 3-letter codes)
+- Vehicle selector in Add Fuel/Service (default active vehicle)
+
+## v1.2.0 — 2025-11-11
 - Vehicle CRUD in Settings (Add/Edit/Delete, undo)
 - Save-path toggle & resolver DI
 - i18n improvements
