@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../widgets/currency_picker_field.dart';
+import '../widgets/date_picker_field.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/settings_controller.dart';
 
@@ -214,27 +215,25 @@ class _FuelFormState extends State<FuelForm> {
               onChanged: (v) => setState(() => _currencyCode = v),
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    icon: const Icon(Icons.date_range),
-                    label: Text(_date.toLocal().toString().split(' ').first),
-                    onPressed: _pickDate,
-                  ),
+            Row(children:[
+              Expanded(
+                child: DatePickerField(
+                  value: _date,
+                  onChanged: (d){ setState(()=> {_date=d; c.setDate(d);});},
+                  label: l10n.serviceDate,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Row(
-                    children: [
-                      Text(l10n.fullTank),
-                      const SizedBox(width: 8),
-                      Switch(value: c.fullTank, onChanged: (v) => setState(() => c.setFullTank(v))),
-                    ],
-                  ),
+              ),
+              const SizedBox(width:12),
+              Expanded(
+                child: Row(
+                  children:[
+                    Text(l10n.fullTank),
+                    const SizedBox(width:8),
+                    Switch(value: c.fullTank, onChanged:(v)=> setState(()=> c.setFullTank(v))),
+                  ],
                 ),
-              ],
-            ),
+              )
+            ]),
             const SizedBox(height: 12),
             TextField(
               maxLines: 2,

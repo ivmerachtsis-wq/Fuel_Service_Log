@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../widgets/currency_picker_field.dart';
+import '../widgets/date_picker_field.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/settings_controller.dart';
 import '../../data/models/service_entry.dart';
@@ -244,22 +245,10 @@ class _ServiceFormState extends State<ServiceForm> {
                 ),
               if (vehicles.isNotEmpty) const SizedBox(height: 12),
               
-              // Date picker
-              InkWell(
-                onTap: _pickDate,
-                child: InputDecorator(
-                  decoration: InputDecoration(
-                    labelText: l10n.serviceDate,
-                    border: const OutlineInputBorder(),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('${_date.day}/${_date.month}/${_date.year}'),
-                      const Icon(Icons.calendar_today, size: 20),
-                    ],
-                  ),
-                ),
+              DatePickerField(
+                value: _date,
+                onChanged: (d){ setState(()=> {_date=d; c.setDate(d);});},
+                label: l10n.serviceDate,
               ),
               const SizedBox(height: 12),
 
