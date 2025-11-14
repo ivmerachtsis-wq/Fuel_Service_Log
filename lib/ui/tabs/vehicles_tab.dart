@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import '../../data/models/vehicle.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../l10n/app_localizations.dart';

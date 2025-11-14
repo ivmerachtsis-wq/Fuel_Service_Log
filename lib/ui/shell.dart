@@ -79,7 +79,7 @@ class Shell extends StatelessWidget {
       case 2:
         return StatsTab(settings: settings, statsFilterController: statsFilterController);
       case 3:
-        return VehiclesTab(settings: settings);
+        return VehiclesTab();
       case 4:
         return SettingsTab(settings: settings);
       default:
