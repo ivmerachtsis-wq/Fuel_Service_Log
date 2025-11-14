@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import '../widgets/currency_picker_field.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/settings_controller.dart';
 
@@ -208,15 +209,9 @@ class _FuelFormState extends State<FuelForm> {
               decoration: InputDecoration(labelText: AppLocalizations.of(context)!.odometerKm),
             ),
             const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
+            CurrencyPickerField(
               value: _currencyCode,
-              decoration: InputDecoration(labelText: l10n.currency),
-              items: const [
-                DropdownMenuItem(value: 'EUR', child: Text('€ EUR')),
-                DropdownMenuItem(value: 'USD', child: Text('\$ USD')),
-                DropdownMenuItem(value: 'GBP', child: Text('£ GBP')),
-              ],
-              onChanged: (v) { if (v != null) setState(() => _currencyCode = v); },
+              onChanged: (v) => setState(() => _currencyCode = v),
             ),
             const SizedBox(height: 12),
             Row(

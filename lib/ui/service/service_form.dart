@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import '../widgets/currency_picker_field.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/settings_controller.dart';
 import '../../data/models/service_entry.dart';
@@ -315,24 +316,9 @@ class _ServiceFormState extends State<ServiceForm> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: DropdownButtonFormField<String>(
+                    child: CurrencyPickerField(
                       value: _currencyCode,
-                      decoration: InputDecoration(
-                        labelText: l10n.currency,
-                        border: const OutlineInputBorder(),
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: 'EUR', child: Text('EUR')),
-                        DropdownMenuItem(value: 'USD', child: Text('USD')),
-                        DropdownMenuItem(value: 'GBP', child: Text('GBP')),
-                      ],
-                      onChanged: (v) {
-                        if (v != null) {
-                          setState(() {
-                            _currencyCode = v;
-                          });
-                        }
-                      },
+                      onChanged: (v) => setState(() => _currencyCode = v),
                     ),
                   ),
                 ],
