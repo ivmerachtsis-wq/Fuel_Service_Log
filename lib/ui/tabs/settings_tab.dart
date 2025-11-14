@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:path/path.dart' as p;
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../about_page.dart';
 import '../../data/models/vehicle.dart';
 import '../../data/models/driver.dart';
@@ -10,6 +10,7 @@ import '../../services/backup_restore.dart';
 import '../../services/export_pdf.dart';
 import '../../services/data_integrity_service.dart';
 import '../../services/ui_prefs_service.dart';
+import '../../services/save_target_resolver.dart';
 import '../../data/repo/fuel_repo.dart';
 import '../../data/repo/service_repo.dart';
 import '../../data/repo/vehicle_repo.dart';
@@ -26,6 +27,7 @@ import '../../state/stats_cache_provider.dart';
 import '../../features/stats/stats_cache.dart';
 import 'package:open_filex/open_filex.dart';
 import '../widgets/vehicle_form_dialog.dart';
+import 'dart:async';
 
 class SettingsTab extends StatefulWidget {
   final SettingsController settings;
@@ -44,6 +46,10 @@ class SettingsTab extends StatefulWidget {
 class _SettingsTabState extends State<SettingsTab> {
   late final UiPrefs _uiPrefs;
   bool _askWhereToSave = false;
+  String? _activeVehicleId;
+  bool _vehiclesInitialWaitDone = false;
+  Timer? _vehiclesWaitTimer;
+  late final VehicleRepo _vehicleRepo = VehicleRepo();
 
   @override
   void initState() {
@@ -54,11 +60,19 @@ class _SettingsTabState extends State<SettingsTab> {
     _loadPrefs();
   }
 
+  @override
+  void dispose() {
+    _vehiclesWaitTimer?.cancel();
+    super.dispose();
+  }
+
   void _loadPrefs() {
     final ask = _uiPrefs.loadAskWhereToSave();
+    final activeId = _uiPrefs.loadActiveVehicleId();
     if (mounted) {
       setState(() {
         _askWhereToSave = ask;
+        _activeVehicleId = activeId;
       });
     }
   }
@@ -100,16 +114,20 @@ class _SettingsTabState extends State<SettingsTab> {
         ListTile(
           leading: const Icon(Icons.brightness_6_outlined),
           title: Text(l10n.theme),
-          trailing: DropdownButton<ThemeMode>(
-            value: widget.settings.themeMode,
-            items: [
-              DropdownMenuItem(value: ThemeMode.system, child: Text(l10n.themeSystem)),
-              DropdownMenuItem(value: ThemeMode.light, child: Text(l10n.themeLight)),
-              DropdownMenuItem(value: ThemeMode.dark, child: Text(l10n.themeDark)),
+          trailing: DropdownButton<AppTheme>(
+            value: widget.settings.appTheme,
+            items: const [
+              DropdownMenuItem(value: AppTheme.system, child: Text('System')),
+              DropdownMenuItem(value: AppTheme.light, child: Text('Light')),
+              DropdownMenuItem(value: AppTheme.dark, child: Text('Dark')),
+              DropdownMenuItem(value: AppTheme.comfortLight, child: Text('Comfort Light')),
+              DropdownMenuItem(value: AppTheme.midnight, child: Text('Midnight')),
             ],
-            onChanged: (value) {
+            onChanged: (value) async {
               if (value != null) {
-                widget.settings.setThemeMode(value);
+                await widget.settings.setAppTheme(value);
+                // Persist in UiPrefs as requested
+                await _uiPrefs.saveAppTheme(value.name);
               }
             },
           ),
@@ -210,7 +228,15 @@ class _SettingsTabState extends State<SettingsTab> {
             try {
               final vehicleId = await active.getActiveVehicleId();
               final fuelFile = await exportSvc.exportFuelToCsv(vehicleId);
-              await exportSvc.exportServiceToCsv(vehicleId);
+              if (fuelFile == null) {
+                // User cancelled
+                return;
+              }
+              final serviceFile = await exportSvc.exportServiceToCsv(vehicleId);
+              if (serviceFile == null) {
+                // User cancelled
+                return;
+              }
               
               if (context.mounted) {
                 final fuelName = p.basename(fuelFile.path);
@@ -250,12 +276,17 @@ class _SettingsTabState extends State<SettingsTab> {
               // Επιλογή πρώτου οδηγού (placeholder) – μελλοντική σύνδεση active driver.
               final driver = driverBox.values.isNotEmpty ? driverBox.values.first : null;
               final entries = fuelRepo.listByVehicle(vehicleId).toList()..sort((a,b)=>a.date.compareTo(b.date));
-              final file = await ExportPdfService.exportFuelToPdf(
+              final pdfSvc = ExportPdfService();
+              final file = await pdfSvc.exportFuelToPdf(
                 vehicleId: vehicleId,
                 entries: entries,
                 vehicle: vehicle,
                 driver: driver,
               );
+              if (file == null) {
+                // User cancelled
+                return;
+              }
               if (context.mounted) {
                 final name = p.basename(file.path);
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -282,12 +313,17 @@ class _SettingsTabState extends State<SettingsTab> {
               final vehicle = vehicleBox.get(vehicleId);
               final driver = driverBox.values.isNotEmpty ? driverBox.values.first : null;
               final entries = serviceRepo.listByVehicle(vehicleId).toList()..sort((a,b)=>a.date.compareTo(b.date));
-              final file = await ExportPdfService.exportServiceToPdf(
+              final pdfSvc = ExportPdfService();
+              final file = await pdfSvc.exportServiceToPdf(
                 vehicleId: vehicleId,
                 entries: entries,
                 vehicle: vehicle,
                 driver: driver,
               );
+              if (file == null) {
+                // User cancelled
+                return;
+              }
               if (context.mounted) {
                 final name = p.basename(file.path);
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -410,12 +446,28 @@ class _SettingsTabState extends State<SettingsTab> {
                 l10n: l10n,
                 currencyCode: widget.settings.currencyCode,
               );
-              Directory? downloads;
-              try { downloads = await getDownloadsDirectory(); } catch (_) {}
-              downloads ??= await getApplicationDocumentsDirectory();
+
+              // Use SaveTargetResolver for directory selection
+              final prefs = UiPrefsService();
+              final resolver = SaveTargetResolverProvider.instance;
+              final ask = prefs.loadAskWhereToSave();
+              Directory? defaultDir;
+              try { defaultDir = await getDownloadsDirectory(); } catch (_) {}
+              defaultDir ??= await getApplicationDocumentsDirectory();
+              
+              final dir = await resolver.resolveDirectory(
+                SaveKind.pdf,
+                ask: ask,
+                defaultDir: defaultDir,
+              );
+              if (dir == null) {
+                // User cancelled
+                return;
+              }
+
               final datePart = DateTime.now().toIso8601String().split('T').first;
               final platePart = (vehicle.plate ?? vehicle.title).replaceAll(RegExp(r'[^A-Za-z0-9_-]+'), '_');
-              final filePath = '${downloads.path}/ActiveVehicle_${platePart}_$datePart.pdf';
+              final filePath = '${dir.path}/ActiveVehicle_${platePart}_$datePart.pdf';
               final file = File(filePath);
               await file.writeAsBytes(bytes, flush: true);
               debugPrint('[PDF] Saved active vehicle report to $filePath');
@@ -527,33 +579,43 @@ class _SettingsTabState extends State<SettingsTab> {
 
   /// Build the Vehicles CRUD section
   Widget _buildVehiclesSection(BuildContext context, AppLocalizations l10n) {
-    // In widget tests or early startup, Hive boxes may not be open yet.
-    // Guard to avoid throwing when vehicles box isn't initialized.
+    // Brief loading then empty state if vehicles box isn't open
     if (!Hive.isBoxOpen('vehicles')) {
+      _vehiclesWaitTimer ??= Timer(const Duration(milliseconds: 500), () {
+        if (mounted) setState(() => _vehiclesInitialWaitDone = true);
+      });
+      if (!_vehiclesInitialWaitDone) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            children: const [
+              SizedBox(width: 16),
+              SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+              SizedBox(width: 8),
+              Text('Loading vehicles...'),
+            ],
+          ),
+        );
+      }
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ListTile(
             leading: const Icon(Icons.directions_car),
             title: Text(l10n.settings_vehicles),
-            subtitle: Text(l10n.vehicle_add),
+            subtitle: const Text('No vehicles'),
             trailing: IconButton(
               icon: const Icon(Icons.add),
-              onPressed: null, // disabled until box is available
+              onPressed: () => _showVehicleDialog(context, _vehicleRepo, null),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              l10n.vehicle_add,
-              style: TextStyle(color: Theme.of(context).colorScheme.outline),
-            ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text('No vehicles'),
           ),
         ],
       );
     }
-
-    final vehicleRepo = VehicleRepo();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -564,23 +626,17 @@ class _SettingsTabState extends State<SettingsTab> {
           subtitle: Text(l10n.vehicle_add),
           trailing: IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () => _showVehicleDialog(context, vehicleRepo, null),
+            onPressed: () => _showVehicleDialog(context, _vehicleRepo, null),
           ),
         ),
-        StreamBuilder<List<Vehicle>>(
-          stream: vehicleRepo.watchAll(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            final vehicles = snapshot.data!;
+        ValueListenableBuilder<Box<Vehicle>>(
+          valueListenable: Hive.box<Vehicle>('vehicles').listenable(),
+          builder: (context, box, _) {
+            final vehicles = box.values.toList();
             if (vehicles.isEmpty) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Text(
-                  l10n.vehicle_add,
-                  style: TextStyle(color: Theme.of(context).colorScheme.outline),
-                ),
+              return const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text('No vehicles'),
               );
             }
             return ListView.builder(
@@ -589,24 +645,47 @@ class _SettingsTabState extends State<SettingsTab> {
               itemCount: vehicles.length,
               itemBuilder: (context, index) {
                 final vehicle = vehicles[index];
+                final isActive = vehicle.id == _activeVehicleId;
                 return ListTile(
-                  title: Text(vehicle.title),
-                  subtitle: Text(
-                    '${vehicle.plate ?? '-'} • ${vehicle.currencyCode ?? '-'}',
+                  leading: isActive
+                      ? const Icon(Icons.check_circle, color: Colors.green)
+                      : const Icon(Icons.directions_car),
+                  title: Row(
+                    children: [
+                      Expanded(child: Text(vehicle.title)),
+                      if (isActive)
+                        const Padding(
+                          padding: EdgeInsets.only(left: 8),
+                          child: Chip(label: Text('Active'), visualDensity: VisualDensity.compact),
+                        ),
+                    ],
                   ),
+                  subtitle: Text('${vehicle.plate ?? '-'} • ${vehicle.currencyCode ?? '-'}'),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      PopupMenuButton<String>(
+                        onSelected: (value) {
+                          if (value == 'setActive') {
+                            _setActiveVehicle(vehicle);
+                          }
+                        },
+                        itemBuilder: (context) => const [
+                          PopupMenuItem(value: 'setActive', child: Text('Set Active')),
+                        ],
+                        icon: const Icon(Icons.more_vert),
+                      ),
                       IconButton(
                         icon: const Icon(Icons.edit),
-                        onPressed: () => _showVehicleDialog(context, vehicleRepo, vehicle),
+                        onPressed: () => _showVehicleDialog(context, _vehicleRepo, vehicle),
                       ),
                       IconButton(
                         icon: const Icon(Icons.delete),
-                        onPressed: () => _deleteVehicle(context, vehicleRepo, vehicle, l10n),
+                        onPressed: () => _deleteVehicle(context, _vehicleRepo, vehicle, l10n),
                       ),
                     ],
                   ),
+                  onLongPress: () => _setActiveVehicle(vehicle),
                 );
               },
             );
@@ -616,10 +695,37 @@ class _SettingsTabState extends State<SettingsTab> {
     );
   }
 
+  Future<void> _setActiveVehicle(Vehicle v) async {
+    try {
+      await _uiPrefs.saveActiveVehicleId(v.id);
+      if (!mounted) return;
+      setState(() => _activeVehicleId = v.id);
+      if (Hive.isBoxOpen('vehicles')) {
+        final box = Hive.box<Vehicle>('vehicles');
+        for (final existing in box.values) {
+          final shouldBeActive = existing.id == v.id;
+          if (existing.active != shouldBeActive) {
+            final updated = Vehicle(
+              id: existing.id,
+              title: existing.title,
+              plate: existing.plate,
+              active: shouldBeActive,
+              currencyCode: existing.currencyCode,
+            );
+            await box.put(existing.id, updated);
+          }
+        }
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showSnack(context, 'Failed to set active: $e');
+    }
+  }
+
   Future<void> _showVehicleDialog(BuildContext context, VehicleRepo repo, Vehicle? vehicle) async {
     final result = await showDialog<Vehicle>(
       context: context,
-      builder: (context) => VehicleFormDialog(vehicle: vehicle),
+      builder: (context) => VehicleFormDialog(vehicle: vehicle, settings: widget.settings),
     );
     
     if (result != null) {

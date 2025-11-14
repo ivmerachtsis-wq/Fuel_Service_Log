@@ -32,6 +32,7 @@ class _StatsTabState extends State<StatsTab> {
   String? _selectedVehicleId;
   String? _selectedDriverId; // null ή '' => All
   final int _rangeMonths = 6; // 3 / 6 / 12 (legacy, kept for PDF export compatibility)
+  int? _selectedMonthIndex; // For table-to-chart interaction
 
   // Legacy export (pre Day 12) kept for compatibility
   Future<void> _exportPdf(BuildContext context) async {
@@ -424,9 +425,9 @@ class _StatsTabState extends State<StatsTab> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
-                Text(l10n.statsTitle, style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 16),
+                Text(l10n.statsTitle, style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 12),
                 if (consumptions.length < 2)
                   SizedBox(
                     height: 300,
@@ -454,15 +455,19 @@ class _StatsTabState extends State<StatsTab> {
                     ),
                   )
                 else
-                  SizedBox(
-                    height: 300,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 16, top: 16),
-                      child: _ConsumptionChart(consumptions: consumptions),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 320),
+                    child: SizedBox(
+                      height: 320,
+                      child: Padding(
+                        // Add extra top/bottom padding to ensure axis labels (Date row) remain fully visible
+                        padding: const EdgeInsets.fromLTRB(0, 8, 16, 8),
+                        child: _ConsumptionChart(consumptions: consumptions),
+                      ),
                     ),
                   ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 // Bar chart: Στοιβαγμένο κόστος/μήνα (Fuel + Service)
                 (monthlyCosts.isEmpty && serviceMonthMap.isEmpty)
                     ? SizedBox(
@@ -470,7 +475,7 @@ class _StatsTabState extends State<StatsTab> {
                         child: Center(
                           child: Text(
                             l10n.chartNoData,
-                             style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.70)), 
+                             style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.85)), 
                           ),
                         ),
                       )
@@ -484,6 +489,12 @@ class _StatsTabState extends State<StatsTab> {
                               windowService: windowService,
                               metric: widget.statsFilterController.metric,
                               currencyCode: widget.settings.currencyCode,
+                              selectedMonthIndex: _selectedMonthIndex,
+                              onMonthTap: (index) {
+                                setState(() {
+                                  _selectedMonthIndex = index;
+                                });
+                              },
                             ),
                           ),
                         ),
@@ -580,12 +591,13 @@ class _StatsTabState extends State<StatsTab> {
                 widget.statsFilterController.setFilter(newFilter);
               },
             ),
-            // Day 11: Metric toggle (Cost / Liters / Distance)
+            // Metric toggle (Cost / Liters / Distance / L/100km) - localized
             SegmentedButton<StatsMetric>(
-              segments: const [
-                ButtonSegment(value: StatsMetric.cost, label: Text('€'), icon: Icon(Icons.euro, size: 16)),
-                ButtonSegment(value: StatsMetric.liters, label: Text('L'), icon: Icon(Icons.local_gas_station, size: 16)),
-                ButtonSegment(value: StatsMetric.distance, label: Text('km'), icon: Icon(Icons.route, size: 16)),
+              segments: [
+                ButtonSegment(value: StatsMetric.cost, label: Text(l10n.metric_eur), icon: const Icon(Icons.euro, size: 16)),
+                ButtonSegment(value: StatsMetric.liters, label: Text(l10n.metric_liters), icon: const Icon(Icons.local_gas_station, size: 16)),
+                ButtonSegment(value: StatsMetric.distance, label: Text(l10n.metric_km), icon: const Icon(Icons.route, size: 16)),
+                ButtonSegment(value: StatsMetric.litersPer100km, label: Text(l10n.metric_l_per_100km), icon: const Icon(Icons.speed, size: 16)),
               ],
               selected: {widget.statsFilterController.metric},
               onSelectionChanged: (Set<StatsMetric> newSelection) {
@@ -665,12 +677,16 @@ class _MonthlyCostBarChart extends StatelessWidget {
   final List<ServiceEntry> windowService;
   final StatsMetric metric;
   final String currencyCode;
+  final int? selectedMonthIndex;
+  final ValueChanged<int>? onMonthTap;
 
   const _MonthlyCostBarChart({
     required this.windowFuel,
     required this.windowService,
     required this.metric,
     required this.currencyCode,
+    this.selectedMonthIndex,
+    this.onMonthTap,
   });
 
   @override
@@ -716,10 +732,26 @@ class _MonthlyCostBarChart extends StatelessWidget {
             serviceMonth: monthService,
           );
           values.add(dist);
+        case StatsMetric.litersPer100km:
+          // Compute L/100km for this month
+          final monthFuel = windowFuel.where((e) => 
+            e.date.year == bucket.month.year && e.date.month == bucket.month.month
+          ).toList();
+          final monthService = windowService.where((e) => 
+            e.date.year == bucket.month.year && e.date.month == bucket.month.month
+          ).toList();
+          final dist = estimateMonthlyDistanceKm(
+            fuelMonth: monthFuel,
+            serviceMonth: monthService,
+          );
+          final consumption = (dist > 0 && bucket.liters > 0) 
+            ? (bucket.liters / dist) * 100 
+            : 0.0;
+          values.add(consumption);
       }
     }
 
-    final hasData = values.any((v) => v > 0);
+  final hasData = values.any((v) => v > 0);
     if (!hasData) {
       return Center(
         child: Text(
@@ -730,25 +762,30 @@ class _MonthlyCostBarChart extends StatelessWidget {
     }
 
     final barColor = cs.primary.withValues(alpha: 0.90);
+    final selectedBarColor = cs.secondary;
     final groups = <BarChartGroupData>[];
     
     for (int i = 0; i < values.length; i++) {
+      final isSelected = selectedMonthIndex == i;
       groups.add(
         BarChartGroupData(
           x: i,
           barRods: [
             BarChartRodData(
               toY: values[i],
-              width: 16,
+              width: isSelected ? 20 : 16,
               borderRadius: BorderRadius.circular(6),
-              color: barColor,
+              color: isSelected ? selectedBarColor : barColor,
             ),
           ],
         ),
       );
     }
 
-    final maxY = values.fold<double>(0, (p, n) => n > p ? n : p);
+  final maxY = values.fold<double>(0, (p, n) => n > p ? n : p);
+  // Compute a reasonable tick interval to avoid overlapping labels
+  final double tickIntervalRaw = maxY == 0 ? 1.0 : (maxY / 4);
+  final double tickInterval = tickIntervalRaw <= 0 ? 1.0 : tickIntervalRaw;
     
     // Determine unit label
     String unitLabel;
@@ -759,6 +796,8 @@ class _MonthlyCostBarChart extends StatelessWidget {
         unitLabel = 'L';
       case StatsMetric.distance:
         unitLabel = 'km';
+      case StatsMetric.litersPer100km:
+        unitLabel = 'L/100km';
     }
 
     return Column(
@@ -780,6 +819,15 @@ class _MonthlyCostBarChart extends StatelessWidget {
               ),
               barGroups: groups,
               barTouchData: BarTouchData(
+                touchCallback: (FlTouchEvent event, barTouchResponse) {
+                  if (event is FlTapUpEvent && barTouchResponse != null) {
+                    final touchedSpot = barTouchResponse.spot;
+                    if (touchedSpot != null && onMonthTap != null) {
+                      final touchedIndex = touchedSpot.touchedBarGroupIndex;
+                      onMonthTap!(touchedIndex);
+                    }
+                  }
+                },
                 touchTooltipData: BarTouchTooltipData(
                   getTooltipItem: (group, groupIndex, rod, rodIndex) {
                     final idx = group.x.toInt();
@@ -790,7 +838,9 @@ class _MonthlyCostBarChart extends StatelessWidget {
                     if (metric == StatsMetric.cost) {
                       formattedValue = formatCurrency(value, currencyCode: currencyCode, context: context);
                     } else {
-                      formattedValue = '${value.toStringAsFixed(metric == StatsMetric.distance ? 0 : 1)} $unitLabel';
+                      // Show no decimals for distance (km), 1 decimal for liters and L/100km
+                      final decimals = metric == StatsMetric.distance ? 0 : 1;
+                      formattedValue = '${value.toStringAsFixed(decimals)} $unitLabel';
                     }
                     return BarTooltipItem(
                       '$monthLabel – $formattedValue',
@@ -803,19 +853,25 @@ class _MonthlyCostBarChart extends StatelessWidget {
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
-                    reservedSize: 44,
+                    // Give left side more room and set interval to avoid overlap
+                    reservedSize: 56,
+                    interval: tickInterval,
                     getTitlesWidget: (value, meta) {
-                      if (metric == StatsMetric.cost) {
-                        return Text(
-                          formatCurrency(value, currencyCode: currencyCode, context: context),
-                          style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withValues(alpha: 0.78)),
-                        );
-                      } else {
-                        return Text(
-                          '${value.toStringAsFixed(0)}$unitLabel',
-                          style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withValues(alpha: 0.78)),
-                        );
-                      }
+                      final labelText = metric == StatsMetric.cost
+                          ? formatCurrency(value, currencyCode: currencyCode, context: context)
+                          : '${value.toStringAsFixed(0)}$unitLabel';
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            labelText,
+                            softWrap: true,
+                            style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withValues(alpha: 0.85)),
+                          ),
+                        ),
+                      );
                     },
                   ),
                 ),
@@ -828,7 +884,8 @@ class _MonthlyCostBarChart extends StatelessWidget {
                       if (idx < 0 || idx >= labels.length) return const SizedBox.shrink();
                       return Text(
                         labels[idx],
-                        style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withValues(alpha: 0.78)),
+                        softWrap: true,
+                        style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withValues(alpha: 0.85)),
                       );
                     },
                   ),
@@ -848,11 +905,100 @@ class _MonthlyCostBarChart extends StatelessWidget {
         Text(
           metric == StatsMetric.cost ? '${l10n.tabFuel} + ${l10n.tabService}' :
           metric == StatsMetric.liters ? 'Fuel (L)' :
-          'Distance (km)',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 12),
+          metric == StatsMetric.distance ? 'Distance (km)' :
+          'Consumption (L/100km)',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            fontSize: 12,
+            color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.85),
+          ),
+        ),
+        const SizedBox(height: 16),
+        // Monthly breakdown table
+        Flexible(
+          child: SingleChildScrollView(
+            child: _buildMonthlyTable(
+              labels: labels,
+              values: values,
+              series: series,
+              context: context,
+              l10n: l10n,
+              locale: locale,
+            ),
+          ),
         ),
       ],
     );
+  }
+
+  Widget _buildMonthlyTable({
+    required List<String> labels,
+    required List<double> values,
+    required List<MonthlyBucket> series,
+    required BuildContext context,
+    required AppLocalizations l10n,
+    required String locale,
+  }) {
+    final cs = Theme.of(context).colorScheme;
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (int i = 0; i < labels.length; i++)
+          InkWell(
+            onTap: onMonthTap != null ? () => onMonthTap!(i) : null,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: selectedMonthIndex == i 
+                  ? cs.secondaryContainer.withValues(alpha: 0.3)
+                  : null,
+                border: Border(
+                  bottom: BorderSide(
+                    color: cs.outlineVariant.withValues(alpha: 0.3),
+                    width: 0.5,
+                  ),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    labels[i],
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: selectedMonthIndex == i ? FontWeight.w600 : FontWeight.w400,
+                      color: selectedMonthIndex == i ? cs.secondary : cs.onSurface,
+                    ),
+                  ),
+                  Text(
+                    metric == StatsMetric.cost
+                      ? formatCurrency(values[i], currencyCode: currencyCode, context: context)
+                      : '${values[i].toStringAsFixed(metric == StatsMetric.distance ? 0 : 1)} ${_getUnitLabel()}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: selectedMonthIndex == i ? FontWeight.w600 : FontWeight.w400,
+                      color: selectedMonthIndex == i ? cs.secondary : cs.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  String _getUnitLabel() {
+    switch (metric) {
+      case StatsMetric.cost:
+        return '€';
+      case StatsMetric.liters:
+        return 'L';
+      case StatsMetric.distance:
+        return 'km';
+      case StatsMetric.litersPer100km:
+        return 'L/100km';
+    }
   }
 }
 
@@ -872,7 +1018,7 @@ class _ConsumptionChart extends StatelessWidget {
       return Center(
         child: Text(
           l10n.chartNoData,
-          style: TextStyle(color: Colors.grey[600]),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.85)),
         ),
       );
     }
@@ -907,7 +1053,7 @@ class _ConsumptionChart extends StatelessWidget {
           leftTitles: AxisTitles(
             axisNameWidget: Padding(
               padding: const EdgeInsets.only(right: 8.0),
-              child: Text(l10n.chartAxisConsumption, style: TextStyle(color: cs.onSurfaceVariant.withValues(alpha: 0.78))),
+              child: Text(l10n.chartAxisConsumption, style: TextStyle(color: cs.onSurfaceVariant.withValues(alpha: 0.85))),
             ),
             axisNameSize: 22,
             sideTitles: SideTitles(
@@ -916,7 +1062,7 @@ class _ConsumptionChart extends StatelessWidget {
               getTitlesWidget: (value, meta) {
                 return Text(
                   value.toStringAsFixed(1),
-                  style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withValues(alpha: 0.78)),
+                  style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withValues(alpha: 0.85)),
                 );
               },
             ),
@@ -924,12 +1070,12 @@ class _ConsumptionChart extends StatelessWidget {
           bottomTitles: AxisTitles(
             axisNameWidget: Padding(
               padding: const EdgeInsets.only(top: 8.0),
-              child: Text(l10n.chartAxisDate, style: TextStyle(color: cs.onSurfaceVariant.withValues(alpha: 0.78))),
+              child: Text(l10n.chartAxisDate, softWrap: true, style: TextStyle(color: cs.onSurfaceVariant.withValues(alpha: 0.85))),
             ),
             axisNameSize: 22,
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 30,
+              reservedSize: 36,
               getTitlesWidget: (value, meta) {
                 final idx = value.toInt();
                 if (idx < 0 || idx >= consumptions.length) {
@@ -938,7 +1084,8 @@ class _ConsumptionChart extends StatelessWidget {
                 final date = consumptions[idx].date;
                 return Text(
                   DateFormat('dd/MM', locale).format(date),
-                  style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withValues(alpha: 0.78)),
+                  softWrap: true,
+                  style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant.withValues(alpha: 0.85)),
                 );
               },
             ),

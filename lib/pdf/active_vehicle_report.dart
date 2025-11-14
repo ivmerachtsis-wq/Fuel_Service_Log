@@ -280,6 +280,11 @@ class ActiveVehiclePdfReport {
           return r.liters;
         case StatsMetric.distance:
           return r.distanceKm;
+        case StatsMetric.litersPer100km:
+          // Compute L/100km for this month
+          return (r.distanceKm > 0 && r.liters > 0) 
+            ? (r.liters / r.distanceKm) * 100 
+            : 0.0;
       }
     }).toList();
 
@@ -307,6 +312,9 @@ class ActiveVehiclePdfReport {
         break;
       case StatsMetric.distance:
         metricLabel = 'Distance (km)';
+        break;
+      case StatsMetric.litersPer100km:
+        metricLabel = 'Consumption (L/100km)';
         break;
     }
 

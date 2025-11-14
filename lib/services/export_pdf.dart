@@ -10,9 +10,20 @@ import '../data/models/fuel_entry.dart';
 import '../data/models/service_entry.dart';
 import '../data/models/vehicle.dart';
 import '../data/models/driver.dart';
+import 'save_target_resolver.dart';
+import 'ui_prefs_service.dart';
 
 class ExportPdfService {
-  static Future<Directory> _ensureExportsDir() async {
+  final SaveTargetResolver _resolver;
+  final UiPrefs _prefs;
+
+  ExportPdfService({
+    SaveTargetResolver? resolver,
+    UiPrefs? prefs,
+  })  : _resolver = resolver ?? SaveTargetResolverProvider.instance,
+        _prefs = prefs ?? UiPrefsService();
+
+  Future<Directory> _ensureExportsDir() async {
     final dir = await getApplicationDocumentsDirectory();
     final exports = Directory(
       p.join(dir.path, 'FuelServiceLog', 'exports'),
@@ -21,16 +32,16 @@ class ExportPdfService {
     return exports;
   }
 
-  static String _timestamp() {
+  String _timestamp() {
     final now = DateTime.now();
     String two(int v) => v.toString().padLeft(2, '0');
     return '${now.year}${two(now.month)}${two(now.day)}_${two(now.hour)}${two(now.minute)}${two(now.second)}';
   }
 
-  static String fmtDate(DateTime d) => DateFormat('yyyy-MM-dd').format(d);
-  static String fmtNum(num? v, int dp) => v == null ? '' : v.toStringAsFixed(dp);
+  String fmtDate(DateTime d) => DateFormat('yyyy-MM-dd').format(d);
+  String fmtNum(num? v, int dp) => v == null ? '' : v.toStringAsFixed(dp);
 
-  static Future<File> exportFuelToPdf({
+  Future<File?> exportFuelToPdf({
     required String vehicleId,
     required List<FuelEntry> entries,
     required Vehicle? vehicle,
@@ -73,7 +84,17 @@ class ExportPdfService {
       ),
     );
 
-    final dir = await _ensureExportsDir();
+    final ask = _prefs.loadAskWhereToSave();
+    final defaultDir = await _ensureExportsDir();
+    final dir = await _resolver.resolveDirectory(
+      SaveKind.pdf,
+      ask: ask,
+      defaultDir: defaultDir,
+    );
+    if (dir == null) {
+      return null; // User cancelled
+    }
+
     final filePath = p.join(dir.path, 'fuel_${_timestamp()}.pdf');
     final file = File(filePath);
   final bytes = await doc.save();
@@ -81,7 +102,7 @@ class ExportPdfService {
     return file;
   }
 
-  static Future<File> exportServiceToPdf({
+  Future<File?> exportServiceToPdf({
     required String vehicleId,
     required List<ServiceEntry> entries,
     required Vehicle? vehicle,
@@ -122,7 +143,17 @@ class ExportPdfService {
       ),
     );
 
-    final dir = await _ensureExportsDir();
+    final ask = _prefs.loadAskWhereToSave();
+    final defaultDir = await _ensureExportsDir();
+    final dir = await _resolver.resolveDirectory(
+      SaveKind.pdf,
+      ask: ask,
+      defaultDir: defaultDir,
+    );
+    if (dir == null) {
+      return null; // User cancelled
+    }
+
     final filePath = p.join(dir.path, 'service_${_timestamp()}.pdf');
     final file = File(filePath);
   final bytes = await doc.save();
@@ -130,7 +161,7 @@ class ExportPdfService {
     return file;
   }
 
-  static pw.Widget _buildHeader({required String title, required DateTime createdAt}) {
+  pw.Widget _buildHeader({required String title, required DateTime createdAt}) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
@@ -143,7 +174,7 @@ class ExportPdfService {
     );
   }
 
-  static pw.Widget _buildMetadata({required Vehicle? vehicle, required Driver? driver}) {
+  pw.Widget _buildMetadata({required Vehicle? vehicle, required Driver? driver}) {
     final vehicleStr = vehicle == null ? '-' : [vehicle.title, if ((vehicle.plate ?? '').isNotEmpty) '(${vehicle.plate})'].join(' ');
     final driverStr = driver?.name ?? '-';
 
@@ -168,7 +199,7 @@ class ExportPdfService {
     );
   }
 
-  static pw.Widget _buildSummary({
+  pw.Widget _buildSummary({
     required int count,
     required num? totalLiters,
     required num totalAmount,
@@ -190,7 +221,7 @@ class ExportPdfService {
     );
   }
 
-  static pw.Widget _buildFuelTable(List<FuelEntry> entries) {
+  pw.Widget _buildFuelTable(List<FuelEntry> entries) {
     final headers = ['Date', 'Odometer', 'Liters', 'Price/L', 'Amount', 'Currency', 'Notes'];
     final data = entries.map((e) {
       final notes = (e.notes ?? '').trim();
@@ -241,7 +272,7 @@ class ExportPdfService {
     );
   }
 
-  static pw.Widget _buildServiceTable(List<ServiceEntry> entries) {
+  pw.Widget _buildServiceTable(List<ServiceEntry> entries) {
     final headers = ['Date', 'Odometer', 'Description', 'Amount', 'Currency', 'Notes'];
     final data = entries.map((e) {
       final notes = (e.notes ?? '').trim();

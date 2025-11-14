@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:fuel_service_log/data/models/vehicle.dart';
 import 'package:fuel_service_log/l10n/app_localizations.dart';
+import 'package:fuel_service_log/state/settings_controller.dart';
+import 'package:fuel_service_log/ui/widgets/currency_picker_field.dart';
 
 /// Dialog for adding or editing a vehicle
 class VehicleFormDialog extends StatefulWidget {
   final Vehicle? vehicle; // null for add, non-null for edit
+  final SettingsController settings;
 
-  const VehicleFormDialog({super.key, this.vehicle});
+  const VehicleFormDialog({super.key, this.vehicle, required this.settings});
 
   @override
   State<VehicleFormDialog> createState() => _VehicleFormDialogState();
@@ -16,21 +19,20 @@ class _VehicleFormDialogState extends State<VehicleFormDialog> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _plateController;
-  late TextEditingController _currencyController;
+  late String _selectedCurrency;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.vehicle?.title ?? '');
     _plateController = TextEditingController(text: widget.vehicle?.plate ?? '');
-    _currencyController = TextEditingController(text: widget.vehicle?.currencyCode ?? '');
+    _selectedCurrency = widget.vehicle?.currencyCode ?? widget.settings.currencyCode;
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _plateController.dispose();
-    _currencyController.dispose();
     super.dispose();
   }
 
@@ -67,7 +69,7 @@ class _VehicleFormDialogState extends State<VehicleFormDialog> {
         id: widget.vehicle?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
         title: _nameController.text.trim(),
         plate: _plateController.text.trim().isEmpty ? null : _plateController.text.trim(),
-        currencyCode: _currencyController.text.trim().toUpperCase(),
+        currencyCode: _selectedCurrency,
         active: widget.vehicle?.active ?? true,
       );
       Navigator.of(context).pop(vehicle);
@@ -104,16 +106,15 @@ class _VehicleFormDialogState extends State<VehicleFormDialog> {
               ),
             ),
             const SizedBox(height: 16),
-            TextFormField(
-              controller: _currencyController,
+            CurrencyPickerField(
+              value: _selectedCurrency,
+              onChanged: (value) => setState(() => _selectedCurrency = value),
+              validator: _validateCurrency,
               decoration: InputDecoration(
                 labelText: l10n.vehicle_currency,
                 border: const OutlineInputBorder(),
                 hintText: 'EUR',
               ),
-              validator: _validateCurrency,
-              textCapitalization: TextCapitalization.characters,
-              maxLength: 3,
             ),
           ],
         ),

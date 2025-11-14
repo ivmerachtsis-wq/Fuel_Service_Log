@@ -287,6 +287,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filterDateRange => 'Date range';
 
   @override
+  String get filtersVehicleActive => 'Active vehicle';
+
+  @override
+  String get filtersVehicleAll => 'All vehicles';
+
+  @override
+  String get filtersAllEntries => 'All entries';
+
+  @override
   String get range3m => 'Last 3 months';
 
   @override
@@ -417,4 +426,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get optional => 'optional';
+
+  @override
+  String get metric_eur => '€';
+
+  @override
+  String get metric_liters => 'L';
+
+  @override
+  String get metric_km => 'km';
+
+  @override
+  String get metric_l_per_100km => 'L/100km';
 }

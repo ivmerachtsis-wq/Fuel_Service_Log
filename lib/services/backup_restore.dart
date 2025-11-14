@@ -9,8 +9,19 @@ import '../data/models/vehicle.dart';
 import '../data/models/driver.dart';
 import '../data/models/fuel_entry.dart';
 import '../data/models/service_entry.dart';
+import 'save_target_resolver.dart';
+import 'ui_prefs_service.dart';
 
 class BackupRestoreService {
+  final SaveTargetResolver _resolver;
+  final UiPrefs _prefs;
+
+  BackupRestoreService({
+    SaveTargetResolver? resolver,
+    UiPrefs? prefs,
+  })  : _resolver = resolver ?? SaveTargetResolverProvider.instance,
+        _prefs = prefs ?? UiPrefsService();
+
   Future<Directory> _ensureBackupsDir() async {
     final dir = await getApplicationDocumentsDirectory();
     final backups = Directory('${dir.path}${Platform.pathSeparator}FuelServiceLog${Platform.pathSeparator}backups');
@@ -26,7 +37,16 @@ class BackupRestoreService {
 
   Future<File?> exportToJson() async {
     try {
-      final dir = await _ensureBackupsDir();
+      final ask = _prefs.loadAskWhereToSave();
+      final defaultDir = await _ensureBackupsDir();
+      final dir = await _resolver.resolveDirectory(
+        SaveKind.backup,
+        ask: ask,
+        defaultDir: defaultDir,
+      );
+      if (dir == null) {
+        return null; // User cancelled
+      }
 
     final vehicles = Hive.box<Vehicle>('vehicles').values.map((v) => {
           'id': v.id,

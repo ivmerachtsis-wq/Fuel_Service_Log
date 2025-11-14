@@ -6,10 +6,20 @@ import 'package:path_provider/path_provider.dart';
 
 import '../data/repo/fuel_repo.dart';
 import '../data/repo/service_repo.dart';
+import 'save_target_resolver.dart';
+import 'ui_prefs_service.dart';
 
 class ExportCsvService {
   final _fuelRepo = FuelRepo();
   final _serviceRepo = ServiceRepo();
+  final SaveTargetResolver _resolver;
+  final UiPrefs _prefs;
+
+  ExportCsvService({
+    SaveTargetResolver? resolver,
+    UiPrefs? prefs,
+  })  : _resolver = resolver ?? SaveTargetResolverProvider.instance,
+        _prefs = prefs ?? UiPrefsService();
 
   Future<Directory> _ensureExportsDir() async {
     final dir = await getApplicationDocumentsDirectory();
@@ -26,8 +36,18 @@ class ExportCsvService {
     return '${now.year}${two(now.month)}${two(now.day)}_${two(now.hour)}${two(now.minute)}${two(now.second)}';
   }
 
-  Future<File> exportFuelToCsv(String vehicleId) async {
-    final dir = await _ensureExportsDir();
+  Future<File?> exportFuelToCsv(String vehicleId) async {
+    final ask = _prefs.loadAskWhereToSave();
+    final defaultDir = await _ensureExportsDir();
+    final dir = await _resolver.resolveDirectory(
+      SaveKind.csv,
+      ask: ask,
+      defaultDir: defaultDir,
+    );
+    if (dir == null) {
+      return null; // User cancelled
+    }
+
     final entries = _fuelRepo.listByVehicle(vehicleId);
     final rows = <List<dynamic>>[];
     
@@ -75,8 +95,18 @@ class ExportCsvService {
     return file;
   }
 
-  Future<File> exportServiceToCsv(String vehicleId) async {
-    final dir = await _ensureExportsDir();
+  Future<File?> exportServiceToCsv(String vehicleId) async {
+    final ask = _prefs.loadAskWhereToSave();
+    final defaultDir = await _ensureExportsDir();
+    final dir = await _resolver.resolveDirectory(
+      SaveKind.csv,
+      ask: ask,
+      defaultDir: defaultDir,
+    );
+    if (dir == null) {
+      return null; // User cancelled
+    }
+
     final entries = _serviceRepo.listByVehicle(vehicleId);
     final rows = <List<dynamic>>[];
     

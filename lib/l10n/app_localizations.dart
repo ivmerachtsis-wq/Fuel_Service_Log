@@ -647,6 +647,24 @@ abstract class AppLocalizations {
   /// **'Date range'**
   String get filterDateRange;
 
+  /// No description provided for @filtersVehicleActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active vehicle'**
+  String get filtersVehicleActive;
+
+  /// No description provided for @filtersVehicleAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All vehicles'**
+  String get filtersVehicleAll;
+
+  /// No description provided for @filtersAllEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'All entries'**
+  String get filtersAllEntries;
+
   /// No description provided for @range3m.
   ///
   /// In en, this message translates to:
@@ -910,6 +928,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'optional'**
   String get optional;
+
+  /// No description provided for @metric_eur.
+  ///
+  /// In en, this message translates to:
+  /// **'€'**
+  String get metric_eur;
+
+  /// No description provided for @metric_liters.
+  ///
+  /// In en, this message translates to:
+  /// **'L'**
+  String get metric_liters;
+
+  /// No description provided for @metric_km.
+  ///
+  /// In en, this message translates to:
+  /// **'km'**
+  String get metric_km;
+
+  /// No description provided for @metric_l_per_100km.
+  ///
+  /// In en, this message translates to:
+  /// **'L/100km'**
+  String get metric_l_per_100km;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -287,6 +287,15 @@ class AppLocalizationsEl extends AppLocalizations {
   String get filterDateRange => 'Χρονικό εύρος';
 
   @override
+  String get filtersVehicleActive => 'Ενεργό όχημα';
+
+  @override
+  String get filtersVehicleAll => 'Όλα τα οχήματα';
+
+  @override
+  String get filtersAllEntries => 'Όλες οι εγγραφές';
+
+  @override
   String get range3m => 'Τελευταίοι 3 μήνες';
 
   @override
@@ -417,4 +426,16 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get optional => 'προαιρετικό';
+
+  @override
+  String get metric_eur => '€';
+
+  @override
+  String get metric_liters => 'L';
+
+  @override
+  String get metric_km => 'χλμ';
+
+  @override
+  String get metric_l_per_100km => 'L/100χλμ';
 }
