@@ -1,3 +1,17 @@
+## v1.4.0 — 2025-11-14
+**Highlights**
+- **Android/Windows parity**: Unified multi-tab shell (Fuel / Service / Stats / Vehicles / Settings) on both platforms
+- **Vehicles tab**: List all vehicles with active toggle (tap to set active)
+- **Form UX**: Auto-generated IDs (no manual entry), shared currency picker (searchable), shared date picker (platform native), vehicle selector shows all vehicles (defaults to active)
+- **Settings clarification**: Global currency label updates reflect scope
+
+**Technical**
+- New utility: `id_generator.dart` (timestamp + random suffix)
+- New shared widgets: `DatePickerField`, reused `CurrencyPickerField`
+- Desktop: NavigationRail with 5 destinations
+- Mobile: BottomNavigationBar with 5 items
+- Quality: 163 tests passing; 2 info-level deprecations (acceptable)
+
 ## v1.3.0 — 2025-11-14
 **Highlights**
 - UX polish in Settings > Vehicles (no endless loader, active vehicle badge)
