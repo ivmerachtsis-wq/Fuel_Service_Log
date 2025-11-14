@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../data/models/vehicle.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../l10n/app_localizations.dart';
+import '../../state/active_vehicle_controller.dart';
 
 class VehiclesTab extends StatelessWidget {
   const VehiclesTab({super.key});
@@ -9,6 +10,8 @@ class VehiclesTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final activeController = ActiveVehicleController();
+    
     return ValueListenableBuilder<Box<Vehicle>>(
       valueListenable: Hive.box<Vehicle>('vehicles').listenable(),
       builder: (context, box, _) {
@@ -29,7 +32,10 @@ class VehiclesTab extends StatelessWidget {
                 subtitle: Text(v.plate ?? ''),
                 trailing: active ? const Icon(Icons.star, color: Colors.amber) : null,
                 onTap: () async {
-                  // Toggle active vehicle: set this one active, others false
+                  // Update single source of truth via ActiveVehicleController
+                  await activeController.setActiveVehicleId(v.id);
+                  
+                  // Toggle active vehicle: set this one active, others false (for backwards compat with Vehicle.active field)
                   final all = box.values.toList();
                   for (final existing in all) {
                     final shouldBeActive = existing.id == v.id;
