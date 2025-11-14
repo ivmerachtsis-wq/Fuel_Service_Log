@@ -168,9 +168,11 @@ class _SettingsTabState extends State<SettingsTab> {
         ),
         const Divider(),
         
+        // Global app currency preference (limited set intentionally; vehicles use full picker)
         ListTile(
           leading: const Icon(Icons.payments),
           title: Text(l10n.currency),
+          subtitle: const Text('Global default for new entries / vehicles'),
           trailing: DropdownButton<String>(
             value: widget.settings.currencyCode,
             items: [
