@@ -145,4 +145,8 @@
 	,"error_required": "Υποχρεωτικό πεδίο"
 	,"error_currency3": "Χρησιμοποίησε 3-γράμματα κωδικό νομίσματος (π.χ. EUR)"
 	,"optional": "προαιρετικό"
+	,"metric_eur": "€"
+	,"metric_liters": "L"
+	,"metric_km": "χλμ"
+	,"metric_l_per_100km": "L/100χλμ"
 }

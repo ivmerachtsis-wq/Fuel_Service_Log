@@ -584,12 +584,13 @@ class _StatsTabState extends State<StatsTab> {
                 widget.statsFilterController.setFilter(newFilter);
               },
             ),
-            // Day 11: Metric toggle (Cost / Liters / Distance)
+            // Metric toggle (Cost / Liters / Distance / L/100km) - localized
             SegmentedButton<StatsMetric>(
-              segments: const [
-                ButtonSegment(value: StatsMetric.cost, label: Text('€'), icon: Icon(Icons.euro, size: 16)),
-                ButtonSegment(value: StatsMetric.liters, label: Text('L'), icon: Icon(Icons.local_gas_station, size: 16)),
-                ButtonSegment(value: StatsMetric.distance, label: Text('km'), icon: Icon(Icons.route, size: 16)),
+              segments: [
+                ButtonSegment(value: StatsMetric.cost, label: Text(l10n.metric_eur), icon: const Icon(Icons.euro, size: 16)),
+                ButtonSegment(value: StatsMetric.liters, label: Text(l10n.metric_liters), icon: const Icon(Icons.local_gas_station, size: 16)),
+                ButtonSegment(value: StatsMetric.distance, label: Text(l10n.metric_km), icon: const Icon(Icons.route, size: 16)),
+                ButtonSegment(value: StatsMetric.litersPer100km, label: Text(l10n.metric_l_per_100km), icon: const Icon(Icons.speed, size: 16)),
               ],
               selected: {widget.statsFilterController.metric},
               onSelectionChanged: (Set<StatsMetric> newSelection) {
@@ -720,6 +721,22 @@ class _MonthlyCostBarChart extends StatelessWidget {
             serviceMonth: monthService,
           );
           values.add(dist);
+        case StatsMetric.litersPer100km:
+          // Compute L/100km for this month
+          final monthFuel = windowFuel.where((e) => 
+            e.date.year == bucket.month.year && e.date.month == bucket.month.month
+          ).toList();
+          final monthService = windowService.where((e) => 
+            e.date.year == bucket.month.year && e.date.month == bucket.month.month
+          ).toList();
+          final dist = estimateMonthlyDistanceKm(
+            fuelMonth: monthFuel,
+            serviceMonth: monthService,
+          );
+          final consumption = (dist > 0 && bucket.liters > 0) 
+            ? (bucket.liters / dist) * 100 
+            : 0.0;
+          values.add(consumption);
       }
     }
 
@@ -766,6 +783,8 @@ class _MonthlyCostBarChart extends StatelessWidget {
         unitLabel = 'L';
       case StatsMetric.distance:
         unitLabel = 'km';
+      case StatsMetric.litersPer100km:
+        unitLabel = 'L/100km';
     }
 
     return Column(
@@ -797,7 +816,9 @@ class _MonthlyCostBarChart extends StatelessWidget {
                     if (metric == StatsMetric.cost) {
                       formattedValue = formatCurrency(value, currencyCode: currencyCode, context: context);
                     } else {
-                      formattedValue = '${value.toStringAsFixed(metric == StatsMetric.distance ? 0 : 1)} $unitLabel';
+                      // Show no decimals for distance (km), 1 decimal for liters and L/100km
+                      final decimals = metric == StatsMetric.distance ? 0 : 1;
+                      formattedValue = '${value.toStringAsFixed(decimals)} $unitLabel';
                     }
                     return BarTooltipItem(
                       '$monthLabel – $formattedValue',
@@ -862,7 +883,8 @@ class _MonthlyCostBarChart extends StatelessWidget {
         Text(
           metric == StatsMetric.cost ? '${l10n.tabFuel} + ${l10n.tabService}' :
           metric == StatsMetric.liters ? 'Fuel (L)' :
-          'Distance (km)',
+          metric == StatsMetric.distance ? 'Distance (km)' :
+          'Consumption (L/100km)',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             fontSize: 12,
             color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.85),

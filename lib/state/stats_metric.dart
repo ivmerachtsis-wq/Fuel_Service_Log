@@ -1,1 +1,1 @@
-enum StatsMetric { cost, liters, distance }
+enum StatsMetric { cost, liters, distance, litersPer100km }

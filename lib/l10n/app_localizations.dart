@@ -928,6 +928,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'optional'**
   String get optional;
+
+  /// No description provided for @metric_eur.
+  ///
+  /// In en, this message translates to:
+  /// **'€'**
+  String get metric_eur;
+
+  /// No description provided for @metric_liters.
+  ///
+  /// In en, this message translates to:
+  /// **'L'**
+  String get metric_liters;
+
+  /// No description provided for @metric_km.
+  ///
+  /// In en, this message translates to:
+  /// **'km'**
+  String get metric_km;
+
+  /// No description provided for @metric_l_per_100km.
+  ///
+  /// In en, this message translates to:
+  /// **'L/100km'**
+  String get metric_l_per_100km;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

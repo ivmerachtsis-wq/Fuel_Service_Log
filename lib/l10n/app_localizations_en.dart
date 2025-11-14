@@ -426,4 +426,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get optional => 'optional';
+
+  @override
+  String get metric_eur => '€';
+
+  @override
+  String get metric_liters => 'L';
+
+  @override
+  String get metric_km => 'km';
+
+  @override
+  String get metric_l_per_100km => 'L/100km';
 }

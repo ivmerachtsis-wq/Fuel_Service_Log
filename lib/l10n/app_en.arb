@@ -145,4 +145,8 @@
 	,"error_required": "This field is required"
 	,"error_currency3": "Use a 3-letter currency code (e.g., EUR)"
 	,"optional": "optional"
+	,"metric_eur": "€"
+	,"metric_liters": "L"
+	,"metric_km": "km"
+	,"metric_l_per_100km": "L/100km"
 }
