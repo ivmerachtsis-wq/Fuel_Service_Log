@@ -1,3 +1,14 @@
+## v1.4.1 — 2025-11-16
+**Highlights**
+- **Reactive active vehicle**: Fuel/Service tabs now update immediately when active vehicle changes in Vehicles tab
+- **Bug fixes**: Fixed 4 failing tests in settings (Hive box initialization)
+
+**Technical**
+- Enhanced `ActiveVehicleController` with `ValueNotifier<String?>` for reactive UI updates
+- FuelTab & ServiceTab wrapped in `ValueListenableBuilder` to listen for active vehicle changes
+- Test infrastructure: Proper Hive box lifecycle (ui_prefs + typed boxes) in test setUp/tearDown
+- Quality: 162 tests passing; 2 info-level deprecations (acceptable)
+
 ## v1.4.0 — 2025-11-14
 **Highlights**
 - **Android/Windows parity**: Unified multi-tab shell (Fuel / Service / Stats / Vehicles / Settings) on both platforms

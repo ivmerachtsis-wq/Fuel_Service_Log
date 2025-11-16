@@ -10,6 +10,10 @@ import 'package:hive/hive.dart';
 import 'dart:io';
 import '../fakes/fake_save_target_resolver.dart';
 import '../test_channel_mocks.dart';
+import 'package:fuel_service_log/data/models/vehicle.dart';
+import 'package:fuel_service_log/data/models/driver.dart';
+import 'package:fuel_service_log/data/models/fuel_entry.dart';
+import 'package:fuel_service_log/data/models/service_entry.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -34,8 +38,38 @@ void main() {
       final testDir = '${Directory.systemTemp.path}/hive_test_${DateTime.now().millisecondsSinceEpoch}';
       Hive.init(testDir);
       
+      // Register adapters for all model types needed by SettingsTab
+      if (!Hive.isAdapterRegistered(0)) {
+        Hive.registerAdapter(VehicleAdapter());
+      }
+      if (!Hive.isAdapterRegistered(1)) {
+        Hive.registerAdapter(DriverAdapter());
+      }
+      if (!Hive.isAdapterRegistered(2)) {
+        Hive.registerAdapter(FuelEntryAdapter());
+      }
+      if (!Hive.isAdapterRegistered(3)) {
+        Hive.registerAdapter(ServiceEntryAdapter());
+      }
+      
+      // Open all boxes that SettingsTab might access (especially in PDF export handlers)
       if (!Hive.isBoxOpen('settings')) {
         await Hive.openBox('settings');
+      }
+      if (!Hive.isBoxOpen('ui_prefs')) {
+        await Hive.openBox('ui_prefs');
+      }
+      if (!Hive.isBoxOpen('vehicles')) {
+        await Hive.openBox<Vehicle>('vehicles');
+      }
+      if (!Hive.isBoxOpen('drivers')) {
+        await Hive.openBox<Driver>('drivers');
+      }
+      if (!Hive.isBoxOpen('fuel_entries')) {
+        await Hive.openBox<FuelEntry>('fuel_entries');
+      }
+      if (!Hive.isBoxOpen('service_entries')) {
+        await Hive.openBox<ServiceEntry>('service_entries');
       }
       
       settingsController = SettingsController();
@@ -45,10 +79,32 @@ void main() {
     tearDown(() async {
       fakeResolver.reset();
       
+      // Close all opened boxes
       if (Hive.isBoxOpen('settings')) {
         await Hive.box('settings').clear();
         await Hive.box('settings').close();
       }
+      if (Hive.isBoxOpen('ui_prefs')) {
+        await Hive.box('ui_prefs').clear();
+        await Hive.box('ui_prefs').close();
+      }
+      if (Hive.isBoxOpen('vehicles')) {
+        await Hive.box<Vehicle>('vehicles').clear();
+        await Hive.box<Vehicle>('vehicles').close();
+      }
+      if (Hive.isBoxOpen('drivers')) {
+        await Hive.box<Driver>('drivers').clear();
+        await Hive.box<Driver>('drivers').close();
+      }
+      if (Hive.isBoxOpen('fuel_entries')) {
+        await Hive.box<FuelEntry>('fuel_entries').clear();
+        await Hive.box<FuelEntry>('fuel_entries').close();
+      }
+      if (Hive.isBoxOpen('service_entries')) {
+        await Hive.box<ServiceEntry>('service_entries').clear();
+        await Hive.box<ServiceEntry>('service_entries').close();
+      }
+      
       await Hive.deleteFromDisk();
       
       // Reset resolver to production impl
