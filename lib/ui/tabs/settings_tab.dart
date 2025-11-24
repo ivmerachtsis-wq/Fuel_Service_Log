@@ -13,7 +13,6 @@ import '../../services/ui_prefs_service.dart';
 import '../../services/save_target_resolver.dart';
 import '../../data/repo/fuel_repo.dart';
 import '../../data/repo/service_repo.dart';
-import '../../data/repo/vehicle_repo.dart';
 import '../../state/active_vehicle_controller.dart';
 import '../../state/settings_controller.dart';
 import '../../l10n/app_localizations.dart';
@@ -26,8 +25,6 @@ import '../../features/exports/pdf/active_vehicle_report.dart';
 import '../../state/stats_cache_provider.dart';
 import '../../features/stats/stats_cache.dart';
 import 'package:open_filex/open_filex.dart';
-import '../widgets/vehicle_form_dialog.dart';
-import 'dart:async';
 
 class SettingsTab extends StatefulWidget {
   final SettingsController settings;
@@ -46,10 +43,6 @@ class SettingsTab extends StatefulWidget {
 class _SettingsTabState extends State<SettingsTab> {
   late final UiPrefs _uiPrefs;
   bool _askWhereToSave = false;
-  String? _activeVehicleId;
-  bool _vehiclesInitialWaitDone = false;
-  Timer? _vehiclesWaitTimer;
-  late final VehicleRepo _vehicleRepo = VehicleRepo();
 
   @override
   void initState() {
@@ -60,19 +53,11 @@ class _SettingsTabState extends State<SettingsTab> {
     _loadPrefs();
   }
 
-  @override
-  void dispose() {
-    _vehiclesWaitTimer?.cancel();
-    super.dispose();
-  }
-
   void _loadPrefs() {
     final ask = _uiPrefs.loadAskWhereToSave();
-    final activeId = _uiPrefs.loadActiveVehicleId();
     if (mounted) {
       setState(() {
         _askWhereToSave = ask;
-        _activeVehicleId = activeId;
       });
     }
   }
@@ -101,9 +86,6 @@ class _SettingsTabState extends State<SettingsTab> {
           title: Text(l10n.settingsTitle),
           subtitle: Text(l10n.settingsGeneral),
         ),
-        const Divider(),
-        // Vehicles Section
-        _buildVehiclesSection(context, l10n),
         const Divider(),
         // Appearance Section
         ListTile(
@@ -577,208 +559,6 @@ class _SettingsTabState extends State<SettingsTab> {
 
   static void _showSnack(BuildContext context, String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-  }
-
-  /// Build the Vehicles CRUD section
-  Widget _buildVehiclesSection(BuildContext context, AppLocalizations l10n) {
-    // Brief loading then empty state if vehicles box isn't open
-    if (!Hive.isBoxOpen('vehicles')) {
-      _vehiclesWaitTimer ??= Timer(const Duration(milliseconds: 500), () {
-        if (mounted) setState(() => _vehiclesInitialWaitDone = true);
-      });
-      if (!_vehiclesInitialWaitDone) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            children: const [
-              SizedBox(width: 16),
-              SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
-              SizedBox(width: 8),
-              Text('Loading vehicles...'),
-            ],
-          ),
-        );
-      }
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ListTile(
-            leading: const Icon(Icons.directions_car),
-            title: Text(l10n.settings_vehicles),
-            subtitle: const Text('No vehicles'),
-            trailing: IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () => _showVehicleDialog(context, _vehicleRepo, null),
-            ),
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text('No vehicles'),
-          ),
-        ],
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ListTile(
-          leading: const Icon(Icons.directions_car),
-          title: Text(l10n.settings_vehicles),
-          subtitle: Text(l10n.vehicle_add),
-          trailing: IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => _showVehicleDialog(context, _vehicleRepo, null),
-          ),
-        ),
-        ValueListenableBuilder<Box<Vehicle>>(
-          valueListenable: Hive.box<Vehicle>('vehicles').listenable(),
-          builder: (context, box, _) {
-            final vehicles = box.values.toList();
-            if (vehicles.isEmpty) {
-              return const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Text('No vehicles'),
-              );
-            }
-            return ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: vehicles.length,
-              itemBuilder: (context, index) {
-                final vehicle = vehicles[index];
-                final isActive = vehicle.id == _activeVehicleId;
-                return ListTile(
-                  leading: isActive
-                      ? const Icon(Icons.check_circle, color: Colors.green)
-                      : const Icon(Icons.directions_car),
-                  title: Row(
-                    children: [
-                      Expanded(child: Text(vehicle.title)),
-                      if (isActive)
-                        const Padding(
-                          padding: EdgeInsets.only(left: 8),
-                          child: Chip(label: Text('Active'), visualDensity: VisualDensity.compact),
-                        ),
-                    ],
-                  ),
-                  subtitle: Text('${vehicle.plate ?? '-'} • ${vehicle.currencyCode ?? '-'}'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      PopupMenuButton<String>(
-                        onSelected: (value) {
-                          if (value == 'setActive') {
-                            _setActiveVehicle(vehicle);
-                          }
-                        },
-                        itemBuilder: (context) => const [
-                          PopupMenuItem(value: 'setActive', child: Text('Set Active')),
-                        ],
-                        icon: const Icon(Icons.more_vert),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () => _showVehicleDialog(context, _vehicleRepo, vehicle),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => _deleteVehicle(context, _vehicleRepo, vehicle, l10n),
-                      ),
-                    ],
-                  ),
-                  onLongPress: () => _setActiveVehicle(vehicle),
-                );
-              },
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Future<void> _setActiveVehicle(Vehicle v) async {
-    try {
-      await _uiPrefs.saveActiveVehicleId(v.id);
-      if (!mounted) return;
-      setState(() => _activeVehicleId = v.id);
-      if (Hive.isBoxOpen('vehicles')) {
-        final box = Hive.box<Vehicle>('vehicles');
-        for (final existing in box.values) {
-          final shouldBeActive = existing.id == v.id;
-          if (existing.active != shouldBeActive) {
-            final updated = Vehicle(
-              id: existing.id,
-              title: existing.title,
-              plate: existing.plate,
-              active: shouldBeActive,
-              currencyCode: existing.currencyCode,
-            );
-            await box.put(existing.id, updated);
-          }
-        }
-      }
-    } catch (e) {
-      if (!mounted) return;
-      _showSnack(context, 'Failed to set active: $e');
-    }
-  }
-
-  Future<void> _showVehicleDialog(BuildContext context, VehicleRepo repo, Vehicle? vehicle) async {
-    final result = await showDialog<Vehicle>(
-      context: context,
-      builder: (context) => VehicleFormDialog(vehicle: vehicle, settings: widget.settings),
-    );
-    
-    if (result != null) {
-      if (vehicle == null) {
-        // Add new vehicle
-        await repo.add(result);
-      } else {
-        // Update existing vehicle
-        await repo.update(result);
-      }
-    }
-  }
-
-  Future<void> _deleteVehicle(BuildContext context, VehicleRepo repo, Vehicle vehicle, AppLocalizations l10n) async {
-    // Show confirmation dialog
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.vehicle_delete),
-        content: Text('${l10n.vehicle_delete_confirm}\n\n${vehicle.title}'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.vehicle_cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.vehicle_delete),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && context.mounted) {
-      await repo.delete(vehicle.id);
-      
-      // Show SnackBar with Undo
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${vehicle.title} ${l10n.vehicle_deleted_undo}'),
-          action: SnackBarAction(
-            label: l10n.actionUndo,
-            onPressed: () async {
-              await repo.add(vehicle);
-            },
-          ),
-          duration: const Duration(seconds: 5),
-        ),
-      );
-    }
   }
 }
 

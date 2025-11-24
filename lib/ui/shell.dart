@@ -23,14 +23,15 @@ class Shell extends StatelessWidget {
       animation: controller,
       builder: (context, _) {
         final index = controller.index;
-        return Scaffold(
-          appBar: AppBar(title: Text(l10n.appTitle)),
-          body: LayoutBuilder(builder: (context, constraints) {
-            final wide = constraints.maxWidth > 900;
-            final content = _buildContent(index);
+        return LayoutBuilder(builder: (context, constraints) {
+          final wide = constraints.maxWidth > 900;
+          final content = _buildContent(index);
 
-            if (wide) {
-              return Row(
+          if (wide) {
+            // Desktop: NavigationRail + AppBar
+            return Scaffold(
+              appBar: AppBar(title: Text(l10n.appTitle)),
+              body: Row(
                 children: [
                   NavigationRail(
                     extended: constraints.maxWidth > 1100,
@@ -47,25 +48,27 @@ class Shell extends StatelessWidget {
                   const VerticalDivider(width: 1),
                   Expanded(child: content),
                 ],
-              );
-            }
-
-            return Scaffold(
-              body: content,
-              bottomNavigationBar: BottomNavigationBar(
-                currentIndex: index,
-                onTap: (i) => controller.index = i,
-                items: [
-                  BottomNavigationBarItem(icon: const Icon(Icons.local_gas_station), label: l10n.tabFuel),
-                  BottomNavigationBarItem(icon: const Icon(Icons.build), label: l10n.tabService),
-                  BottomNavigationBarItem(icon: const Icon(Icons.insights), label: l10n.tabStats),
-                  BottomNavigationBarItem(icon: const Icon(Icons.directions_car), label: l10n.tabVehicles),
-                  BottomNavigationBarItem(icon: const Icon(Icons.settings), label: l10n.tabSettings),
-                ],
               ),
             );
-          }),
-        );
+          }
+
+          // Mobile: BottomNavigationBar + AppBar
+          return Scaffold(
+            appBar: AppBar(title: Text(l10n.appTitle)),
+            body: content,
+            bottomNavigationBar: BottomNavigationBar(
+              currentIndex: index,
+              onTap: (i) => controller.index = i,
+              items: [
+                BottomNavigationBarItem(icon: const Icon(Icons.local_gas_station), label: l10n.tabFuel),
+                BottomNavigationBarItem(icon: const Icon(Icons.build), label: l10n.tabService),
+                BottomNavigationBarItem(icon: const Icon(Icons.insights), label: l10n.tabStats),
+                BottomNavigationBarItem(icon: const Icon(Icons.directions_car), label: l10n.tabVehicles),
+                BottomNavigationBarItem(icon: const Icon(Icons.settings), label: l10n.tabSettings),
+              ],
+            ),
+          );
+        });
       },
     );
   }
